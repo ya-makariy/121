@@ -1,6 +1,6 @@
 import { classes, html, type Raw } from "../html.ts";
 import { layout } from "../layout.ts";
-import { dict, format, pluralForm } from "../../i18n/index.ts";
+import { dict, format, plural, pluralForm } from "../../i18n/index.ts";
 import type { Locale } from "../../db/types.ts";
 import type { CadenceOverview, PersonCadence } from "../../db/queries/cadence.ts";
 import type { CadenceStatus } from "../../domain/cadence.ts";
@@ -55,7 +55,9 @@ function personRow(
           ? html`<span class="small muted"> · ${t.dashboard.scheduled}</span>`
           : ""}
         ${p.open_actions > 0
-          ? html`<span class="small muted"> · ${p.open_actions} ${t.actions.title.toLowerCase()}</span>`
+          ? html`<span class="small muted"> · ${
+              plural(locale, p.open_actions, t.dashboard.openActionForms)
+            }</span>`
           : ""}
       </span>
       ${joinLink(p.meeting_url, locale, { short: true })}
