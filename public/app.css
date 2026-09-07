@@ -29,6 +29,17 @@
   /* Type scale: the whole ramp the app uses, from the smallest badge to h1. */
   --fs-xs: 12px; --fs-sm: 13px; --fs-md: 14px;
   --fs-base: 15px; --fs-lg: 17px; --fs-xl: 25px;
+
+  /* The categorical palette from the data-visualization guidance: eight slots in a fixed
+     order. A slot belongs to a person, never to their place in a ranking. */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #008300;
+  --series-7: #4a3aa7;
+  --series-8: #e34948;
 }
 
 * { box-sizing: border-box; }
@@ -213,6 +224,12 @@ button.link {
 }
 
 /* ---------- charts ---------- */
+/* A fixed height, not a min-height: Chart.js runs with maintainAspectRatio false and
+   measures this box to size the canvas, so with min-height alone the box would take its
+   height from the canvas it is supposed to be sizing. That circle has no authoritative
+   value and drifts as soon as anything else adds to the box (padding, a stray line box):
+   measured, min-height alone gives a 276px box around a 260px canvas. `height` keeps the
+   plot area exactly 260px on /people/:id and /compare. */
 .chart-wrap { position: relative; height: 260px; }
 .chart-note { font-size: var(--fs-xs); color: var(--muted); margin-top: var(--s-3); }
 
@@ -320,19 +337,6 @@ pre.md {
 .headline strong { color: var(--text); font-variant-numeric: tabular-nums; }
 
 /* ---------- comparing people ---------- */
-/* The categorical palette from the data-visualization guidance: eight slots in a fixed
-   order. A slot belongs to a person, never to their place in a ranking. */
-:root {
-  --series-1: #2a78d6;
-  --series-2: #eb6834;
-  --series-3: #1baf7a;
-  --series-4: #eda100;
-  --series-5: #e87ba4;
-  --series-6: #008300;
-  --series-7: #4a3aa7;
-  --series-8: #e34948;
-}
-
 .standing-value {
   font-variant-numeric: tabular-nums;
   font-weight: 700;
@@ -354,7 +358,6 @@ pre.md {
 .swatch {
   width: 10px; height: 10px; border-radius: 2px; display: inline-block; flex: none;
 }
-.chart-wrap { min-height: 260px; }
 
 /* ---------- template builder ---------- */
 .section-card {
