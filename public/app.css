@@ -1,4 +1,20 @@
+/* ================================================================
+   Two surfaces, one token layer.
+
+   The bare :root below is the complete light theme: every colour the stylesheet uses has
+   a value here and nowhere else. The dark branch further down only *redefines* those same
+   names — it never introduces a colour of its own. That is the invariant worth keeping,
+   because a colour that exists only inside a media block is a colour that is missing on
+   the other surface, and nothing in the rest of the file would tell you.
+
+   `prefers-color-scheme` is the only mechanism: the app has no theme switch, and the
+   surface is the operating system's decision, not a setting this tool keeps.
+   ================================================================ */
 :root {
+  /* Native controls — select, checkbox, scrollbar, caret — follow this, and it is the
+     reason the dark branch is not just a repaint of our own boxes. */
+  color-scheme: light;
+
   --bg: #fbfaf8;
   --surface: #ffffff;
   --border: #e3ddd4;
@@ -31,7 +47,9 @@
   --fs-base: 15px; --fs-lg: 17px; --fs-xl: 25px;
 
   /* The categorical palette from the data-visualization guidance: eight slots in a fixed
-     order. A slot belongs to a person, never to their place in a ranking. */
+     order, validated against the light surface. A slot belongs to a person, never to
+     their place in a ranking — and, since D10, it belongs to the same person on the dark
+     surface too: the dark branch restates these eight names hue for hue. */
   --series-1: #2a78d6;
   --series-2: #eb6834;
   --series-3: #1baf7a;
@@ -40,6 +58,62 @@
   --series-6: #008300;
   --series-7: #4a3aa7;
   --series-8: #e34948;
+}
+
+/* ---------- the dark surface ----------
+   Every declaration below redefines a token declared above. Nothing new is introduced
+   here, so there is no colour whose only definition is inside a media query.
+
+   The surfaces keep the warm cast of the light theme (the light bg is an off-white, not a
+   white) and keep its relation: the card is a step *lighter* than the page, the same way
+   #ffffff sits on #fbfaf8. Every foreground/background pair the stylesheet actually
+   renders was measured rather than eyeballed — body text 13.2:1 on a card, muted text
+   5.9:1, links 7.4:1, the primary button's label 8.2:1, and each badge's ink on its own
+   soft fill between 6.4:1 and 10:1.
+
+   The eight series slots are a re-stepping, not a flip. Hue is held to within 1.6 degrees
+   of the light slot in OKLCH, so a person keeps their colour across the two surfaces;
+   only lightness and chroma move, and they move by solving each slot for at least 4:1
+   against the dark card. Run against the data-visualization validator on this surface the
+   set passes every check: lightness band, chroma floor, adjacent colour-vision separation
+   dE 10.1 (the light set scores 9.1), normal-vision separation dE 18.4, and — unlike the
+   light set, where three slots sit in the sub-3:1 relief band — contrast at or above 4:1
+   for all eight. Reusing the light values here would not do: slot 7 falls to 1.92:1 on
+   this surface, and four of the eight fall outside the dark lightness band. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --bg: #1a1713;
+    --surface: #221f1a;
+    --border: #3a352c;
+    --text: #ece6dc;
+    --muted: #a49a8b;
+    --accent: #7fb3e8;
+    --accent-soft: #1f2b38;
+    --danger: #f0908b;
+    --danger-soft: #33201e;
+    --warn: #e2b45d;
+    --warn-soft: #2f2617;
+    --ok: #7fc994;
+    --ok-soft: #1c2b20;
+    --private: #bb9be0;
+    --private-soft: #292236;
+    /* The accent is now the light half of the pair, so its label is the dark one. */
+    --on-accent: #11161b;
+    --notice-border: #4c3b1c;
+    --notice-text: #e7d2a0;
+    --danger-border: #5b3431;
+
+    --series-1: #317edd;
+    --series-2: #d6541c;
+    --series-3: #1caf7a;
+    --series-4: #c78400;
+    --series-5: #c45a84;
+    --series-6: #3ca837;
+    --series-7: #8780f3;
+    --series-8: #f45956;
+  }
 }
 
 * { box-sizing: border-box; }

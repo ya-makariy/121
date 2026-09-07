@@ -137,3 +137,64 @@
   display: block; font-weight: 400;
   color: var(--muted); font-size: var(--fs-sm);
 }
+
+/* ---------- the dark surface ----------
+   app.css declares the dark theme where it belongs, in a
+   `@media (prefers-color-scheme: dark)` branch that redefines the same tokens the bare
+   :root declares. An artboard cannot use that: a page is in one colour scheme at a time,
+   and the Foundation sheet has to show both surfaces side by side so the two palettes can
+   be compared rather than remembered.
+
+   So the same values are restated here, scoped to a wrapper. This block is the artboard's
+   only reason to exist and it must stay in step with the dark branch of
+   public/app.css — it is a copy for the spec sheet, never a second source of truth.
+   Nothing in the app loads refine.css. */
+.surface-dark {
+  color-scheme: dark;
+
+  --bg: #1a1713;
+  --surface: #221f1a;
+  --border: #3a352c;
+  --text: #ece6dc;
+  --muted: #a49a8b;
+  --accent: #7fb3e8;
+  --accent-soft: #1f2b38;
+  --danger: #f0908b;
+  --danger-soft: #33201e;
+  --warn: #e2b45d;
+  --warn-soft: #2f2617;
+  --ok: #7fc994;
+  --ok-soft: #1c2b20;
+  --private: #bb9be0;
+  --private-soft: #292236;
+  --on-accent: #11161b;
+  --notice-border: #4c3b1c;
+  --notice-text: #e7d2a0;
+  --danger-border: #5b3431;
+
+  --series-1: #317edd;
+  --series-2: #d6541c;
+  --series-3: #1caf7a;
+  --series-4: #c78400;
+  --series-5: #c45a84;
+  --series-6: #3ca837;
+  --series-7: #8780f3;
+  --series-8: #f45956;
+
+  /* The wrapper has to paint itself: on the artboard it is a panel on a light page, and
+     in the app the same job is done by body { background: var(--bg) }. */
+  background: var(--bg);
+  color: var(--text);
+  padding: var(--s-5);
+  border-radius: var(--radius);
+}
+
+/* Token rows on the Foundation sheet: a swatch, a name, and the measured number, so a
+   value that fails is visible on the sheet rather than only in a report. */
+.token-row { display: flex; align-items: center; gap: var(--s-4); }
+.token-row .swatch { width: 28px; height: 28px; border: 1px solid var(--border); }
+.token-row .grow { flex: 1; min-width: 12em; }
+.token-row .ratio {
+  font-family: var(--mono); font-size: var(--fs-xs); color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}

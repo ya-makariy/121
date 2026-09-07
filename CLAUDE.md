@@ -122,17 +122,35 @@ With WAL enabled, copying the `.sqlite` file silently loses everything still in 
 ## 8. Charts: palette and form
 
 The categorical palette is eight slots in a fixed order (`--series-1..8` in
-`public/app.css`), validated against the light surface. A ninth slot is never generated:
-at most eight series, beyond that use a list or facets.
+`public/app.css`), and since D10 there are **two** of them: the bare `:root` holds the
+values validated against the light surface, and the `prefers-color-scheme: dark` branch
+holds a second set validated against the dark one. A ninth slot is never generated: at
+most eight series, beyond that use a list or facets.
 
-- **A colour slot belongs to an entity, never to a rank.** A person does not change colour
-  because their score moved, and a filter does not repaint the survivors.
+- **A colour slot belongs to an entity, never to a rank — and to the same entity on both
+  surfaces.** A person does not change colour because their score moved, a filter does not
+  repaint the survivors, and the sun going down does not repaint them either: each dark
+  slot holds its light slot's hue to within two degrees in OKLCH, so slot 3 is the same
+  person's green in either theme. Only lightness and chroma are re-stepped, because
+  lightness and chroma are what the surface changes.
+- **Each palette is validated against its own surface, never inherited from the other.**
+  The dark eight are not a lightening of the light eight: every slot is solved for at
+  least 4:1 against the dark card, and the set is re-checked on that surface for the
+  lightness band, the chroma floor and colour-vision separation of adjacent pairs. Reusing
+  the light values there would put slot 7 at 1.92:1 and four of the eight outside the dark
+  lightness band. And no colour is ever defined only inside the media block: every token
+  has a value on the bare `:root`, which the dark branch redefines — a colour that exists
+  in one branch only is a colour missing on the other surface.
 - **One axis.** Never two y-scales on one plot.
 - **Mixed scales are drawn normalized** (0–100%) and the caption says so. Otherwise a
   change from a 1–5 to a 1–10 scale reads as improvement.
 - **A legend is always present for two or more series**, and at four or fewer the lines are
   also directly labelled: identity must never rest on colour alone.
-- Recessive grid and axes; text wears text tokens, not the series colour.
+- Recessive grid and axes; text wears text tokens, not the series colour. Both are read
+  from the token layer at draw time — `public/compare-chart.js` and
+  `public/metric-chart.js` resolve `--series-*`, `--text`, `--muted` and `--surface` off
+  the root element — so no chart colour is hardcoded in JavaScript and one description
+  draws both surfaces. The chart routes still send a slot index and never a colour.
 
 ## 9. The repository is public
 

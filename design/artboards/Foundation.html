@@ -143,22 +143,96 @@
       </p>
     </div>
 
-    <h2>Палитра серий</h2>
+    <h2>Палитра серий — светлая поверхность</h2>
     <div class="card">
-      <div style="display: flex; flex-wrap: wrap; gap: 12px">
-        <span class="legend"><span><span class="swatch" style="background: #2a78d6"></span> --series-1</span></span>
-        <span class="legend"><span><span class="swatch" style="background: #eb6834"></span> --series-2</span></span>
-        <span class="legend"><span><span class="swatch" style="background: #1baf7a"></span> --series-3</span></span>
-        <span class="legend"><span><span class="swatch" style="background: #eda100"></span> --series-4</span></span>
-        <span class="legend"><span><span class="swatch" style="background: #e87ba4"></span> --series-5</span></span>
-        <span class="legend"><span><span class="swatch" style="background: #008300"></span> --series-6</span></span>
-        <span class="legend"><span><span class="swatch" style="background: #4a3aa7"></span> --series-7</span></span>
-        <span class="legend"><span><span class="swatch" style="background: #e34948"></span> --series-8</span></span>
+      <div class="rows">
+        <div class="token-row"><span class="swatch" style="background: #2a78d6"></span><span class="grow small"><strong>--series-1</strong></span><span class="ratio">#2a78d6 · 4.42:1</span></div>
+        <div class="token-row"><span class="swatch" style="background: #eb6834"></span><span class="grow small"><strong>--series-2</strong></span><span class="ratio">#eb6834 · 3.20:1</span></div>
+        <div class="token-row"><span class="swatch" style="background: #1baf7a"></span><span class="grow small"><strong>--series-3</strong></span><span class="ratio">#1baf7a · 2.82:1</span></div>
+        <div class="token-row"><span class="swatch" style="background: #eda100"></span><span class="grow small"><strong>--series-4</strong></span><span class="ratio">#eda100 · 2.17:1</span></div>
+        <div class="token-row"><span class="swatch" style="background: #e87ba4"></span><span class="grow small"><strong>--series-5</strong></span><span class="ratio">#e87ba4 · 2.69:1</span></div>
+        <div class="token-row"><span class="swatch" style="background: #008300"></span><span class="grow small"><strong>--series-6</strong></span><span class="ratio">#008300 · 4.95:1</span></div>
+        <div class="token-row"><span class="swatch" style="background: #4a3aa7"></span><span class="grow small"><strong>--series-7</strong></span><span class="ratio">#4a3aa7 · 8.56:1</span></div>
+        <div class="token-row"><span class="swatch" style="background: #e34948"></span><span class="grow small"><strong>--series-8</strong></span><span class="ratio">#e34948 · 3.95:1</span></div>
       </div>
       <p class="chart-note">
-        Восемь слотов в фиксированном порядке. Слот принадлежит человеку, а не месту
-        в рейтинге: фильтр не перекрашивает выживших. Девятого слота не бывает —
-        дальше список или фасеты.
+        Восемь слотов в фиксированном порядке; справа — контраст к белой карточке.
+        Слот принадлежит человеку, а не месту в рейтинге: фильтр не перекрашивает
+        выживших. Девятого слота не бывает — дальше список или фасеты.
+        Соседние пары: ΔE 9.1 (протанопия), ΔE 19.6 (обычное зрение). Три слота —
+        3, 4, 5 — ниже 3:1, поэтому легенда обязательна всегда, а при четырёх и
+        меньше линиях ещё и прямые подписи.
+      </p>
+    </div>
+
+    <h2>Тёмная поверхность <span class="badge shared">новое</span></h2>
+    <p class="sub">
+      Не осветление светлой темы, а вторая ветка тех же токенов. Ни один цвет не
+      определён только внутри media-блока: у каждого имени есть значение на голом
+      <code style="font-family: var(--mono)">:root</code>, а
+      <code style="font-family: var(--mono)">prefers-color-scheme: dark</code> его
+      переопределяет.
+    </p>
+    <div class="surface-dark">
+      <div class="rows" style="margin-bottom: 16px">
+        <div class="token-row"><span class="swatch" style="background: #1a1713"></span><span class="grow small"><strong>--bg</strong> <span class="muted">фон приложения</span></span><span class="ratio">#1a1713</span></div>
+        <div class="token-row"><span class="swatch" style="background: #221f1a"></span><span class="grow small"><strong>--surface</strong> <span class="muted">карточка — на шаг светлее фона, как #ffffff на #fbfaf8</span></span><span class="ratio">#221f1a</span></div>
+        <div class="token-row"><span class="swatch" style="background: #3a352c"></span><span class="grow small"><strong>--border</strong></span><span class="ratio">#3a352c · 1.35:1</span></div>
+        <div class="token-row"><span class="swatch" style="background: #ece6dc"></span><span class="grow small"><strong>--text</strong></span><span class="ratio">#ece6dc · 13.23:1</span></div>
+        <div class="token-row"><span class="swatch" style="background: #a49a8b"></span><span class="grow small"><strong>--muted</strong></span><span class="ratio">#a49a8b · 5.92:1</span></div>
+        <div class="token-row"><span class="swatch" style="background: #7fb3e8"></span><span class="grow small"><strong>--accent</strong> <span class="muted">ссылки, активная навигация, primary</span></span><span class="ratio">#7fb3e8 · 7.44:1</span></div>
+        <div class="token-row"><span class="swatch" style="background: #bb9be0"></span><span class="grow small"><strong>--private</strong> <span class="muted">единственный цвет приватности</span></span><span class="ratio">#bb9be0 · 6.45:1</span></div>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px">
+        <span class="badge overdue">Просрочено</span>
+        <span class="badge due_soon">Скоро</span>
+        <span class="badge ok">В порядке</span>
+        <span class="badge no_cadence">Без каденса</span>
+        <span class="badge private">Только для вас</span>
+        <span class="badge shared">Видно подопечному</span>
+        <span class="badge neutral">Черновик</span>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 16px">
+        <button class="primary" type="button">Основное действие</button>
+        <button type="button">Обычное</button>
+        <button class="danger" type="button">Опасное</button>
+        <a class="btn join" href="#">↗ Созвон</a>
+      </div>
+
+      <div class="card" style="margin-bottom: 12px">
+        <div class="field" style="margin-bottom: 0">
+          <label for="d3">Текстовое поле на карточке</label>
+          <input type="text" id="d3" value="Значение" />
+        </div>
+      </div>
+
+      <div class="notice" style="margin-bottom: 12px">
+        По этой версии ещё не прошло ни одной встречи, поэтому тип и шкалу можно менять свободно.
+      </div>
+      <div class="notice error" style="margin-bottom: 16px">
+        У вопроса есть ответы в 21 встрече — удалить его нельзя.
+      </div>
+
+      <h3>Палитра серий — тёмная поверхность</h3>
+      <div class="rows">
+        <div class="token-row"><span class="swatch" style="background: #317edd"></span><span class="grow small"><strong>--series-1</strong> <span class="muted">H 255.7 против 255.5</span></span><span class="ratio">#317edd · 4.03:1</span></div>
+        <div class="token-row"><span class="swatch" style="background: #d6541c"></span><span class="grow small"><strong>--series-2</strong> <span class="muted">H 40.5 против 40.6</span></span><span class="ratio">#d6541c · 4.02:1</span></div>
+        <div class="token-row"><span class="swatch" style="background: #1caf7a"></span><span class="grow small"><strong>--series-3</strong> <span class="muted">H 162.1 против 162.1</span></span><span class="ratio">#1caf7a · 5.83:1</span></div>
+        <div class="token-row"><span class="swatch" style="background: #c78400"></span><span class="grow small"><strong>--series-4</strong> <span class="muted">H 73.5 против 75.1</span></span><span class="ratio">#c78400 · 5.26:1</span></div>
+        <div class="token-row"><span class="swatch" style="background: #c45a84"></span><span class="grow small"><strong>--series-5</strong> <span class="muted">H 357.3 против 357.4</span></span><span class="ratio">#c45a84 · 4.02:1</span></div>
+        <div class="token-row"><span class="swatch" style="background: #3ca837"></span><span class="grow small"><strong>--series-6</strong> <span class="muted">H 142.5 против 142.5</span></span><span class="ratio">#3ca837 · 5.35:1</span></div>
+        <div class="token-row"><span class="swatch" style="background: #8780f3"></span><span class="grow small"><strong>--series-7</strong> <span class="muted">H 283.6 против 283.6</span></span><span class="ratio">#8780f3 · 5.01:1</span></div>
+        <div class="token-row"><span class="swatch" style="background: #f45956"></span><span class="grow small"><strong>--series-8</strong> <span class="muted">H 24.9 против 24.9</span></span><span class="ratio">#f45956 · 5.01:1</span></div>
+      </div>
+      <p class="chart-note">
+        Тон каждого слота держится в пределах 1.6° от светлого — человек не меняет цвет
+        от того, что за окном стемнело. Двигаются только светлота и насыщенность:
+        каждый слот решён на минимум 4:1 к тёмной карточке. Соседние пары: ΔE 10.1
+        (дейтеранопия), ΔE 18.4 (обычное зрение) — лучше, чем на светлой, и все восемь
+        выше 3:1. Светлые значения здесь не годятся: слот 7 даёт 1.92:1, а четыре из
+        восьми выходят за диапазон светлоты для тёмной темы.
       </p>
     </div>
 

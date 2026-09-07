@@ -18,7 +18,7 @@
     { "file": "Templates.dc.html",        "title": "Шаблоны",            "x": 0,    "y": 5200, "w": 1080, "h": 850 },
     { "file": "TemplateEditor.dc.html",   "title": "Конструктор шаблона", "x": 1200, "y": 5200, "w": 1080, "h": 1600 },
     { "file": "TemplateVersions.dc.html", "title": "Версии шаблона",     "x": 2400, "y": 5200, "w": 1080, "h": 700 },
-    { "file": "Foundation.dc.html",       "title": "Фундамент — токены", "x": 3600, "y": 5200, "w": 1080, "h": 1900 }
+    { "file": "Foundation.dc.html",       "title": "Фундамент — токены", "x": 3600, "y": 5200, "w": 1080, "h": 4200 }
   ],
   "annotations": [
     {
