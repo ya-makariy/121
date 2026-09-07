@@ -30,7 +30,8 @@ function isAllowed(rel: string): boolean {
 const SCAN_DIRS = ["src", "scripts", "tests"];
 const SCAN_EXTENSIONS = [".ts", ".sql", ".js", ".css"];
 const EXTRA_FILES = ["public/app.css", "public/reorder.js", "public/field-form.js",
-                     "public/metric-chart.js", "public/compare-chart.js"];
+                     "public/metric-chart.js", "public/compare-chart.js",
+                     "public/meeting-rail.js"];
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const entry of readdirSync(dir)) {

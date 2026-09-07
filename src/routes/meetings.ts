@@ -3,8 +3,8 @@ import { db } from "../db/index.ts";
 import { getPerson } from "../db/queries/people.ts";
 import { defaultTemplate, getFieldWithOptions, getTemplate, listTemplates, loadVersionStructure } from "../db/queries/templates.ts";
 import {
-  completeMeeting, createMeeting, getMeeting, listAnswerOptionKeys, listAnswers,
-  reopenMeeting, updateMeetingFields,
+  answeredFieldIds, completeMeeting, createMeeting, getMeeting, listAnswerOptionKeys,
+  listAnswers, reopenMeeting, updateMeetingFields,
 } from "../db/queries/meetings.ts";
 import { createAction, openActions, recordActionReview } from "../db/queries/actions.ts";
 import { listShareLinks } from "../db/queries/shares.ts";
@@ -107,6 +107,8 @@ meetingRoutes.get("/meetings/:id", (c) => {
       person,
       sections,
       answers,
+      // Counted in SQL and handed to the view with the structure, never in the browser.
+      answered: answeredFieldIds(db(), id),
       carryOver: openActions(db(), today(user(c).timezone), meeting.person_id, OWNER_ID)
         .filter((a) => a.created_meeting_id !== id),
       shares: listShareLinks(db(), id),

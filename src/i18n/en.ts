@@ -112,6 +112,8 @@ export const en: Dict = {
     countsForCadence: "Counts as a 1:1",
     countsForCadenceHint: "Clear this for a short check-in: it stays in the charts and in the summary, but does not push the next 1:1 out.",
     privateSection: "Only for you",
+    sections: "Sections",
+    progress: "{filled} of {total} filled",
     noTemplate: "No templates — create one or run the meeting without a template.",
   },
 

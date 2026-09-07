@@ -56,6 +56,23 @@ export function listAnswers(db: Database, meetingId: number): AnswerRow[] {
     .all(meetingId);
 }
 
+/**
+ * The field ids this meeting has an answer row for.
+ *
+ * The meeting page's progress bar and its per-section counters are built from this on the
+ * server, together with the version structure: the browser is never handed a list of
+ * fields to add up. One row means one filled question — a blank answer is deleted rather
+ * than stored (domain/answers.ts), so the count cannot drift from what is on screen.
+ */
+export function answeredFieldIds(db: Database, meetingId: number): Set<number> {
+  const rows = db
+    .query<{ field_id: number }, [number]>(
+      "SELECT field_id FROM meeting_answer WHERE meeting_id = ?",
+    )
+    .all(meetingId);
+  return new Set(rows.map((r) => r.field_id));
+}
+
 export function listAnswerOptionKeys(db: Database, meetingId: number): Map<number, string[]> {
   const rows = db
     .query<{ field_id: number; option_key: string }, [number]>(

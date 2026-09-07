@@ -160,16 +160,21 @@ button.link {
 .opts input { width: auto; }
 
 /* ---------- cadence flag ----------
-   The "counts as a 1:1" toggle in the completion area of the meeting page. One flex
-   row for the box and its saved indicator; the explanation wraps onto its own line. */
-.cadence-flag {
-  display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap; margin-top: var(--s-5);
-}
+   The "counts as a 1:1" toggle. It lives in the .commit-bar panel, which already is the
+   flex row, so the form itself lays nothing out: display:contents hands its label, its
+   saved indicator and its explanation straight to the panel as items. The explanation
+   keeps flex-basis:100% and so takes the panel's second line. */
+.cadence-flag { display: contents; }
 .cadence-flag label {
   display: flex; align-items: center; gap: var(--s-3); margin-bottom: 0; font-weight: 400;
 }
 .cadence-flag input[type=checkbox] { width: auto; margin: 0; }
-.cadence-flag .hint { flex-basis: 100%; color: var(--muted); font-size: var(--fs-sm); }
+/* order:1 sends the explanation behind every other item in the panel, so the toggle, the
+   progress recap and the completion button share the first line and the sentence takes the
+   second — rather than breaking the row in the middle. */
+.cadence-flag .hint {
+  flex-basis: 100%; order: 1; color: var(--muted); font-size: var(--fs-sm);
+}
 
 /* ---------- save indicator ---------- */
 .saved-flag { color: var(--ok); font-size: var(--fs-xs); font-weight: 600; }
@@ -189,6 +194,61 @@ button.link {
 .section-head { display: flex; align-items: baseline; gap: 10px; }
 .section-head h2 { margin-bottom: 2px; }
 .section-desc { color: var(--muted); font-size: var(--fs-sm); margin: 0 0 var(--s-4); }
+
+/* ---------- meeting page: rail, progress, completion panel ----------
+   The fill-in page is the longest screen in the app — around 1600px with a filled-in
+   template — and it used to offer no way to see how far along you are, no way to jump to
+   a section, and no way to complete the meeting without scrolling to the very bottom. */
+.meeting-grid {
+  display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: var(--s-7);
+  align-items: start;
+}
+/* The rail is a section index, not a table of contents of the answers: it carries a title
+   and two numbers, both rendered by the server. A private section is marked here; nothing
+   written inside one reaches this list (rule 2). */
+.rail { position: sticky; top: var(--s-5); display: grid; gap: var(--s-1); }
+.rail a {
+  display: flex; justify-content: space-between; gap: var(--s-3);
+  padding: var(--s-2) var(--s-3); border-radius: var(--radius-sm);
+  font-size: var(--fs-sm); color: var(--muted); text-decoration: none;
+}
+.rail a:hover { background: var(--bg); color: var(--text); }
+.rail a.current { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.rail a .of { font-variant-numeric: tabular-nums; font-size: var(--fs-xs); flex: none; }
+.rail a.private-item { color: var(--private); }
+/* Jumping to a section should not tuck its heading against the top of the viewport. */
+.section-head[id] { scroll-margin-top: var(--s-5); }
+
+.progress {
+  display: flex; align-items: center; gap: var(--s-3);
+  font-size: var(--fs-sm); color: var(--muted); margin: var(--s-5) 0;
+}
+.progress .track {
+  flex: 1; height: 4px; border-radius: 2px; background: var(--border);
+  overflow: hidden;
+}
+.progress .track i { display: block; height: 100%; background: var(--accent); }
+
+/* Sticky at the bottom of the scroll, and last in the flow — so once the page is scrolled
+   to the end the panel settles below the final field instead of over it. */
+.commit-bar {
+  position: sticky; bottom: 0; display: flex; align-items: center;
+  gap: var(--s-4); flex-wrap: wrap;
+  margin-top: var(--s-6); padding: var(--s-4) var(--s-5);
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.commit-bar .grow { flex: 1; min-width: 0; }
+
+/* Narrow screens: the two columns become one and the rail unpins into a scrollable strip
+   above the questions. D8 owns the mobile layout properly; this only keeps it unbroken. */
+@media (max-width: 720px) {
+  .meeting-grid { grid-template-columns: minmax(0, 1fr); gap: var(--s-4); }
+  .rail {
+    position: static; grid-auto-flow: column; grid-auto-columns: max-content;
+    justify-content: start; overflow-x: auto;
+  }
+}
 
 /* ---------- summary ---------- */
 .snapshot-item { margin-bottom: 14px; }

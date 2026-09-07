@@ -1,6 +1,6 @@
 import { html } from "../html.ts";
 import { layout } from "../layout.ts";
-import { dict } from "../../i18n/index.ts";
+import { dict, format } from "../../i18n/index.ts";
 import type {
   Locale, MeetingRow, PersonRow, SectionWithFields, ShareLinkRow, TemplateRow,
 } from "../../db/types.ts";
@@ -59,6 +59,8 @@ export function meetingPage(o: {
   person: PersonRow;
   sections: SectionWithFields[];
   answers: Map<number, AnswerValue & { optionLabels?: string | null }>;
+  /** Field ids with a row in meeting_answer. See queries/meetings.ts:answeredFieldIds. */
+  answered: Set<number>;
   carryOver: OpenActionRow[];
   shares: ShareLinkRow[];
   today: string;
@@ -68,17 +70,33 @@ export function meetingPage(o: {
   const editable = m.status === "draft" || m.status === "scheduled";
   const activeShare = o.shares.find((s) => s.revoked_at === null);
 
-  const body = html`
-    <h1>${o.person.full_name}</h1>
-    <p class="sub">
-      ${m.held_on ? formatDate(m.held_on, o.locale) : ""}
-      · <span class="badge ${m.status === "completed" ? "ok" : "neutral"}">
-          ${m.status === "completed" ? t.meeting.completed : t.meeting.draft}
-        </span>
-      · <a href="/people/${o.person.id}">${o.person.full_name}</a>
-    </p>
-    ${joinLink(o.person.meeting_url, o.locale, { primary: true })}
+  /**
+   * One pass over the version structure produces everything the rail and the progress bar
+   * need. The arithmetic happens here, on the server, from the answer rows the route
+   * loaded — the browser is never handed fields to count.
+   *
+   * The rail carries a section's title and its two numbers, and nothing else. That a
+   * private section exists is not a secret; a word of what is written in it would be
+   * (rule 2), so no answer value is read here at all.
+   */
+  const railItems = o.sections.map((section) => ({
+    id: section.id,
+    title: section.title,
+    isPrivate: section.fields.length > 0
+      && section.fields.every((f) => f.visibility === "private"),
+    filled: section.fields.filter((f) => o.answered.has(f.id)).length,
+    total: section.fields.length,
+  }));
+  const totalFields = railItems.reduce((n, s) => n + s.total, 0);
+  const filledFields = railItems.reduce((n, s) => n + s.filled, 0);
+  const percentFilled = totalFields === 0
+    ? 0
+    : Math.round((filledFields / totalFields) * 100);
+  const progressLabel = format(t.meeting.progress, {
+    filled: filledFields, total: totalFields,
+  });
 
+  const content = html`
     <!-- Carry-over is derived on read, never copied as rows. -->
     <h2>${t.meeting.carryOver}</h2>
     ${o.carryOver.length === 0
@@ -110,9 +128,8 @@ export function meetingPage(o: {
           </div>
         `}
 
-    ${o.sections.map((section) => {
-      const isPrivateSection = section.fields.length > 0
-        && section.fields.every((f) => f.visibility === "private");
+    ${o.sections.map((section, i) => {
+      const isPrivateSection = railItems[i]!.isPrivate;
       const rendered = editable
         ? section.fields.map((f) =>
             fieldInput(f, o.answers.get(f.id) ?? EMPTY_ANSWER, m.id, o.locale))
@@ -123,7 +140,8 @@ export function meetingPage(o: {
       if (!editable && rendered.length === 0) return "";
 
       return html`
-        <div class="section-head">
+        <!-- The rail links here; the id is a page anchor, never an addressing key. -->
+        <div class="section-head" id="section-${section.id}">
           <h2>${section.title}</h2>
           ${isPrivateSection
             ? html`<span class="badge private">${t.meeting.privateSection}</span>`
@@ -174,26 +192,35 @@ export function meetingPage(o: {
     </form>
 
     <!--
-      Whether this meeting counts as a 1:1 for cadence. Cleared for a corridor check-in:
-      without it every recorded conversation pushes the next real 1:1 out by a full
-      cadence. Excluded from cadence only — the answers still reach the charts and the
-      summary. Lives in the completion area of the page; the Meeting artboard puts it in
-      the sticky .commit-bar panel, which D4 builds.
-    -->
-    <form class="cadence-flag" hx-post="/meetings/${m.id}/counts-for-cadence"
-          hx-trigger="change" hx-target="#cadence-flag-state" hx-swap="innerHTML">
-      <!-- An unchecked box sends nothing; the hidden 0 makes "off" an explicit value. -->
-      <input type="hidden" name="counts_for_cadence" value="0" />
-      <label for="counts_for_cadence">
-        <input type="checkbox" id="counts_for_cadence" name="counts_for_cadence" value="1"
-               ${m.counts_for_cadence === 1 ? "checked" : ""} />
-        <span>${t.meeting.countsForCadence}</span>
-      </label>
-      <span class="saved-flag" id="cadence-flag-state"></span>
-      <span class="hint">${t.meeting.countsForCadenceHint}</span>
-    </form>
+      Completing a meeting is the one irreversible-feeling action here, and on a filled-in
+      template it used to sit at the bottom of a 1600px scroll. The panel is sticky, so the
+      decision is always one click away; it is also the last element in the flow, so when
+      the page is scrolled to the end the panel lands below the last field rather than over
+      it.
 
-    <div class="actions-bar">
+      The cadence flag lives in the panel because it belongs to the same decision: whether
+      this conversation counts as the 1:1. Cleared for a corridor check-in — without it
+      every recorded conversation pushes the next real 1:1 out by a full cadence. Excluded
+      from cadence only; the answers still reach the charts and the summary.
+    -->
+    <div class="commit-bar">
+      <form class="cadence-flag" hx-post="/meetings/${m.id}/counts-for-cadence"
+            hx-trigger="change" hx-target="#cadence-flag-state" hx-swap="innerHTML">
+        <!-- An unchecked box sends nothing; the hidden 0 makes "off" an explicit value. -->
+        <input type="hidden" name="counts_for_cadence" value="0" />
+        <label for="counts_for_cadence">
+          <input type="checkbox" id="counts_for_cadence" name="counts_for_cadence" value="1"
+                 ${m.counts_for_cadence === 1 ? "checked" : ""} />
+          <span>${t.meeting.countsForCadence}</span>
+        </label>
+        <span class="saved-flag" id="cadence-flag-state"></span>
+        <span class="hint">${t.meeting.countsForCadenceHint}</span>
+      </form>
+      <span class="grow small muted">
+        ${editable
+          ? html`${totalFields > 0 ? html`${progressLabel}. ` : ""}${t.meeting.completeHint}`
+          : ""}
+      </span>
       ${m.status === "completed"
         ? html`
             <form method="post" action="/meetings/${m.id}/reopen">
@@ -205,12 +232,60 @@ export function meetingPage(o: {
             <form method="post" action="/meetings/${m.id}/complete">
               <button class="primary" type="submit">${t.meeting.complete}</button>
             </form>
-            <span class="small muted">${t.meeting.completeHint}</span>
           `}
       ${activeShare
         ? html`<a class="btn" href="/meetings/${m.id}/share">${t.share.title}</a>`
         : ""}
     </div>
+  `;
+
+  const body = html`
+    <h1>${o.person.full_name}</h1>
+    <p class="sub">
+      ${m.held_on ? formatDate(m.held_on, o.locale) : ""}
+      · <span class="badge ${m.status === "completed" ? "ok" : "neutral"}">
+          ${m.status === "completed" ? t.meeting.completed : t.meeting.draft}
+        </span>
+      · <a href="/people/${o.person.id}">${o.person.full_name}</a>
+    </p>
+    ${joinLink(o.person.meeting_url, o.locale, { primary: true })}
+
+    <!--
+      How much is left, in one line. Both numbers come from the server; the track is only
+      the same fraction drawn, so the browser has nothing to recompute.
+    -->
+    ${editable && totalFields > 0
+      ? html`
+          <div class="progress">
+            <span>${progressLabel}</span>
+            <span class="track" role="progressbar" aria-valuemin="0"
+                  aria-valuemax="${totalFields}" aria-valuenow="${filledFields}">
+              <i style="width: ${percentFilled}%"></i>
+            </span>
+          </div>
+        `
+      : ""}
+
+    ${editable && railItems.length > 0
+      ? html`
+          <div class="meeting-grid">
+            <nav class="rail" aria-label="${t.meeting.sections}">
+              ${railItems.map(
+                (s) => html`
+                  <a href="#section-${s.id}"
+                     class="${s.isPrivate ? "private-item" : ""}"
+                     title="${s.isPrivate ? t.meeting.privateSection : s.title}">
+                    <span>${s.title}</span>
+                    <span class="of">${s.filled}/${s.total}</span>
+                  </a>
+                `,
+              )}
+            </nav>
+            <div>${content}</div>
+          </div>
+          <script src="/meeting-rail.js"></script>
+        `
+      : content}
   `;
 
   return layout({

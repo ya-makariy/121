@@ -22,6 +22,7 @@ app.use("/metric-chart.js", serveStatic({ root: "./public" }));
 app.use("/compare-chart.js", serveStatic({ root: "./public" }));
 app.use("/reorder.js", serveStatic({ root: "./public" }));
 app.use("/field-form.js", serveStatic({ root: "./public" }));
+app.use("/meeting-rail.js", serveStatic({ root: "./public" }));
 app.use("/vendor/*", serveStatic({ root: "./public" }));
 
 mountRoutes(app);

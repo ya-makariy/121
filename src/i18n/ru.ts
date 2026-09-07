@@ -115,6 +115,8 @@ export const ru = {
     countsForCadence: "Считать за 1:1",
     countsForCadenceHint: "Снимите для короткой сверки: она останется в графиках и в саммари, но не отодвинет следующую 1:1.",
     privateSection: "Только для вас",
+    sections: "Секции",
+    progress: "Заполнено {filled} из {total}",
     noTemplate: "Шаблонов нет — создайте шаблон или проведите встречу без него.",
   },
 
