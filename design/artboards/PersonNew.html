@@ -1,0 +1,63 @@
+<!--nav:people-->
+  <main>
+    <h1>Новый человек</h1>
+    <p class="sub">Каденс и шаблон можно поменять потом — сейчас важно только имя.</p>
+    <form class="card">
+      <div class="field">
+        <label for="full_name">Имя</label>
+        <input type="text" id="full_name" value="" />
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label for="role_title">Роль</label>
+          <input type="text" id="role_title" value="" />
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" value="" />
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label for="cadence_days">
+            Каденс, дней
+            <span class="hint">Как часто хотите встречаться. Пусто — без напоминаний.</span>
+          </label>
+          <input type="number" id="cadence_days" value="14" />
+        </div>
+        <div class="field">
+          <label for="cadence_anchor_on">
+            Отсчёт каденса с
+            <span class="hint">Нужно только до первой встречи.</span>
+          </label>
+          <input type="date" id="cadence_anchor_on" value="" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="meeting_url">
+          Ссылка на встречу
+          <span class="hint">Постоянная комната для ваших 1:1: Meet, Zoom, что угодно. Появится кнопкой на дашборде и в карточке.</span>
+        </label>
+        <input type="text" id="meeting_url" value="" placeholder="meet.example.com/abc-defg-hij" />
+      </div>
+      <div class="field">
+        <label for="default_template_id">Шаблон по умолчанию</label>
+        <select id="default_template_id">
+          <option>Регулярный 1:1</option>
+          <option>Квартальный обзор</option>
+          <option>—</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="notes">
+          Мои заметки о человеке
+          <span class="hint">Приватно. Не попадает в саммари никогда.</span>
+        </label>
+        <textarea id="notes"></textarea>
+      </div>
+      <div class="actions-bar">
+        <button class="primary" type="button">Сохранить</button>
+        <a class="btn" href="#">Отмена</a>
+      </div>
+    </form>
+  </main>

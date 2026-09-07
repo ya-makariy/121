@@ -1,0 +1,175 @@
+  <main>
+    <h1>Фундамент</h1>
+    <p class="sub">
+      Токены, из которых собраны остальные артборды. Верхний блок — то, что уже есть
+      в <code style="font-family: var(--mono)">public/app.css</code>; помеченное
+      «новое» — предложение этого канваса.
+    </p>
+
+    <h2>Поверхности и текст</h2>
+    <div class="card">
+      <div class="rows">
+        <div class="row">
+          <span class="swatch" style="width: 28px; height: 28px; background: #fbfaf8; border: 1px solid #e3ddd4"></span>
+          <span class="grow"><strong>--bg</strong> <span class="small muted">фон приложения</span></span>
+          <span class="small muted" style="font-family: var(--mono)">#fbfaf8</span>
+        </div>
+        <div class="row">
+          <span class="swatch" style="width: 28px; height: 28px; background: #ffffff; border: 1px solid #e3ddd4"></span>
+          <span class="grow"><strong>--surface</strong> <span class="small muted">карточки, строки, поля</span></span>
+          <span class="small muted" style="font-family: var(--mono)">#ffffff</span>
+        </div>
+        <div class="row">
+          <span class="swatch" style="width: 28px; height: 28px; background: #e3ddd4"></span>
+          <span class="grow"><strong>--border</strong></span>
+          <span class="small muted" style="font-family: var(--mono)">#e3ddd4</span>
+        </div>
+        <div class="row">
+          <span class="swatch" style="width: 28px; height: 28px; background: #23201c"></span>
+          <span class="grow"><strong>--text</strong></span>
+          <span class="small muted" style="font-family: var(--mono)">#23201c</span>
+        </div>
+        <div class="row">
+          <span class="swatch" style="width: 28px; height: 28px; background: #6f675d"></span>
+          <span class="grow"><strong>--muted</strong></span>
+          <span class="small muted" style="font-family: var(--mono)">#6f675d</span>
+        </div>
+        <div class="row">
+          <span class="swatch" style="width: 28px; height: 28px; background: #2c5f8a"></span>
+          <span class="grow"><strong>--accent</strong> <span class="small muted">ссылки, активная навигация, primary</span></span>
+          <span class="small muted" style="font-family: var(--mono)">#2c5f8a</span>
+        </div>
+        <div class="row">
+          <span class="swatch" style="width: 28px; height: 28px; background: #6b4c8a"></span>
+          <span class="grow"><strong>--private</strong> <span class="small muted">единственный цвет приватности</span></span>
+          <span class="small muted" style="font-family: var(--mono)">#6b4c8a</span>
+        </div>
+      </div>
+      <p class="chart-note">
+        Новое: <code style="font-family: var(--mono)">--on-accent</code>,
+        <code style="font-family: var(--mono)">--notice-border</code>,
+        <code style="font-family: var(--mono)">--notice-text</code>,
+        <code style="font-family: var(--mono)">--danger-border</code> —
+        четыре hex-значения, которые сейчас живут прямо в правилах.
+      </p>
+    </div>
+
+    <h2>Шкала отступов <span class="badge shared">новое</span></h2>
+    <div class="card">
+      <div class="rows">
+        <div class="row"><span class="grow small"><strong>--s-1</strong> 4px</span><i style="height: 12px; background: #2c5f8a; width: 4px; display: block"></i></div>
+        <div class="row"><span class="grow small"><strong>--s-2</strong> 6px</span><i style="height: 12px; background: #2c5f8a; width: 6px; display: block"></i></div>
+        <div class="row"><span class="grow small"><strong>--s-3</strong> 8px</span><i style="height: 12px; background: #2c5f8a; width: 8px; display: block"></i></div>
+        <div class="row"><span class="grow small"><strong>--s-4</strong> 12px</span><i style="height: 12px; background: #2c5f8a; width: 12px; display: block"></i></div>
+        <div class="row"><span class="grow small"><strong>--s-5</strong> 16px</span><i style="height: 12px; background: #2c5f8a; width: 16px; display: block"></i></div>
+        <div class="row"><span class="grow small"><strong>--s-6</strong> 24px</span><i style="height: 12px; background: #2c5f8a; width: 24px; display: block"></i></div>
+        <div class="row"><span class="grow small"><strong>--s-7</strong> 32px</span><i style="height: 12px; background: #2c5f8a; width: 32px; display: block"></i></div>
+      </div>
+      <p class="chart-note">
+        Сейчас в стилях 4, 6, 8, 10, 12, 14, 16, 20, 24, 28 — десять значений на семь ролей.
+      </p>
+    </div>
+
+    <h2>Типографика</h2>
+    <div class="card">
+      <p style="font-size: 25px; margin: 0 0 8px; letter-spacing: -.01em">25 / h1 — заголовок страницы</p>
+      <p style="font-size: 17px; margin: 0 0 8px; font-weight: 700">17 / h2 — раздел</p>
+      <p style="font-size: 15px; margin: 0 0 8px; font-weight: 700">15 / h3 — подраздел и .row .name</p>
+      <p style="font-size: 15px; margin: 0 0 8px">15 / 1.55 — основной текст</p>
+      <p style="font-size: 14px; margin: 0 0 8px; color: #6f675d">14 / .sub, label — подпись и метка поля</p>
+      <p style="font-size: 13px; margin: 0 0 8px; color: #6f675d">13 / .small — вторичная информация в строке</p>
+      <p style="font-size: 12px; margin: 0; color: #6f675d">12 / .badge, .chart-note — бейджи и подписи графиков</p>
+    </div>
+
+    <h2>Бейджи состояний</h2>
+    <div class="card">
+      <div style="display: flex; flex-wrap: wrap; gap: 8px">
+        <span class="badge overdue">Просрочено</span>
+        <span class="badge due_soon">Скоро</span>
+        <span class="badge ok">В порядке</span>
+        <span class="badge no_cadence">Без каденса</span>
+        <span class="badge private">Только для вас</span>
+        <span class="badge shared">Видно подопечному</span>
+        <span class="badge neutral">Черновик</span>
+      </div>
+      <p class="chart-note">
+        Каждый бейдж — пара «мягкий фон + насыщенный текст» из одного токена.
+        Приватность носит собственный цвет и никогда не делит его с предупреждением.
+      </p>
+    </div>
+
+    <h2>Кнопки и поля</h2>
+    <div class="card">
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 16px">
+        <button class="primary" type="button">Основное действие</button>
+        <button type="button">Обычное</button>
+        <button class="danger" type="button">Опасное</button>
+        <button class="link" type="button">Ссылка-кнопка</button>
+        <a class="btn small-btn" href="#">Мелкая</a>
+        <a class="btn join" href="#">↗ Созвон</a>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label for="d1">Текстовое поле</label>
+          <input type="text" id="d1" value="Значение" />
+        </div>
+        <div class="field">
+          <label for="d2">Список</label>
+          <select id="d2">
+            <option>Вариант</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <fieldset>
+          <legend>Шкала</legend>
+        <div class="scale">
+          <label class="scale-opt"><input type="radio" name="dsc" /><span>1</span></label>
+          <label class="scale-opt"><input type="radio" name="dsc" /><span>2</span></label>
+          <label class="scale-opt"><input type="radio" name="dsc" checked="checked" /><span>3</span></label>
+          <label class="scale-opt"><input type="radio" name="dsc" /><span>4</span></label>
+          <label class="scale-opt"><input type="radio" name="dsc" /><span>5</span></label>
+        </div>
+        <div class="scale-ends">
+          <span>нижняя подпись</span>
+          <span>верхняя подпись</span>
+        </div>
+        </fieldset>
+      </div>
+      <p class="chart-note">
+        Радиус: карточки и строки — 8px (--radius), контролы — 6px. Второе значение
+        сейчас захардкожено в пятнадцати местах; новое имя —
+        <code style="font-family: var(--mono)">--radius-sm</code>.
+      </p>
+    </div>
+
+    <h2>Палитра серий</h2>
+    <div class="card">
+      <div style="display: flex; flex-wrap: wrap; gap: 12px">
+        <span class="legend"><span><span class="swatch" style="background: #2a78d6"></span> --series-1</span></span>
+        <span class="legend"><span><span class="swatch" style="background: #eb6834"></span> --series-2</span></span>
+        <span class="legend"><span><span class="swatch" style="background: #1baf7a"></span> --series-3</span></span>
+        <span class="legend"><span><span class="swatch" style="background: #eda100"></span> --series-4</span></span>
+        <span class="legend"><span><span class="swatch" style="background: #e87ba4"></span> --series-5</span></span>
+        <span class="legend"><span><span class="swatch" style="background: #008300"></span> --series-6</span></span>
+        <span class="legend"><span><span class="swatch" style="background: #4a3aa7"></span> --series-7</span></span>
+        <span class="legend"><span><span class="swatch" style="background: #e34948"></span> --series-8</span></span>
+      </div>
+      <p class="chart-note">
+        Восемь слотов в фиксированном порядке. Слот принадлежит человеку, а не месту
+        в рейтинге: фильтр не перекрашивает выживших. Девятого слота не бывает —
+        дальше список или фасеты.
+      </p>
+    </div>
+
+    <h2>Пустые состояния и предупреждения</h2>
+    <div class="card">
+      <div class="empty" style="margin-bottom: 16px">Незакрытых договорённостей нет.</div>
+      <div class="notice">
+        По этой версии ещё не прошло ни одной встречи, поэтому тип и шкалу можно менять свободно.
+      </div>
+      <div class="notice error" style="margin-top: 12px">
+        У вопроса есть ответы в 21 встрече — удалить его нельзя.
+      </div>
+    </div>
+  </main>

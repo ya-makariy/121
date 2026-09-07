@@ -5,3 +5,4 @@ data/
 *.sqlite
 *.sqlite-wal
 *.sqlite-shm
+design/out/

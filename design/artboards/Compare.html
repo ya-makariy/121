@@ -1,0 +1,134 @@
+<!--nav:compare-->
+  <main>
+    <h1>Сравнение</h1>
+    <p class="sub">Настроение команды и кому стоит уделить внимание</p>
+
+    <form class="card">
+      <div class="grid2">
+        <div class="field">
+          <label for="metric">Метрика</label>
+          <select id="metric">
+            <option>Удовлетворённость работой</option>
+            <option>Ясность собственного развития</option>
+            <option>Энергия</option>
+            <option>Нагрузка ↓</option>
+            <option>Риск ухода ↓</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="team">Команда</label>
+          <select id="team">
+            <option>Все люди</option>
+            <option>Платформа (4)</option>
+          </select>
+        </div>
+      </div>
+    </form>
+
+    <div class="card">
+      <div class="chart-wrap labelled">
+        <svg viewBox="0 0 820 240" width="100%" height="240" role="img"
+             aria-label="Удовлетворённость работой, четыре человека, нормализовано в проценты">
+          <g stroke="#e3ddd4" stroke-width="1">
+            <line x1="60" y1="30" x2="740" y2="30"></line>
+            <line x1="60" y1="72.5" x2="740" y2="72.5"></line>
+            <line x1="60" y1="115" x2="740" y2="115"></line>
+            <line x1="60" y1="157.5" x2="740" y2="157.5"></line>
+            <line x1="60" y1="200" x2="740" y2="200"></line>
+          </g>
+          <g fill="#6f675d" font-size="12" text-anchor="end" font-family="system-ui, sans-serif">
+            <text x="48" y="34">100%</text>
+            <text x="48" y="76.5">75%</text>
+            <text x="48" y="119">50%</text>
+            <text x="48" y="161.5">25%</text>
+            <text x="48" y="204">0%</text>
+          </g>
+          <g fill="#6f675d" font-size="12" text-anchor="middle" font-family="system-ui, sans-serif">
+            <text x="60" y="224">май</text>
+            <text x="230" y="224">июн</text>
+            <text x="400" y="224">июл</text>
+            <text x="570" y="224">авг</text>
+            <text x="740" y="224">сен</text>
+          </g>
+          <polyline points="60,115 230,72.5 400,72.5 570,115 740,30" fill="none"
+                    stroke="#2a78d6" stroke-width="2" stroke-linejoin="round"></polyline>
+          <polyline points="60,72.5 230,72.5 400,115 570,115 740,72.5" fill="none"
+                    stroke="#eb6834" stroke-width="2" stroke-linejoin="round"></polyline>
+          <polyline points="60,30 230,72.5 400,72.5 570,72.5 740,115" fill="none"
+                    stroke="#1baf7a" stroke-width="2" stroke-linejoin="round"></polyline>
+          <polyline points="60,115 230,115 400,157.5 570,157.5 740,157.5" fill="none"
+                    stroke="#eda100" stroke-width="2" stroke-linejoin="round"></polyline>
+          <g font-size="12" font-weight="600" font-family="system-ui, sans-serif">
+            <text x="756" y="34" fill="#2a78d6">Анна</text>
+            <text x="756" y="76.5" fill="#eb6834">Игорь</text>
+            <text x="756" y="119" fill="#1baf7a">Марта</text>
+            <text x="756" y="161.5" fill="#eda100">Павел</text>
+          </g>
+        </svg>
+      </div>
+      <p class="chart-note">
+        Шкалы разной размерности приведены к 0–100%. Каждый цвет закреплён за человеком
+        и не меняется от фильтра или порядка в списке.
+      </p>
+      <fieldset class="people-toggles">
+        <legend class="small muted">Показать людей на графике</legend>
+        <label>
+          <input type="checkbox" checked="checked" />
+          <span class="swatch" style="background: #2a78d6"></span> Анна Ким
+        </label>
+        <label>
+          <input type="checkbox" checked="checked" />
+          <span class="swatch" style="background: #eb6834"></span> Игорь Савин
+        </label>
+        <label>
+          <input type="checkbox" checked="checked" />
+          <span class="swatch" style="background: #1baf7a"></span> Марта Ли
+        </label>
+        <label>
+          <input type="checkbox" checked="checked" />
+          <span class="swatch" style="background: #eda100"></span> Павел Дорошенко
+        </label>
+        <label>
+          <input type="checkbox" />
+          <span class="swatch" style="background: #e87ba4"></span> Рита Бек
+        </label>
+      </fieldset>
+    </div>
+
+    <h2>Кому уделить внимание</h2>
+    <p class="sub small">Последнее значение, худшие сверху. Стрелка — изменение с прошлой встречи.</p>
+    <div class="rows">
+      <div class="row">
+        <span class="standing-value">25%</span>
+        <span class="grow">
+          <a class="name" href="#">Павел Дорошенко</a>
+          <span class="small muted"> · измерено 29 августа 2026 · 5 точек</span>
+        </span>
+        <span class="badge neutral">без изменений</span>
+      </div>
+      <div class="row">
+        <span class="standing-value">50%</span>
+        <span class="grow">
+          <a class="name" href="#">Марта Ли</a>
+          <span class="small muted"> · измерено 30 августа 2026 · 5 точек</span>
+        </span>
+        <span class="badge overdue">↓ 25 п.п.</span>
+      </div>
+      <div class="row">
+        <span class="standing-value">75%</span>
+        <span class="grow">
+          <a class="name" href="#">Игорь Савин</a>
+          <span class="small muted"> · измерено 1 сентября 2026 · 5 точек</span>
+        </span>
+        <span class="badge ok">↑ 25 п.п.</span>
+      </div>
+      <div class="row">
+        <span class="standing-value">100%</span>
+        <span class="grow">
+          <a class="name" href="#">Анна Ким</a>
+          <span class="small muted"> · измерено 1 сентября 2026 · 5 точек</span>
+        </span>
+        <span class="badge ok">↑ 50 п.п.</span>
+      </div>
+    </div>
+  </main>

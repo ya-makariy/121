@@ -1,0 +1,54 @@
+<!--nav:settings-->
+  <main>
+    <h1>Настройки</h1>
+    <p class="sub">Инстанс на одного руководителя. Данные не покидают машину.</p>
+
+    <h2>Язык</h2>
+    <form class="card">
+      <div class="field">
+        <label for="loc">Язык интерфейса</label>
+        <select id="loc">
+          <option>Русский</option>
+          <option>English</option>
+        </select>
+      </div>
+      <button class="primary" type="button">Сохранить</button>
+    </form>
+
+    <h2>Часовой пояс</h2>
+    <form class="card">
+      <div class="field">
+        <label for="tz">
+          Пояс
+          <span class="hint">От него считается «сегодня» для каденса. UTC здесь врёт на день.</span>
+        </label>
+        <select id="tz">
+          <option>Europe/Moscow</option>
+          <option>Asia/Tashkent</option>
+          <option>UTC</option>
+        </select>
+      </div>
+      <button class="primary" type="button">Сохранить</button>
+    </form>
+
+    <h2>Бэкап базы</h2>
+    <form class="card">
+      <p class="small muted">Скачать копию файла БД (VACUUM INTO, безопасно при работающем сервере).</p>
+      <div class="actions-bar">
+        <button class="primary" type="button">Скачать</button>
+        <span class="small muted">последний: 7 сентября 2026, 236 КБ</span>
+      </div>
+    </form>
+
+    <h2>Экспорт</h2>
+    <div class="card">
+      <p class="small muted">
+        Полная выгрузка, включая приватное. Это бэкап, а не саммари для подопечного —
+        саммари собирается на странице встречи.
+      </p>
+      <div class="actions-bar">
+        <a class="btn" href="#">Экспорт JSON</a>
+        <a class="btn" href="#">Экспорт Markdown</a>
+      </div>
+    </div>
+  </main>

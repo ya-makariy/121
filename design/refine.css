@@ -1,0 +1,139 @@
+
+/* ================================================================
+   REFINEMENT LAYER — proposed additions to public/app.css
+   Everything above this line is the current stylesheet, verbatim.
+   ================================================================ */
+
+:root {
+  /* Spacing scale. The current stylesheet spends 4/6/8/12/14/16/20/24/28px
+     as literals; these are the seven that actually recur. */
+  --s-1: 4px;  --s-2: 6px;  --s-3: 8px;  --s-4: 12px;
+  --s-5: 16px; --s-6: 24px; --s-7: 32px;
+
+  /* Type scale. Same story: 12/13/14/15/17/25 are already the whole ramp. */
+  --fs-xs: 12px; --fs-sm: 13px; --fs-md: 14px;
+  --fs-base: 15px; --fs-lg: 17px; --fs-xl: 25px;
+
+  /* --radius is 8px and honoured on cards; 6px is hardcoded in fifteen
+     other places. Name it instead. */
+  --radius-sm: 6px;
+
+  /* The four colours that live outside the token layer today. */
+  --on-accent: #ffffff;
+  --notice-border: #efd9ab;
+  --notice-text: #6b4a0c;
+  --danger-border: #eec6c6;
+}
+
+/* One focus ring for the whole app instead of two ad-hoc ones. */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* ---------- grouped lists ----------
+   A flat list of identical rows has no hierarchy: on the dashboard every
+   person carries the same neutral button and the same green badge, so the
+   eye has nowhere to land. Grouping by urgency gives it one. */
+.group { margin-bottom: var(--s-6); }
+.group-head {
+  display: flex; align-items: baseline; gap: var(--s-3);
+  margin: 0 0 var(--s-3);
+}
+.group-head h3 { margin: 0; font-size: var(--fs-md); }
+.group-head .count {
+  font-size: var(--fs-xs); font-weight: 600; color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.group.attention .group-head h3 { color: var(--danger); }
+.group.soon .group-head h3 { color: var(--warn); }
+
+/* A one-line answer to "what do I do today", above the lists. */
+.headline {
+  display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-5);
+  align-items: baseline; margin: 0 0 var(--s-6);
+  font-size: var(--fs-md); color: var(--muted);
+}
+.headline strong { color: var(--text); font-variant-numeric: tabular-nums; }
+
+/* ---------- meeting page ----------
+   The fill-in page is the longest screen in the app and has no way to see
+   how far along you are, or to jump to a section. */
+.meeting-grid {
+  display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: var(--s-7);
+  align-items: start;
+}
+.rail { position: sticky; top: var(--s-5); display: grid; gap: var(--s-1); }
+.rail a {
+  display: flex; justify-content: space-between; gap: var(--s-3);
+  padding: var(--s-2) var(--s-3); border-radius: var(--radius-sm);
+  font-size: var(--fs-sm); color: var(--muted); text-decoration: none;
+}
+.rail a.current { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.rail a .of { font-variant-numeric: tabular-nums; font-size: var(--fs-xs); }
+.rail a.private-item { color: var(--private); }
+
+.progress {
+  display: flex; align-items: center; gap: var(--s-3);
+  font-size: var(--fs-sm); color: var(--muted); margin-bottom: var(--s-5);
+}
+.progress .track {
+  flex: 1; height: 4px; border-radius: 2px; background: var(--border);
+  overflow: hidden;
+}
+.progress .track i { display: block; height: 100%; background: var(--accent); }
+
+/* Completing a meeting is the one irreversible-feeling action on the page and
+   it currently sits at the very bottom of a 1600px scroll. */
+.commit-bar {
+  position: sticky; bottom: 0; display: flex; align-items: center;
+  gap: var(--s-4); flex-wrap: wrap;
+  margin-top: var(--s-6); padding: var(--s-4) var(--s-5);
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.commit-bar .grow { flex: 1; }
+
+/* Private sections read as "a card with a purple edge" today, the same
+   treatment a warning gets elsewhere. Make the label carry it. */
+.private-head {
+  display: flex; align-items: center; gap: var(--s-3);
+  padding: var(--s-2) var(--s-4); margin-bottom: -1px;
+  background: var(--private-soft); color: var(--private);
+  border: 1px solid var(--border); border-bottom: none;
+  border-radius: var(--radius) var(--radius) 0 0;
+  font-size: var(--fs-sm); font-weight: 600;
+}
+.card.private.attached { border-radius: 0 0 var(--radius) var(--radius); background: var(--surface); }
+
+/* ---------- template editor ----------
+   Every field row carries four icon forms plus a badge in one nowrap
+   cluster. The badge is the thing worth scanning; the arrows are not. */
+.field-bar .vis {
+  flex: none; width: 130px; font-size: var(--fs-xs); font-weight: 600;
+}
+.field-bar .vis.shared { color: var(--accent); }
+.field-bar .vis.priv { color: var(--private); }
+.controls .link { color: var(--muted); font-weight: 600; }
+.controls .link:hover { color: var(--text); }
+.controls .link.danger { color: var(--muted); }
+.controls .link.danger:hover { color: var(--danger); }
+
+/* ---------- charts ----------
+   Rule 8: at four or fewer series the lines are labelled directly, so
+   identity never rests on colour alone. Reserve the room for it. */
+.chart-wrap.labelled { padding-right: 96px; }
+.series-label { font-size: var(--fs-xs); font-weight: 600; }
+.legend { display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-4); margin-top: var(--s-3); }
+.legend span { display: inline-flex; align-items: center; gap: var(--s-2); font-size: var(--fs-xs); color: var(--muted); }
+
+/* ---------- grouped controls ----------
+   A scale and an option set are groups of radios. A single <label for> cannot
+   address a group, so today those questions carry a label bound to nothing:
+   clicking it does nothing and a screen reader announces no question. */
+.field fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.field legend {
+  padding: 0; margin-bottom: var(--s-1);
+  font-weight: 600; font-size: var(--fs-md);
+}
+.field legend .hint {
+  display: block; font-weight: 400;
+  color: var(--muted); font-size: var(--fs-sm);
+}
