@@ -4,8 +4,8 @@ import { dirname } from "node:path";
 import { config } from "../config.ts";
 
 /**
- * Прагмы применяются при каждом открытии соединения. foreign_keys — per-connection,
- * его нельзя выставить один раз в файле БД, поэтому он здесь, а не в миграции.
+ * Pragmas are applied on every connection. foreign_keys is per-connection: it cannot be
+ * set once in the database file, which is why it lives here rather than in a migration.
  */
 export function applyPragmas(db: Database): void {
   db.exec("PRAGMA journal_mode = WAL");

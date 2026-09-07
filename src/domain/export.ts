@@ -1,11 +1,13 @@
 import type { Database } from "bun:sqlite";
+import type { Locale } from "../db/types.ts";
 import { nowIso } from "../lib/dates.ts";
+import { dict } from "../i18n/index.ts";
 
 /**
- * ЭКСПОРТ — ЭТО БЭКАП, А НЕ САММАРИ. Включает приватное: заметки руководителя,
- * приватные поля, оценки риска. Противоположный контракт по сравнению с
- * buildSharedSnapshot(). См. CLAUDE.md §1 — поэтому это отдельные функции с разными
- * именами, и выбор между ними никогда не делается query-параметром.
+ * EXPORT IS A BACKUP, NOT A SUMMARY. It includes private content: the manager's notes,
+ * private fields, attrition-risk assessments. The opposite contract to
+ * buildSharedSnapshot(). See CLAUDE.md rule 2 — which is why these are separate functions
+ * with separate names, and why the choice between them is never a query parameter.
  */
 
 const TABLES = [
@@ -29,7 +31,8 @@ export function exportFullJson(db: Database): string {
       formatVersion: 1,
       containsPrivateData: true,
       exportedAt: nowIso(),
-      schemaVersion: (db.query<{ user_version: number }, []>("PRAGMA user_version").get())?.user_version ?? 0,
+      schemaVersion:
+        db.query<{ user_version: number }, []>("PRAGMA user_version").get()?.user_version ?? 0,
       data,
     },
     null,
@@ -39,15 +42,15 @@ export function exportFullJson(db: Database): string {
 
 interface ExportMeetingRow {
   meeting_id: number;
-  person_name: string;
   held_on: string | null;
   status: string;
   title: string | null;
   private_notes: string | null;
 }
 
-export function exportFullMarkdown(db: Database): string {
-  const out: string[] = ["# 121 — полная выгрузка", "", "> Включает приватные заметки. Это бэкап, не саммари.", ""];
+export function exportFullMarkdown(db: Database, locale: Locale = "ru"): string {
+  const t = dict(locale);
+  const out: string[] = [`# ${t.exportDoc.title}`, "", `> ${t.exportDoc.warning}`, ""];
 
   const people = db
     .query<{ id: number; full_name: string; role_title: string | null; notes: string | null }, []>(
@@ -57,20 +60,22 @@ export function exportFullMarkdown(db: Database): string {
 
   for (const p of people) {
     out.push(`## ${p.full_name}${p.role_title ? ` — ${p.role_title}` : ""}`, "");
-    if (p.notes) out.push(`_Приватные заметки:_ ${p.notes}`, "");
+    if (p.notes) out.push(`_${t.exportDoc.privateNotes}:_ ${p.notes}`, "");
 
     const meetings = db
       .query<ExportMeetingRow, [number]>(
-        `SELECT m.id AS meeting_id, p.full_name AS person_name, m.held_on, m.status, m.title,
-                m.private_notes
-         FROM meeting m JOIN person p ON p.id = m.person_id
+        `SELECT m.id AS meeting_id, m.held_on, m.status, m.title, m.private_notes
+         FROM meeting m
          WHERE m.person_id = ?
          ORDER BY m.held_on`,
       )
       .all(p.id);
 
     for (const m of meetings) {
-      out.push(`### ${m.held_on ?? "без даты"} (${m.status})${m.title ? ` — ${m.title}` : ""}`, "");
+      out.push(
+        `### ${m.held_on ?? t.exportDoc.noDate} (${m.status})${m.title ? ` — ${m.title}` : ""}`,
+        "",
+      );
 
       const answers = db
         .query<
@@ -93,29 +98,35 @@ export function exportFullMarkdown(db: Database): string {
         .all(m.meeting_id);
 
       for (const a of answers) {
-        const value = a.num_value ?? a.text_value ?? a.date_value
-          ?? (a.bool_value === null ? null : a.bool_value === 1 ? "да" : "нет")
-          ?? a.opts;
+        const boolText = a.bool_value === null
+          ? null
+          : a.bool_value === 1 ? t.common.yes : t.common.no;
+        const value = a.opts ?? a.num_value ?? a.text_value ?? a.date_value ?? boolText;
+        // A padlock marks what must never appear in a mentee-facing summary.
         const mark = a.visibility === "private" ? " 🔒" : "";
-        out.push(`- **${a.label}${mark}:** ${a.opts ?? value ?? "—"}`);
+        out.push(`- **${a.label}${mark}:** ${value ?? t.common.none}`);
       }
-      if (m.private_notes) out.push("", `_Приватно о встрече:_ ${m.private_notes}`);
+      if (m.private_notes) {
+        out.push("", `_${t.exportDoc.privateAboutMeeting}:_ ${m.private_notes}`);
+      }
       out.push("");
     }
 
     const actions = db
-      .query<{ title: string; status: string; assignee: string; due_on: string | null; visibility: string }, [number]>(
+      .query<
+        { title: string; status: string; assignee: string; due_on: string | null; visibility: string },
+        [number]
+      >(
         "SELECT title, status, assignee, due_on, visibility FROM action_item WHERE person_id = ? ORDER BY id",
       )
       .all(p.id);
+
     if (actions.length > 0) {
-      out.push("#### Договорённости", "");
+      out.push(`#### ${t.exportDoc.agreements}`, "");
       for (const a of actions) {
-        out.push(
-          `- [${a.status === "done" ? "x" : " "}] ${a.title} (${a.assignee}${
-            a.due_on ? `, срок ${a.due_on}` : ""
-          })${a.visibility === "private" ? " 🔒" : ""}`,
-        );
+        const due = a.due_on ? `, ${t.exportDoc.due} ${a.due_on}` : "";
+        const mark = a.visibility === "private" ? " 🔒" : "";
+        out.push(`- [${a.status === "done" ? "x" : " "}] ${a.title} (${a.assignee}${due})${mark}`);
       }
       out.push("");
     }

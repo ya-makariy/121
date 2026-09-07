@@ -17,6 +17,8 @@ import type { AnswerValue } from "../views/components/field-input.ts";
 import type { Assignee, Visibility } from "../db/types.ts";
 import { dict } from "../i18n/index.ts";
 import { escapeHtml } from "../views/html.ts";
+import { errorMessage } from "../i18n/index.ts";
+import { SnapshotError } from "../lib/errors.ts";
 
 export const meetingRoutes = new Hono();
 
@@ -47,8 +49,8 @@ meetingRoutes.post("/people/:id/meetings", async (c) => {
   const heldOn = str(form, "held_on") ?? today(user(c).timezone);
   const templateIdRaw = str(form, "template_id");
 
-  // Встреча привязывается к ТЕКУЩЕЙ версии шаблона и замораживает её:
-  // дальнейшая правка шаблона форкает версию, а эта встреча остаётся как была.
+  // The meeting binds to the CURRENT template version and freezes it: any later edit to
+  // the template forks the version, and this meeting stays exactly as it was.
   let versionId: number | null = null;
   if (templateIdRaw !== null) {
     const tpl = getTemplate(db(), Number.parseInt(templateIdRaw, 10))
@@ -113,7 +115,7 @@ meetingRoutes.get("/meetings/:id", (c) => {
   );
 });
 
-/** Автосохранение одного поля. Отдаёт крошечный партиал в индикатор состояния. */
+/** Autosave for a single field. Returns a tiny partial for the saved indicator. */
 meetingRoutes.patch("/meetings/:id/answers/:fieldId", async (c) => {
   const meetingId = Number.parseInt(c.req.param("id"), 10);
   const fieldId = Number.parseInt(c.req.param("fieldId"), 10);
@@ -175,14 +177,14 @@ meetingRoutes.post("/meetings/:id/complete", (c) => {
   const meeting = getMeeting(db(), id, OWNER_ID);
   if (!meeting) return c.notFound();
 
-  // Фиксируем, что разобрали на встрече и в каком статусе это было на тот момент.
+  // Record what was reviewed in this meeting and the status it had at that moment.
   const reviewed = openActions(db(), today(user(c).timezone), meeting.person_id, OWNER_ID)
     .filter((a) => a.created_meeting_id !== id)
     .map((a) => ({ id: a.id, status: a.status }));
   recordActionReview(db(), id, reviewed);
 
   if (!completeMeeting(db(), id, OWNER_ID)) {
-    return c.text("У встречи не указана дата — завершить нельзя", 422);
+    return c.text(errorMessage(loc(c), new SnapshotError("MEETING_NO_DATE")), 422);
   }
   return c.redirect(`/meetings/${id}/share`, 303);
 });

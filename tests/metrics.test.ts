@@ -8,16 +8,16 @@ import { getMetricByKey, personTimeline, teamAggregate } from "../src/db/queries
 import { nowIso } from "../src/lib/dates.ts";
 
 /**
- * Смысл отдельной сущности «метрика»: график не рвётся при правке шаблона и склеивает
- * точки из разных шаблонов с разными шкалами.
+ * The point of "metric" being its own entity: a chart does not break when a template is
+ * edited, and it merges points from different templates with different scales.
  */
-describe("метрики", () => {
-  test("смена шкалы 1-5 на 1-10 сохраняет сравнимость через норму", () => {
+describe("metrics", () => {
+  test("moving from a 1-5 to a 1-10 scale keeps values comparable via normalization", () => {
     const db = testDb();
     const personId = makePerson(db);
     const metric = getMetricByKey(db, "job_satisfaction")!;
 
-    // Версия 1 из сида: шкала 1-5, ответ 4 => норма (4-1)/(5-1) = 0.75.
+    // Seed version 1: a 1-5 scale, answer 4 => normalized (4-1)/(5-1) = 0.75.
     const v1 = defaultVersionId(db);
     const m1 = makeMeeting(db, personId, v1, "2026-07-01");
     const f1 = db
@@ -28,7 +28,7 @@ describe("метрики", () => {
     saveAnswer(db, m1, getFieldWithOptions(db, f1.id)!, { value: "4" });
     completeMeeting(db, m1);
 
-    // Версия 2: та же метрика, шкала 1-10, ответ 7 => норма (7-1)/(10-1) = 0.666…
+    // Version 2: the same metric, a 1-10 scale, answer 7 => (7-1)/(10-1) = 0.666...
     const v2 = db
       .query<{ id: number }, [number, string]>(
         `INSERT INTO template_version (template_id, version_no, parent_version_id, created_at)
@@ -37,7 +37,7 @@ describe("метрики", () => {
       )
       .get(v1, String(v1))!.id;
     const f2 = addField(db, v2, {
-      fieldKey: "job_satisfaction", label: "Насколько работа устраивает",
+      fieldKey: "job_satisfaction", label: "How satisfying is the work",
       type: "scale", visibility: "shared", metricKey: "job_satisfaction",
       scaleMin: 1, scaleMax: 10,
     });
@@ -52,13 +52,13 @@ describe("метрики", () => {
     expect(points[1]!.raw_value).toBe(7);
     expect(points[1]!.norm_value).toBeCloseTo(6 / 9, 5);
 
-    // Сырые значения 4 и 7 «выросли», нормированные — упали. Именно поэтому график
-    // при смешанных шкалах обязан рисовать норму, а не сырое значение.
+    // Raw values 4 and 7 "went up" while the normalized ones went down. That is exactly
+    // why a chart over mixed scales must plot the normalized value, not the raw one.
     expect(points[1]!.raw_value!).toBeGreaterThan(points[0]!.raw_value!);
     expect(points[1]!.norm_value!).toBeLessThan(points[0]!.norm_value!);
   });
 
-  test("незавершённая встреча не попадает в график", () => {
+  test("an unfinished meeting does not reach the chart", () => {
     const db = testDb();
     const personId = makePerson(db);
     const v = defaultVersionId(db);
@@ -76,13 +76,13 @@ describe("метрики", () => {
     expect(personTimeline(db, personId, metric.id)).toHaveLength(1);
   });
 
-  test("поле без метрики в график не попадает", () => {
+  test("a field with no metric does not reach the chart", () => {
     const db = testDb();
     const personId = makePerson(db);
     const v = defaultVersionId(db);
     const m = makeMeeting(db, personId, v, "2026-09-07");
     const f = addField(db, v, {
-      fieldKey: "just_a_note", label: "просто шкала без метрики", type: "scale",
+      fieldKey: "just_a_note", label: "just a scale with no metric", type: "scale",
       visibility: "shared", scaleMin: 1, scaleMax: 5,
     });
     saveAnswer(db, m, getFieldWithOptions(db, f)!, { value: "2" });
@@ -94,7 +94,7 @@ describe("метрики", () => {
     expect(rows[0]!.n).toBe(0);
   });
 
-  test("агрегат по команде: две встречи одного человека за месяц не дают двойной вес", () => {
+  test("team aggregate: two meetings by one person in a month do not double their weight", () => {
     const db = testDb();
     const v = defaultVersionId(db);
     const metric = getMetricByKey(db, "job_satisfaction")!;
@@ -106,16 +106,16 @@ describe("метрики", () => {
 
     const team = db
       .query<{ id: number }, [string, string]>(
-        "INSERT INTO team (owner_id, name, created_at, updated_at) VALUES (1, 'Команда', ?, ?) RETURNING id",
+        "INSERT INTO team (owner_id, name, created_at, updated_at) VALUES (1, 'A team', ?, ?) RETURNING id",
       )
       .get(nowIso(), nowIso())!.id;
 
-    // Аня: две встречи в сентябре со 1 и 5 => её среднее 0.5 в норме ((0+1)/2).
-    // Борис и Вера: по одной встрече с 3 => норма 0.5 каждый.
+    // Ann: two September meetings with 1 and 5 => her normalized average is 0.5.
+    // Bob and Cleo: one meeting each with 3 => normalized 0.5 apiece.
     const people = [
-      { name: "Аня", values: ["1", "5"], dates: ["2026-09-03", "2026-09-20"] },
-      { name: "Борис", values: ["3"], dates: ["2026-09-10"] },
-      { name: "Вера", values: ["3"], dates: ["2026-09-11"] },
+      { name: "Ann", values: ["1", "5"], dates: ["2026-09-03", "2026-09-20"] },
+      { name: "Bob", values: ["3"], dates: ["2026-09-10"] },
+      { name: "Cleo", values: ["3"], dates: ["2026-09-11"] },
     ];
     for (const p of people) {
       const pid = makePerson(db, p.name);
@@ -132,13 +132,13 @@ describe("метрики", () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]!.period).toBe("2026-09");
     expect(rows[0]!.people).toBe(3);
-    // Если бы усредняли по всем ответам сразу, Аня весила бы вдвое:
-    // (0 + 1 + 0.5 + 0.5)/4 = 0.5 — здесь совпало бы, поэтому проверяем people = 3
-    // и что среднее равно среднему по людям.
+    // Averaging over all answers at once would give Ann double weight:
+    // (0 + 1 + 0.5 + 0.5)/4 = 0.5 happens to match here, so the check is that people = 3
+    // and the mean equals the mean across people.
     expect(rows[0]!.avg_norm).toBeCloseTo(0.5, 5);
   });
 
-  test("порог min_people скрывает деанонимизирующие корзины", () => {
+  test("the min_people threshold hides de-anonymizing buckets", () => {
     const db = testDb();
     const v = defaultVersionId(db);
     const metric = getMetricByKey(db, "job_satisfaction")!;
@@ -149,11 +149,11 @@ describe("метрики", () => {
       .get(v)!;
     const team = db
       .query<{ id: number }, [string, string]>(
-        "INSERT INTO team (owner_id, name, created_at, updated_at) VALUES (1, 'Малая', ?, ?) RETURNING id",
+        "INSERT INTO team (owner_id, name, created_at, updated_at) VALUES (1, 'Tiny team', ?, ?) RETURNING id",
       )
       .get(nowIso(), nowIso())!.id;
 
-    const pid = makePerson(db, "Один человек");
+    const pid = makePerson(db, "One person");
     db.query("INSERT INTO team_member (team_id, person_id, is_primary) VALUES (?, ?, 1)")
       .run(team, pid);
     const m = makeMeeting(db, pid, v, "2026-09-07");
@@ -164,7 +164,7 @@ describe("метрики", () => {
     expect(teamAggregate(db, team, metric.id, "0000-01-01", 1)).toHaveLength(1);
   });
 
-  test("ушедший из команды не тянет агрегат текущего состава", () => {
+  test("someone who left the team does not drag the current-membership aggregate", () => {
     const db = testDb();
     const v = defaultVersionId(db);
     const metric = getMetricByKey(db, "job_satisfaction")!;
@@ -175,12 +175,12 @@ describe("метрики", () => {
       .get(v)!;
     const team = db
       .query<{ id: number }, [string, string]>(
-        "INSERT INTO team (owner_id, name, created_at, updated_at) VALUES (1, 'Смена', ?, ?) RETURNING id",
+        "INSERT INTO team (owner_id, name, created_at, updated_at) VALUES (1, 'Changing team', ?, ?) RETURNING id",
       )
       .get(nowIso(), nowIso())!.id;
 
-    const stayed = makePerson(db, "Остался");
-    const left = makePerson(db, "Ушёл");
+    const stayed = makePerson(db, "Stayed");
+    const left = makePerson(db, "Left");
     db.query("INSERT INTO team_member (team_id, person_id, is_primary) VALUES (?, ?, 1)")
       .run(team, stayed);
     db.query("INSERT INTO team_member (team_id, person_id, is_primary, left_on) VALUES (?, ?, 0, '2026-09-05')")

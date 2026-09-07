@@ -3,16 +3,16 @@ import { layout } from "../layout.ts";
 import { dict, plural } from "../../i18n/index.ts";
 import type { Locale, MetricRow } from "../../db/types.ts";
 import type { PersonStanding, TeamOption } from "../../db/queries/metrics.ts";
-import { formatDate } from "../../lib/dates.ts";
+import { formatDate } from "../../i18n/dates.ts";
 
 /**
- * Две формы рядом, потому что вопросов два.
+ * Two forms side by side, because there are two questions.
  *
- * График «настроение команды»: среднее плюс полоса разброса. Читается при любом размере
- * команды, а индивидуальные линии — опция сверху.
+ * The "team mood" chart: the average plus a spread band. Readable at any team size, with
+ * individual lines as an opt-in above it.
  *
- * Список «кому уделить внимание»: это же и есть табличный вид данных графика, поэтому
- * идентичность нигде не держится на одном цвете.
+ * The "who needs attention" list: it doubles as the table view of the chart's data, which
+ * is why identity never rests on colour alone anywhere here.
  */
 export function comparePage(o: {
   locale: Locale;
@@ -39,15 +39,18 @@ export function comparePage(o: {
   const metric = o.selectedMetric;
   const teamQuery = o.selectedTeam === null ? "" : `&team=${o.selectedTeam}`;
 
-  // Направление метрики решает, что считать «хуже»: у нагрузки и риска ухода
-  // плохо наверху шкалы, у остальных — внизу.
+  // The metric direction decides what counts as worse: for workload and attrition risk
+  // the bad end is the top of the scale, for the rest it is the bottom.
   const delta = (s: PersonStanding): { text: string; tone: string } | null => {
     if (s.prev_norm === null || s.norm_value === null) return null;
     const diff = s.norm_value - s.prev_norm;
     if (Math.abs(diff) < 0.001) return { text: t.compare.noChange, tone: "neutral" };
     const better = metric.direction === 1 ? diff > 0 : diff < 0;
     const pp = Math.round(Math.abs(diff) * 100);
-    return { text: `${diff > 0 ? "↑" : "↓"} ${pp} п.п.`, tone: better ? "ok" : "overdue" };
+    return {
+      text: `${diff > 0 ? "↑" : "↓"} ${pp} ${t.compare.percentagePoints}`,
+      tone: better ? "ok" : "overdue",
+    };
   };
 
   const body = html`
@@ -88,6 +91,7 @@ export function comparePage(o: {
 
     <div class="card">
       <div class="chart-wrap"><canvas id="compare-chart"
+        data-load-failed="${t.charts.loadFailed}"
         data-src="/api/charts/compare/metric/${metric.key}?x=1${teamQuery}"></canvas></div>
       <p class="chart-note" id="compare-note"></p>
       <fieldset class="people-toggles" id="people-toggles">

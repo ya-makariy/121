@@ -14,8 +14,8 @@ import { randomToken } from "../lib/ids.ts";
 import { config } from "../config.ts";
 
 /**
- * Внутренние роуты шаринга: сборка снапшота, отзыв, просмотр.
- * Публичный роутер /s/:token намеренно отдельный — см. publicShareRoutes ниже.
+ * The manager-side sharing routes: build a snapshot, revoke it, view it.
+ * The public /s/:token router is deliberately separate — see publicShareRoutes below.
  */
 export const shareRoutes = new Hono();
 
@@ -49,8 +49,8 @@ shareRoutes.post("/meetings/:id/share", (c) => {
   const meeting = getMeeting(db(), id, OWNER_ID);
   if (!meeting) return c.notFound();
 
-  // Снапшот неизменяем: пересборка отзывает прошлую ссылку и выдаёт новую,
-  // а не подменяет содержимое уже отправленной.
+  // A snapshot is immutable: rebuilding revokes the old link and issues a new one rather
+  // than swapping the contents of something already sent.
   for (const s of listShareLinks(db(), id)) {
     if (s.revoked_at === null) revokeShare(db(), s.id, OWNER_ID);
   }
@@ -80,17 +80,18 @@ shareRoutes.post("/shares/:id/revoke", async (c) => {
 });
 
 /**
- * ПУБЛИЧНЫЙ роутер. Монтируется вне auth-мидлвари с самого начала: в v2 /s/:token должен
- * остаться неаутентифицированным, и если бы в v1 он лежал внутри общего дерева, про это
- * забыли бы при добавлении авторизации. См. CLAUDE.md §1.
+ * The PUBLIC router. Mounted outside the auth middleware from the very start: in v2
+ * /s/:token must stay unauthenticated, and had it sat inside the main tree in v1, that
+ * would have been forgotten the moment auth was added. See CLAUDE.md rule 2.
  *
- * Рендерится ИЗ СНАПШОТА, не из живых данных: приватное здесь взять просто негде.
+ * Rendered FROM THE SNAPSHOT, not from live data: there is simply nowhere here to get
+ * private content from.
  */
 export const publicShareRoutes = new Hono();
 
 publicShareRoutes.get("/s/:token", (c) => {
-  // Один роут на HTML и на Markdown: токен — base64url, точек в нём не бывает,
-  // поэтому суффикс .md различается однозначно и без догадок о парсинге путей.
+  // One route for HTML and Markdown: the token is base64url and never contains a dot, so
+  // the .md suffix is unambiguous without guessing how the framework parses paths.
   const raw = c.req.param("token");
   const wantsMarkdown = raw.endsWith(".md");
   const token = wantsMarkdown ? raw.slice(0, -3) : raw;

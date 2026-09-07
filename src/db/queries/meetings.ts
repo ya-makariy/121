@@ -21,9 +21,9 @@ export function getMeeting(db: Database, id: number, ownerId = 1): MeetingRow | 
 }
 
 /**
- * Создание встречи привязывает её к текущей версии шаблона и замораживает эту версию.
- * После заморозки правка шаблона форкает версию — заполненные встречи не
- * переинтерпретируются. См. domain/template-version.ts.
+ * Creating a meeting binds it to the current template version and freezes that version.
+ * Once frozen, editing the template forks it, so completed meetings are never
+ * reinterpreted. See domain/template-version.ts.
  */
 export function createMeeting(
   db: Database,

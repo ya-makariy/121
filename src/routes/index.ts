@@ -8,16 +8,17 @@ import { compareRoutes } from "./compare.ts";
 import { publicShareRoutes, shareRoutes } from "./shares.ts";
 import { settingsRoutes } from "./settings.ts";
 import { templateRoutes } from "./templates.ts";
+import { metricRoutes } from "./metrics.ts";
 import { locale } from "../middleware/locale.ts";
 import { currentUser } from "../middleware/current-user.ts";
 
 export function mountRoutes(app: Hono): void {
-  // Публичная страница саммари монтируется ПЕРВОЙ и вне ветки, где в v2 появится
-  // авторизация. Ей нужны только локаль по умолчанию и снапшот из БД.
+  // The public summary page is mounted FIRST and outside the branch where v2 will add
+  // authentication. All it needs is the default locale and a snapshot from the database.
   app.route("/", publicShareRoutes);
 
-  // Ветка руководителя. В v1 currentUser() — заглушка, возвращающая пользователя id=1;
-  // в v2 здесь появится проверка сессии, и это единственное место, которое изменится.
+  // The manager's branch. In v1 currentUser() is a stub returning user id=1; in v2 a
+  // session check appears here, and this is the only place that changes.
   const app_ = new Hono();
   app_.use("*", locale(), currentUser());
   app_.route("/", dashboardRoutes);
@@ -29,5 +30,6 @@ export function mountRoutes(app: Hono): void {
   app_.route("/", shareRoutes);
   app_.route("/", settingsRoutes);
   app_.route("/", templateRoutes);
+  app_.route("/", metricRoutes);
   app.route("/", app_);
 }

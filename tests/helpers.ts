@@ -4,7 +4,7 @@ import { migrate } from "../src/db/migrate.ts";
 import { nowIso } from "../src/lib/dates.ts";
 import type { FieldType, Visibility } from "../src/db/types.ts";
 
-/** Чистая база в памяти со применёнными миграциями — включая сид. */
+/** A clean in-memory database with all migrations applied, seed included. */
 export function testDb(): Database {
   const db = new Database(":memory:", { create: true, strict: false });
   applyPragmas(db);
@@ -12,7 +12,7 @@ export function testDb(): Database {
   return db;
 }
 
-export function makePerson(db: Database, name = "Кто-то Безымянный"): number {
+export function makePerson(db: Database, name = "Someone Nameless"): number {
   const now = nowIso();
   const row = db
     .query<{ id: number }, [string, string, string]>(
@@ -55,7 +55,7 @@ export function defaultVersionId(db: Database): number {
     .get()!.current_version_id;
 }
 
-/** Добавляет секцию с одним полем в указанную версию — для тестов метрик и приватности. */
+/** Adds a section with one field to a version — used by the metric and privacy tests. */
 export function addField(
   db: Database,
   versionId: number,

@@ -35,8 +35,8 @@ settingsRoutes.post("/settings/backup", async (c) => {
 });
 
 /**
- * Экспорт включает приватное — это бэкап. Отдельные роуты, отдельные функции,
- * никакого ?format= между саммари и выгрузкой. См. CLAUDE.md §1.
+ * Export includes private content — it is a backup. Separate routes, separate functions,
+ * no ?format= standing between a summary and a full dump. See CLAUDE.md rule 2.
  */
 settingsRoutes.get("/settings/export.json", (c) => {
   c.header("Content-Type", "application/json; charset=utf-8");

@@ -30,7 +30,7 @@ body {
 main { max-width: 940px; margin: 0 auto; padding: 24px 20px 80px; }
 body.public main { max-width: 720px; }
 
-/* ---------- шапка ---------- */
+/* ---------- header ---------- */
 .top {
   display: flex; align-items: center; gap: 20px;
   padding: 0 20px; height: 52px;
@@ -53,7 +53,7 @@ body.public main { max-width: 720px; }
 }
 .lang button:hover { color: var(--text); }
 
-/* ---------- типографика ---------- */
+/* ---------- typography ---------- */
 h1 { font-size: 25px; margin: 0 0 4px; letter-spacing: -.01em; }
 h2 { font-size: 17px; margin: 28px 0 10px; }
 h3 { font-size: 15px; margin: 0 0 8px; }
@@ -62,7 +62,7 @@ h3 { font-size: 15px; margin: 0 0 8px; }
 .small { font-size: 13px; }
 a { color: var(--accent); }
 
-/* ---------- карточки ---------- */
+/* ---------- cards ---------- */
 .card {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 16px; margin-bottom: 12px;
@@ -79,7 +79,7 @@ a { color: var(--accent); }
 .row a.name { text-decoration: none; color: var(--text); }
 .row a.name:hover { color: var(--accent); }
 
-/* ---------- бейджи ---------- */
+/* ---------- badges ---------- */
 .badge {
   display: inline-block; padding: 2px 8px; border-radius: 999px;
   font-size: 12px; font-weight: 600; white-space: nowrap;
@@ -92,7 +92,7 @@ a { color: var(--accent); }
 .badge.shared { background: var(--accent-soft); color: var(--accent); }
 .badge.neutral { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
 
-/* ---------- формы ---------- */
+/* ---------- forms ---------- */
 label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 4px; }
 label .hint { display: block; font-weight: 400; color: var(--muted); font-size: 13px; }
 input[type=text], input[type=email], input[type=date], input[type=number],
@@ -124,7 +124,7 @@ button.link {
 }
 .actions-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 16px; }
 
-/* ---------- шкала ---------- */
+/* ---------- scale input ---------- */
 .scale { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .scale-opt { position: relative; }
 .scale-opt input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
@@ -146,26 +146,26 @@ button.link {
 .opts label { font-weight: 400; display: flex; gap: 8px; align-items: center; }
 .opts input { width: auto; }
 
-/* ---------- статус сохранения ---------- */
+/* ---------- save indicator ---------- */
 .saved-flag { color: var(--ok); font-size: 12px; font-weight: 600; }
 .htmx-request .saved-flag { color: var(--muted); }
 
-/* ---------- пустые состояния ---------- */
+/* ---------- empty states ---------- */
 .empty {
   border: 1px dashed var(--border); border-radius: var(--radius);
   padding: 28px 20px; text-align: center; color: var(--muted);
 }
 
-/* ---------- график ---------- */
+/* ---------- charts ---------- */
 .chart-wrap { position: relative; height: 260px; }
 .chart-note { font-size: 12px; color: var(--muted); margin-top: 8px; }
 
-/* ---------- секции встречи ---------- */
+/* ---------- meeting sections ---------- */
 .section-head { display: flex; align-items: baseline; gap: 10px; }
 .section-head h2 { margin-bottom: 2px; }
 .section-desc { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
 
-/* ---------- саммари ---------- */
+/* ---------- summary ---------- */
 .snapshot-item { margin-bottom: 14px; }
 .snapshot-item .q { font-weight: 600; }
 .snapshot-item .a { white-space: pre-wrap; }
@@ -183,9 +183,9 @@ pre.md {
   white-space: pre-wrap;
 }
 
-/* ---------- сравнение людей ---------- */
-/* Категориальная палитра из руководства по визуализации: восемь слотов в
-   фиксированном порядке. Слот закреплён за человеком, а не за его местом в рейтинге. */
+/* ---------- comparing people ---------- */
+/* The categorical palette from the data-visualization guidance: eight slots in a fixed
+   order. A slot belongs to a person, never to their place in a ranking. */
 :root {
   --series-1: #2a78d6;
   --series-2: #eb6834;
@@ -219,3 +219,80 @@ pre.md {
   width: 10px; height: 10px; border-radius: 2px; display: inline-block; flex: none;
 }
 .chart-wrap { min-height: 260px; }
+
+/* ---------- template builder ---------- */
+.section-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px; margin-bottom: 14px;
+}
+.section-card.dragging, .field-row.dragging { opacity: .45; }
+
+.section-bar, .field-bar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.section-bar { padding-bottom: 6px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+.section-bar form, .field-bar form { display: inline; }
+
+.handle {
+  cursor: grab; color: var(--muted); font-size: 15px; line-height: 1;
+  padding: 2px 4px; user-select: none;
+}
+.handle:active { cursor: grabbing; }
+
+.field-row {
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 10px 12px; margin-bottom: 8px; background: var(--bg);
+}
+.field-row.expanded { background: var(--surface); border-color: var(--accent); }
+.field-row .req { color: var(--danger); font-weight: 700; }
+
+.metric-tag {
+  background: var(--accent-soft); color: var(--accent);
+  padding: 1px 6px; border-radius: 4px; font-size: 12px; font-weight: 600;
+}
+
+.preview-line { display: block; margin-top: 4px; font-size: 13px; color: var(--muted); }
+.chip {
+  display: inline-block; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 4px; padding: 1px 6px; margin-right: 4px; font-size: 12px;
+}
+
+.btn.small-btn { padding: 3px 9px; font-size: 13px; }
+button.link.danger { color: var(--danger); }
+
+.field-form { margin-top: 10px; }
+.new-question {
+  background: var(--warn-soft); border: 1px solid #efd9ab;
+  border-radius: 6px; padding: 10px 12px;
+}
+label.inline {
+  display: flex; align-items: center; gap: 8px; font-weight: 600;
+}
+label.inline input { width: auto; }
+
+.options-editor { margin-top: 10px; }
+.option-row {
+  display: flex; gap: 8px; align-items: center; margin-bottom: 6px;
+}
+.option-row input[type=text] { flex: 1; }
+.option-row input[type=number] { width: 90px; }
+
+.notice.error {
+  background: var(--danger-soft); border-color: #eec6c6; color: var(--danger);
+}
+.row.problem.error { border-left: 3px solid var(--danger); }
+.row.problem.warning { border-left: 3px solid var(--warn); }
+
+.empty.small { padding: 14px; font-size: 13px; }
+
+/* The control group does not wrap across lines: the question label stretches and the
+   buttons stay together on the right. */
+.controls {
+  display: flex; align-items: center; gap: 6px; flex: none; flex-wrap: nowrap;
+}
+.field-bar, .section-bar { flex-wrap: nowrap; }
+.field-bar .grow, .section-bar .grow { min-width: 0; }
+@media (max-width: 720px) {
+  .field-bar, .section-bar { flex-wrap: wrap; }
+  .controls { margin-left: auto; }
+}

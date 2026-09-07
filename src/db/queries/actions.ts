@@ -10,10 +10,10 @@ export interface OpenActionRow extends ActionItemRow {
 }
 
 /**
- * Один запрос на два экрана: personId = null даёт глобальный список,
- * конкретный personId — блок переноса в повестке следующей встречи.
+ * One query for two screens: personId = null gives the global list, a specific personId
+ * gives the carry-over block in the next meeting's agenda.
  *
- * Перенос ВЫЧИСЛЯЕТСЯ, а не копируется: никакого дублирования строк и сверки статусов.
+ * Carry-over is DERIVED, never copied: no duplicated rows and no status reconciliation.
  */
 export function openActions(
   db: Database, today: string, personId: number | null = null, ownerId = 1,
@@ -92,7 +92,7 @@ export function setActionStatus(
   );
 }
 
-/** Фиксирует, что разобрали на встрече и в каком статусе это было на тот момент. */
+/** Records what was reviewed in a meeting and its status at that moment. */
 export function recordActionReview(
   db: Database, meetingId: number, items: { id: number; status: ActionStatus }[],
 ): void {

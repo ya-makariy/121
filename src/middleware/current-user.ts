@@ -3,10 +3,10 @@ import { db } from "../db/index.ts";
 import type { AppUserRow } from "../db/types.ts";
 
 /**
- * v1: авторизации нет, приложение слушает только петлю, любой пришедший — хозяин.
+ * v1: there is no auth. The app listens on loopback only, so whoever arrives is the owner.
  *
- * Смысл этой заглушки в том, что все запросы уже принимают owner_id, и переход к v2
- * (пароль, сессии, облако) меняет ровно этот файл, а не каждый запрос в проекте.
+ * The point of this stub is that every query already takes an owner_id, so moving to v2
+ * (password, sessions, cloud) changes exactly this file and not every query in the project.
  */
 export const OWNER_ID = 1;
 
@@ -21,7 +21,7 @@ export function currentUser(): MiddlewareHandler {
     const row = db()
       .query<AppUserRow, [number]>("SELECT * FROM app_user WHERE id = ?")
       .get(OWNER_ID);
-    if (!row) throw new Error("В базе нет пользователя id=1 — миграция не применялась?");
+    if (!row) throw new Error("No app_user id=1 in the database — were migrations applied?");
     c.set("user", { id: row.id, timezone: row.timezone, displayName: row.display_name });
     await next();
   };

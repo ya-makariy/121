@@ -1,45 +1,18 @@
 import type { SharePayload, SnapshotItem } from "./snapshot.ts";
-import { formatDate } from "../lib/dates.ts";
+import { formatDate } from "../i18n/dates.ts";
+import { dict } from "../i18n/index.ts";
 
 /**
- * Markdown саммари для подопечного. Рендерится ИЗ ТОГО ЖЕ снапшота, что и HTML-страница:
- * два разных пути рендеринга не могут разойтись в том, что видно, а что нет.
+ * The Markdown summary for the mentee. Rendered FROM THE SAME snapshot as the HTML page,
+ * so two rendering paths cannot disagree about what is visible and what is not.
  *
- * В v1 это основной способ поделиться: пока приложение на localhost, ссылку подопечный
- * не откроет — файл копируется в мессенджер.
+ * In v1 this is the main way to share: while the app runs on localhost the mentee cannot
+ * open the link, so the file is copied into a messenger.
  */
 
-const RU = {
-  meetingWith: "1:1 с",
-  agreements: "Договорённости",
-  assigneeManager: "на мне",
-  assigneePerson: "на тебе",
-  assigneeBoth: "на нас обоих",
-  due: "срок",
-  done: "сделано",
-  dropped: "снято",
-  scaleOf: "из",
-  yes: "да",
-  no: "нет",
-  generated: "Саммари собрано",
-};
+type Dict = ReturnType<typeof dict>;
 
-const EN = {
-  meetingWith: "1:1 with",
-  agreements: "Agreements",
-  assigneeManager: "on me",
-  assigneePerson: "on you",
-  assigneeBoth: "on both of us",
-  due: "due",
-  done: "done",
-  dropped: "dropped",
-  scaleOf: "of",
-  yes: "yes",
-  no: "no",
-  generated: "Summary generated",
-};
-
-function itemToMarkdown(item: SnapshotItem, t: typeof RU): string | null {
+function itemToMarkdown(item: SnapshotItem, t: Dict): string | null {
   if (item.scale) {
     const edge = item.scale.value === item.scale.min
       ? item.scale.minLabel
@@ -47,13 +20,15 @@ function itemToMarkdown(item: SnapshotItem, t: typeof RU): string | null {
         ? item.scale.maxLabel
         : null;
     const suffix = edge ? ` (${edge})` : "";
-    return `- **${item.label}:** ${item.scale.value} ${t.scaleOf} ${item.scale.max}${suffix}`;
+    return `- **${item.label}:** ${item.scale.value} ${t.common.of} ${item.scale.max}${suffix}`;
   }
   if (item.options) return `- **${item.label}:** ${item.options}`;
-  if (item.checked !== null) return `- **${item.label}:** ${item.checked ? t.yes : t.no}`;
+  if (item.checked !== null) {
+    return `- **${item.label}:** ${item.checked ? t.common.yes : t.common.no}`;
+  }
   if (item.date) return `- **${item.label}:** ${item.date}`;
   if (item.text && item.text.trim() !== "") {
-    // Многострочный текст выносим абзацем: он и есть содержание встречи.
+    // Multi-line text becomes a paragraph: it is the substance of the meeting.
     return item.text.includes("\n")
       ? `**${item.label}**\n\n${item.text.trim()}`
       : `- **${item.label}:** ${item.text.trim()}`;
@@ -62,10 +37,12 @@ function itemToMarkdown(item: SnapshotItem, t: typeof RU): string | null {
 }
 
 export function renderMarkdown(payload: SharePayload): string {
-  const t = payload.locale === "en" ? EN : RU;
+  const t = dict(payload.locale);
   const out: string[] = [];
 
-  out.push(`# ${t.meetingWith} ${payload.personName} — ${formatDate(payload.heldOn, payload.locale)}`);
+  out.push(
+    `# ${t.md.meetingWith} ${payload.personName} — ${formatDate(payload.heldOn, payload.locale)}`,
+  );
   if (payload.title) out.push(`_${payload.title}_`);
 
   for (const section of payload.sections) {
@@ -78,18 +55,18 @@ export function renderMarkdown(payload: SharePayload): string {
   }
 
   if (payload.actions.length > 0) {
-    out.push(`## ${t.agreements}`);
+    out.push(`## ${t.md.agreements}`);
     out.push(
       payload.actions
         .map((a) => {
           const who =
-            a.assignee === "manager" ? t.assigneeManager
-            : a.assignee === "person" ? t.assigneePerson
-            : t.assigneeBoth;
+            a.assignee === "manager" ? t.md.assigneeManager
+            : a.assignee === "person" ? t.md.assigneePerson
+            : t.md.assigneeBoth;
           const meta = [who];
-          if (a.dueOn) meta.push(`${t.due} ${a.dueOn}`);
-          if (a.status === "done") meta.push(t.done);
-          if (a.status === "dropped") meta.push(t.dropped);
+          if (a.dueOn) meta.push(`${t.md.due} ${a.dueOn}`);
+          if (a.status === "done") meta.push(t.md.done);
+          if (a.status === "dropped") meta.push(t.md.dropped);
           const box = a.status === "done" ? "x" : " ";
           const details = a.details ? `\n  ${a.details.replace(/\n/g, "\n  ")}` : "";
           return `- [${box}] ${a.title} — ${meta.join(", ")}${details}`;
@@ -98,6 +75,6 @@ export function renderMarkdown(payload: SharePayload): string {
     );
   }
 
-  out.push(`---\n${t.generated}: ${payload.generatedAt.slice(0, 10)}`);
+  out.push(`---\n${t.md.generated}: ${payload.generatedAt.slice(0, 10)}`);
   return out.join("\n\n") + "\n";
 }

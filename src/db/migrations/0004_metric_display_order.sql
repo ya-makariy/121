@@ -1,6 +1,6 @@
--- Порядок метрик в выпадающих списках задавался алфавитом, из-за чего первым экраном
--- сравнения открывалась случайная метрика — в какой-то момент приватная оценка риска
--- ухода. Первый экран должен быть осмысленным, поэтому порядок становится данными.
+-- Metric order in dropdowns came from the alphabet, so the comparison screen opened on
+-- whichever metric happened to sort first — at one point the private attrition-risk
+-- assessment. The first screen has to be meaningful, so the order becomes data.
 
 ALTER TABLE metric ADD COLUMN display_order INTEGER NOT NULL DEFAULT 100;
 

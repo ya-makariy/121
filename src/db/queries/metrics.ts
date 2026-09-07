@@ -31,8 +31,8 @@ export interface MetricPoint {
 }
 
 /**
- * Таймлайн метрики по человеку. Точки могут приходить из разных версий шаблона и даже
- * из разных шаблонов — это и есть смысл отдельной сущности «метрика».
+ * A person's timeline for one metric. Points may come from different template versions and
+ * even from different templates — that is the whole point of "metric" being its own thing.
  */
 export function personTimeline(
   db: Database, personId: number, metricId: number, fromDate = "0000-01-01",
@@ -50,7 +50,7 @@ export function personTimeline(
     .all(personId, metricId, fromDate);
 }
 
-/** Какие метрики у человека вообще есть точки — чтобы не рисовать пустые графики. */
+/** Which metrics this person has any points for — so no empty chart gets drawn. */
 export function metricsWithDataForPerson(db: Database, personId: number): MetricRow[] {
   return db
     .query<MetricRow, [number]>(
@@ -72,12 +72,12 @@ export interface TeamAggregateRow {
 }
 
 /**
- * Агрегат по команде: сначала среднее по человеку за период, потом по людям — иначе
- * человек с двумя встречами за месяц получает двойной вес.
+ * Team aggregate: average per person within the period first, then across people —
+ * otherwise someone with two meetings in a month carries double the weight.
  *
- * Состав берётся текущий (left_on IS NULL): реальный вопрос руководителя — «как движется
- * команда в её нынешнем составе». joined_on/left_on хранятся, поэтому альтернатива
- * «состав на тот момент» остаётся правкой запроса, а не миграцией.
+ * Membership is taken as it stands now (left_on IS NULL): the manager's real question is
+ * "how is my team, as it stands, trending". joined_on/left_on are stored, so the
+ * alternative ("membership at the time") stays a query change rather than a migration.
  */
 export function teamAggregate(
   db: Database, teamId: number, metricId: number, fromDate: string, minPeople: number,
@@ -111,11 +111,11 @@ export interface ComparePoint {
 }
 
 /**
- * Сравнение людей по одной метрике на общем полотне.
+ * Comparing people on one metric in a single plot.
  *
- * Группировка по месяцу, а не по датам встреч: люди встречаются в разные дни, и по сырым
- * датам линии не выравниваются — общий тренд команды становится нечитаемым. Внутри месяца
- * у человека берётся среднее, поэтому две встречи за месяц не дают ему двойной вес.
+ * Grouped by month rather than by meeting date: people meet on different days, and raw
+ * dates leave the lines unaligned, which makes the team trend unreadable. Within a month a
+ * person is averaged, so two meetings in one month do not give them double weight.
  */
 export function compareByPeriod(
   db: Database, metricId: number, teamId: number | null, fromDate = "0000-01-01", ownerId = 1,
@@ -151,11 +151,11 @@ export interface PersonStanding {
 }
 
 /**
- * Последнее значение метрики по каждому человеку и предыдущее рядом с ним.
+ * Each person's latest value for a metric, with the previous one beside it.
  *
- * Это и есть ответ на вопрос «кому уделить внимание»: график из восьми ломаных
- * не читается, а список, отсортированный худшим вперёд, читается сразу.
- * Порядок задаётся в приложении, потому что зависит от metric.direction.
+ * This is the actual answer to "who needs attention": a plot of eight lines does not read,
+ * while a list sorted worst-first reads instantly. The ordering is applied in the
+ * application because it depends on metric.direction.
  */
 export function standings(
   db: Database, metricId: number, teamId: number | null, ownerId = 1,
@@ -183,25 +183,25 @@ export function standings(
     .all(ownerId, metricId, teamId, teamId);
 }
 
-/** Худшие впереди, с учётом направления метрики. */
+/** Worst first, honouring the metric direction. */
 export function sortByAttention(rows: PersonStanding[], direction: 1 | -1): PersonStanding[] {
   return [...rows].sort((a, b) => {
     const av = a.norm_value ?? 0;
     const bv = b.norm_value ?? 0;
-    // direction = 1: меньше — хуже. direction = -1: больше — хуже.
+    // direction = 1: lower is worse. direction = -1: higher is worse.
     return direction === 1 ? av - bv : bv - av;
   });
 }
 
-/** Метрики, по которым вообще есть точки — чтобы не предлагать пустые графики. */
+/** Metrics that have any points at all — so no empty chart is offered. */
 export function metricsWithAnyData(db: Database, ownerId = 1): MetricRow[] {
   return db
     .query<MetricRow, [number]>(
       `SELECT m.* FROM metric m
        WHERE m.archived_at IS NULL AND m.owner_id = ?
          AND EXISTS (SELECT 1 FROM v_metric_point p WHERE p.metric_id = m.id)
-       -- Порядок задан данными (metric.display_order): первым экраном сравнения
-       -- не должна открываться приватная оценка риска ухода.
+       -- The order is data (metric.display_order): the comparison screen must not open
+       -- on the private attrition-risk assessment.
        ORDER BY m.display_order, m.label`,
     )
     .all(ownerId);
@@ -223,8 +223,8 @@ export function teamsWithPeople(db: Database, ownerId = 1): TeamOption[] {
 }
 
 /**
- * Сколько разных шкал кормили эту метрику. Больше одной — график обязан рисовать
- * нормированные значения, иначе смена шкалы 1-5 на 1-10 выглядит как рост.
+ * How many distinct scales have fed this metric. More than one means the chart must plot
+ * normalized values, otherwise moving from a 1-5 to a 1-10 scale looks like growth.
  */
 export function distinctScaleCount(db: Database, metricId: number): number {
   return db

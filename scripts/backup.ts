@@ -1,4 +1,4 @@
-/** Копия базы одной командой: bun run backup */
+/** A database copy in one command: bun run backup */
 import { openDb } from "../src/db/index.ts";
 import { backupTo } from "../src/domain/backup.ts";
 

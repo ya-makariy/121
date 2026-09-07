@@ -3,7 +3,7 @@ import { layout } from "../layout.ts";
 import { dict } from "../../i18n/index.ts";
 import type { Locale, MetricRow, TemplateRow } from "../../db/types.ts";
 import type { OpenActionRow } from "../../db/queries/actions.ts";
-import { formatDate } from "../../lib/dates.ts";
+import { formatDate } from "../../i18n/dates.ts";
 import { LOCALES } from "../../i18n/index.ts";
 
 export function actionsPage(o: { locale: Locale; actions: OpenActionRow[] }): string {
@@ -62,6 +62,11 @@ export function templatesPage(o: {
   const t = dict(o.locale);
   const body = html`
     <h1>${t.templates.title}</h1>
+    <p class="sub">
+      ${t.editor.versionsHint}
+      · <a href="/metrics">${t.metrics.title} (${o.metrics.length})</a>
+    </p>
+
     <div class="rows">
       ${o.templates.map(
         (tpl) => html`
@@ -77,27 +82,22 @@ export function templatesPage(o: {
                 · ${tpl.field_count} ${t.templates.fields}
                 · ${tpl.frozen_at ? t.templates.frozen : t.templates.draft}
               </span>
+              ${tpl.description ? html`<div class="small muted">${tpl.description}</div>` : ""}
             </span>
+            <a class="btn small-btn" href="/templates/${tpl.id}">${t.common.edit}</a>
           </div>
         `,
       )}
     </div>
 
-    <h2>${t.templates.metric}</h2>
-    <div class="rows">
-      ${o.metrics.map(
-        (m) => html`
-          <div class="row">
-            <span class="grow">
-              <span class="name">${m.label}</span>
-              <span class="small muted"> · <code>${m.key}</code> · ${m.kind}</span>
-              ${m.description ? html`<div class="small muted">${m.description}</div>` : ""}
-            </span>
-            <span class="badge neutral">${m.direction === 1 ? "↑ лучше" : "↓ лучше"}</span>
-          </div>
-        `,
-      )}
-    </div>
+    <h2>${t.editor.newTemplate}</h2>
+    <form method="post" action="/templates" class="card">
+      <div class="field">
+        <label>${t.editor.templateName}</label>
+        <input type="text" name="name" required placeholder="${t.editor.newTemplate}" />
+      </div>
+      <button class="primary" type="submit">${t.common.add}</button>
+    </form>
   `;
   return layout({
     locale: o.locale, title: t.templates.title, nav: "templates", path: "/templates", body,
@@ -115,7 +115,7 @@ export function settingsPage(o: { locale: Locale }): string {
         <select name="locale">
           ${LOCALES.map(
             (l) => html`<option value="${l}" ${l === o.locale ? "selected" : ""}>${
-              l === "ru" ? "Русский" : "English"
+              t.settings.languageNames[l]
             }</option>`,
           )}
         </select>

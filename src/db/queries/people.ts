@@ -64,7 +64,7 @@ export function updatePerson(
   );
 }
 
-/** Архивирование, не удаление: ценность инструмента — продольная история. */
+/** Archive, never delete: the value of this tool is its longitudinal history. */
 export function archivePerson(db: Database, id: number, ownerId = 1): void {
   const now = nowIso();
   db.query("UPDATE person SET archived_at = ?, updated_at = ? WHERE id = ? AND owner_id = ?")

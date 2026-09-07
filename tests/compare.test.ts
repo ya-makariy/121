@@ -8,7 +8,7 @@ import {
   compareByPeriod, getMetricByKey, metricsWithAnyData, sortByAttention, standings,
 } from "../src/db/queries/metrics.ts";
 import { nowIso } from "../src/lib/dates.ts";
-import { plural } from "../src/i18n/index.ts";
+import { dict, plural } from "../src/i18n/index.ts";
 
 function seedPerson(
   db: ReturnType<typeof testDb>, name: string, fieldKey: string, series: [string, string][],
@@ -28,30 +28,30 @@ function seedPerson(
   return personId;
 }
 
-describe("сравнение людей", () => {
-  test("порядок «кому уделить внимание» зависит от направления метрики", () => {
+describe("comparing people", () => {
+  test("the attention ordering follows the metric direction", () => {
     const db = testDb();
-    seedPerson(db, "Довольный", "job_satisfaction", [["2026-08-01", "5"], ["2026-09-01", "5"]]);
-    seedPerson(db, "Недовольный", "job_satisfaction", [["2026-08-01", "3"], ["2026-09-01", "2"]]);
-    seedPerson(db, "Средний", "job_satisfaction", [["2026-09-01", "4"]]);
+    seedPerson(db, "Content", "job_satisfaction", [["2026-08-01", "5"], ["2026-09-01", "5"]]);
+    seedPerson(db, "Unhappy", "job_satisfaction", [["2026-08-01", "3"], ["2026-09-01", "2"]]);
+    seedPerson(db, "Middling", "job_satisfaction", [["2026-09-01", "4"]]);
 
     const metric = getMetricByKey(db, "job_satisfaction")!;
     const rows = standings(db, metric.id, null);
 
-    // direction = 1: меньше — хуже, худшие сверху.
+    // direction = 1: lower is worse, so the worst come first.
     const up = sortByAttention(rows, 1).map((r) => r.full_name);
-    expect(up[0]).toBe("Недовольный");
-    expect(up.at(-1)).toBe("Довольный");
+    expect(up[0]).toBe("Unhappy");
+    expect(up.at(-1)).toBe("Content");
 
-    // direction = -1 (нагрузка, риск ухода): больше — хуже, порядок разворачивается.
+    // direction = -1 (workload, attrition risk): higher is worse, so the order flips.
     const down = sortByAttention(rows, -1).map((r) => r.full_name);
-    expect(down[0]).toBe("Довольный");
-    expect(down.at(-1)).toBe("Недовольный");
+    expect(down[0]).toBe("Content");
+    expect(down.at(-1)).toBe("Unhappy");
   });
 
-  test("предыдущее значение подтягивается рядом с последним", () => {
+  test("the previous value is pulled in alongside the latest one", () => {
     const db = testDb();
-    const personId = seedPerson(db, "Кто-то", "job_satisfaction", [
+    const personId = seedPerson(db, "Someone", "job_satisfaction", [
       ["2026-07-01", "2"], ["2026-08-01", "3"], ["2026-09-01", "5"],
     ]);
     const metric = getMetricByKey(db, "job_satisfaction")!;
@@ -65,35 +65,35 @@ describe("сравнение людей", () => {
     expect(row.n).toBe(3);
   });
 
-  test("человек с одной точкой не даёт ложного изменения", () => {
+  test("a person with one point produces no phantom change", () => {
     const db = testDb();
-    seedPerson(db, "Новичок", "job_satisfaction", [["2026-09-01", "3"]]);
+    seedPerson(db, "Newcomer", "job_satisfaction", [["2026-09-01", "3"]]);
     const metric = getMetricByKey(db, "job_satisfaction")!;
     const row = standings(db, metric.id, null)[0]!;
     expect(row.n).toBe(1);
     expect(row.prev_norm).toBeNull();
   });
 
-  test("две встречи одного человека за месяц не дают двойной вес в сравнении", () => {
+  test("two meetings by one person in a month carry no double weight", () => {
     const db = testDb();
-    seedPerson(db, "Дважды", "job_satisfaction", [["2026-09-03", "1"], ["2026-09-20", "5"]]);
+    seedPerson(db, "Twice", "job_satisfaction", [["2026-09-03", "1"], ["2026-09-20", "5"]]);
     const metric = getMetricByKey(db, "job_satisfaction")!;
 
     const rows = compareByPeriod(db, metric.id, null);
     expect(rows).toHaveLength(1);
     expect(rows[0]!.period).toBe("2026-09");
     expect(rows[0]!.n).toBe(2);
-    expect(rows[0]!.avg_raw).toBe(3); // одна точка на человека в месяце, а не две
+    expect(rows[0]!.avg_raw).toBe(3); // one point per person per month, not two
   });
 
-  test("фильтр по команде исключает тех, кто в неё не входит", () => {
+  test("the team filter excludes anyone outside it", () => {
     const db = testDb();
-    const inTeam = seedPerson(db, "В команде", "job_satisfaction", [["2026-09-01", "5"]]);
-    seedPerson(db, "Вне команды", "job_satisfaction", [["2026-09-01", "1"]]);
+    const inTeam = seedPerson(db, "In the team", "job_satisfaction", [["2026-09-01", "5"]]);
+    seedPerson(db, "Outside it", "job_satisfaction", [["2026-09-01", "1"]]);
 
     const team = db
       .query<{ id: number }, [string, string]>(
-        "INSERT INTO team (owner_id, name, created_at, updated_at) VALUES (1, 'Т', ?, ?) RETURNING id",
+        "INSERT INTO team (owner_id, name, created_at, updated_at) VALUES (1, 'T', ?, ?) RETURNING id",
       )
       .get(nowIso(), nowIso())!.id;
     db.query("INSERT INTO team_member (team_id, person_id, is_primary) VALUES (?, ?, 1)")
@@ -103,12 +103,12 @@ describe("сравнение людей", () => {
     expect(standings(db, metric.id, null)).toHaveLength(2);
     const scoped = standings(db, metric.id, team);
     expect(scoped).toHaveLength(1);
-    expect(scoped[0]!.full_name).toBe("В команде");
+    expect(scoped[0]!.full_name).toBe("In the team");
   });
 
-  test("архивированный человек исчезает из сравнения", () => {
+  test("an archived person disappears from the comparison", () => {
     const db = testDb();
-    const personId = seedPerson(db, "Ушедший", "job_satisfaction", [["2026-09-01", "3"]]);
+    const personId = seedPerson(db, "Departed", "job_satisfaction", [["2026-09-01", "3"]]);
     const metric = getMetricByKey(db, "job_satisfaction")!;
     expect(standings(db, metric.id, null)).toHaveLength(1);
 
@@ -117,8 +117,8 @@ describe("сравнение людей", () => {
     expect(compareByPeriod(db, metric.id, null)).toHaveLength(0);
   });
 
-  test("приватная метрика не открывается первым экраном сравнения", () => {
-    // Первое, что видит руководитель, не должно быть оценкой риска ухода.
+  test("a private metric is not what the comparison screen opens on", () => {
+    // The first thing the manager sees must not be an attrition-risk assessment.
     const db = testDb();
     const v = defaultVersionId(db);
     const personId = makePerson(db);
@@ -142,22 +142,34 @@ describe("сравнение людей", () => {
   });
 });
 
-describe("склонения", () => {
-  test("русские формы для «точка»", () => {
-    const forms = ["точка", "точки", "точек"] as const;
-    expect(plural("ru", 1, forms)).toBe("1 точка");
-    expect(plural("ru", 2, forms)).toBe("2 точки");
-    expect(plural("ru", 5, forms)).toBe("5 точек");
-    expect(plural("ru", 11, forms)).toBe("11 точек");
-    expect(plural("ru", 21, forms)).toBe("21 точка");
-    expect(plural("ru", 22, forms)).toBe("22 точки");
-    expect(plural("ru", 105, forms)).toBe("105 точек");
+describe("pluralization", () => {
+  // The forms themselves live in the dictionaries; what is tested here is which form the
+  // algorithm picks, so the test needs no words from any particular language.
+  const RU_FORMS = ["one", "few", "many"] as const;
+  const EN_FORMS = ["one", "many"] as const;
+
+  test("Russian picks the right one of three forms", () => {
+    expect(plural("ru", 1, RU_FORMS)).toBe("1 one");
+    expect(plural("ru", 2, RU_FORMS)).toBe("2 few");
+    expect(plural("ru", 5, RU_FORMS)).toBe("5 many");
+    expect(plural("ru", 11, RU_FORMS)).toBe("11 many");
+    expect(plural("ru", 21, RU_FORMS)).toBe("21 one");
+    expect(plural("ru", 22, RU_FORMS)).toBe("22 few");
+    expect(plural("ru", 105, RU_FORMS)).toBe("105 many");
+    expect(plural("ru", 111, RU_FORMS)).toBe("111 many");
   });
 
-  test("английские формы", () => {
-    const forms = ["point", "points"] as const;
-    expect(plural("en", 1, forms)).toBe("1 point");
-    expect(plural("en", 2, forms)).toBe("2 points");
-    expect(plural("en", 21, forms)).toBe("21 points");
+  test("English picks the right one of two", () => {
+    expect(plural("en", 1, EN_FORMS)).toBe("1 one");
+    expect(plural("en", 2, EN_FORMS)).toBe("2 many");
+    expect(plural("en", 21, EN_FORMS)).toBe("21 many");
+  });
+
+  test("the dictionaries supply as many forms as their language needs", () => {
+    // A Russian entry with two forms would silently print "1 \u0442\u043e\u0447\u0435\u043a".
+    expect(dict("ru").compare.pointForms).toHaveLength(3);
+    expect(dict("ru").editor.answerForms).toHaveLength(3);
+    expect(dict("en").compare.pointForms).toHaveLength(2);
+    expect(dict("en").editor.answerForms).toHaveLength(2);
   });
 });

@@ -1,103 +1,139 @@
-# 121 — правила проекта
+# 121 — project rules
 
-Инструмент для 1:1 встреч. Self-hosted, локальный, один руководитель.
-Полный план и обоснования решений — в `PLAN.md`. Ниже правила, которые нельзя нарушать,
-потому что каждое из них закрывает конкретный способ сломать данные или доверие.
+A tool for running 1:1 meetings. Self-hosted, local, single manager.
+The full plan and the reasoning behind each decision live in `PLAN.md`. Below are the rules
+that must not be broken, because each one closes a specific way to corrupt the data or
+break the user's trust.
 
-## 1. Приватность полей — инвариант, а не аккуратность
+## 1. Language: English in code, Russian only in the localization layer
 
-У каждого поля шаблона есть `visibility` (`shared` | `private`). Приватное не покидает
-инстанс никогда: ни в share-странице, ни в Markdown снапшота, ни в payload графика,
-ни в HTMX-партиале.
+All code, identifiers, comments, commit messages and thrown developer-facing messages are
+in **English**. No Cyrillic anywhere in source files.
 
-- Путь шаринга читает **только** представление `v_shared_answer`. Ничего больше.
-- `domain/snapshot.ts` — единственный сборщик снапшота. `db/queries/shares.ts` не
-  импортирует другие query-модули.
-- `buildSharedSnapshot()` в конце проверяет результат и падает, если внутрь попало
-  приватное поле.
-- `meeting.private_notes` и `person.notes` не попадают в снапшот ни при каких условиях.
-- `tests/snapshot-privacy.test.ts` не удаляется и не ослабляется. Никогда.
+User-facing text is not hardcoded — it lives in the localization layer and is looked up by
+key. When you need a new string, add it to `src/i18n/ru.ts` and `src/i18n/en.ts` and
+reference it through `dict(locale)`; never inline a Russian literal in a route, view or
+domain module, and never branch on locale inside business logic.
 
-Дефолт `visibility` в БД — `private`. Баг, забывший передать видимость, должен скрыть,
-а не раскрыть.
+Domain errors carry a stable **error code**, not a sentence. The route or view translates
+the code through the dictionary. That keeps the domain free of presentation concerns and
+free of Cyrillic at the same time.
 
-Экспорт и шаринг имеют **противоположные** контракты: `exportFullJson()` /
-`exportFullMarkdown()` включают приватное (это бэкап), `buildSharedSnapshot()` — нет.
-Это разные функции с разными именами и разными роутами. Выбор между ними никогда не
-делается query-параметром вида `?format=`.
+Non-Latin text is allowed in exactly two places, and `tests/language.test.ts` enforces it:
 
-## 2. Значения полей — колонками, не JSON
+- **`src/i18n/`** — the localization layer as a whole: the dictionaries, the
+  transliteration table used to build keys, and month names in the grammatical cases Intl
+  does not provide. Locale-specific data belongs here and nowhere else, which is why
+  `formatDate` lives in `src/i18n/dates.ts` while `lib/dates.ts` keeps only locale-free
+  arithmetic.
+- **`src/db/migrations/0002_seed.sql`** and later seed migrations — the starter template's
+  content (metric labels, section titles, question wording). This is user content, not
+  code: it is authored in one language by design, the same way a manager's own templates
+  are (see "user content is single-language" in `PLAN.md`). Comments in those files are
+  still English.
 
-JSON разрешён ровно в четырёх местах: `share_link.snapshot_json`,
-`template_field.config_json`, `app_setting.value`, вывод экспорта.
+Why this rule: the repository is public, the audience for the code is international, and
+mixing scripts inside identifiers and grep patterns is a steady source of small errors.
 
-Всё остальное, что когда-либо будет фильтроваться, джойниться, агрегироваться или
-участвовать в FK, получает колонку. `meeting.answers_json` под давлением дедлайна всегда
-выглядит как экономия дня и стоит потом каждого графика, каждого агрегата и каждой смены
-типа поля.
+## 2. Field privacy is an invariant, not a matter of care
 
-Денормализация допустима только там, где она фиксирует смысл на момент времени:
-`meeting_answer.field_key`, `meeting_answer_option.option_key`, снапшот шаринга. Не
-денормализуем то, что лежит в одном JOIN от неизменяемых данных.
+Every template field has a `visibility` (`shared` | `private`). Private content never
+leaves the instance: not on the share page, not in the snapshot Markdown, not in a chart
+payload, not in an HTMX partial.
 
-## 3. Даты: `?today` параметром, `date('now')` запрещён
+- The sharing path reads **only** the `v_shared_answer` view. Nothing else.
+- `domain/snapshot.ts` is the only snapshot builder. `db/queries/shares.ts` imports no
+  other query module.
+- `buildSharedSnapshot()` checks its own result at the end and throws if a private field
+  made it in.
+- `meeting.private_notes` and `person.notes` never reach a snapshot under any condition.
+- `tests/snapshot-privacy.test.ts` is never deleted or weakened. Ever.
 
-`date('now')` в SQLite — UTC. В Москве после 21:00 это уже завтра, и дашборд каденса
-начинает врать на день.
+The database default for `visibility` is `private`. A bug that forgets to pass visibility
+must hide, not reveal.
 
-- Сегодняшнюю дату считает `domain/cadence.ts:todayInTz()` из `app_user.timezone`.
-- Каждый запрос принимает её связанным параметром `?today`.
-- `grep -rn "'now'" src/db/queries/` должен быть пуст (исключение — миграции).
-- `held_on` — строго `YYYY-MM-DD`, единственная ось X графиков и единственное, с чем
-  сравнивает арифметика каденса. `scheduled_at` — единственный момент времени, и перед
-  сравнением он всегда оборачивается в `date()`.
+Export and sharing have **opposite** privacy contracts: `exportFullJson()` /
+`exportFullMarkdown()` include private content (they are a backup), `buildSharedSnapshot()`
+does not. They are separate functions with separate names and separate routes. The choice
+between them is never made by a query parameter such as `?format=`.
 
-## 4. История не переписывается
+## 3. Answer values are columns, not JSON
 
-- Шаблон правится на месте, пока `frozen_at IS NULL`. Первая привязка встречи замораживает
-  версию; дальнейшая правка форкает её копированием секций/полей/опций с сохранением
-  `section_key` / `field_key` / `option_key`.
-- `meeting_answer.field_id` — **без** `ON DELETE CASCADE`, намеренно. Поле с ответами не
-  удаляется: попытка должна падать, а не уничтожать историю.
-- `metric.key` неизменяем после первой привязки. Меняется только `label`.
-- Удаление людей, команд, шаблонов и метрик — через `archived_at`. В инструменте, чья
-  ценность в продольной истории, hard delete — это баг.
+JSON is permitted in exactly four places: `share_link.snapshot_json`,
+`template_field.config_json`, `app_setting.value`, and export output.
 
-## 5. Без шага сборки
+Everything else that will ever be filtered, joined, aggregated or referenced by a foreign
+key gets a column. Under deadline pressure `meeting.answers_json` always looks like it
+saves a day, and it costs every chart, every aggregate and every future type change.
 
-Bun + Hono + SSR HTML + HTMX. Никакого бандлера, никакого JSX, никаких CDN в рантайме —
-htmx и Chart.js лежат в `public/vendor/`.
+Denormalization is acceptable only where it captures point-in-time meaning:
+`meeting_answer.field_key`, `meeting_answer_option.option_key`, the share snapshot. Never
+denormalize something that is one JOIN away from immutable data.
 
-- `views/html.ts` — **единственное** место, где реализовано экранирование. Tagged template
-  `html` экранирует всё интерполированное, кроме обёрнутого в `raw()`.
-- `views/components/field-input.ts` рендерит и редактируемую, и read-only форму каждого
-  типа поля: одна функция, два режима, чтобы страница правки и share-страница не могли
-  разойтись в трактовке.
-- Роуты графиков отдают JSON уже в форме `{labels, datasets}`. Клиент не считает.
+## 4. Dates: `?today` is a parameter, `date('now')` is banned
 
-## 6. Бэкап — только `VACUUM INTO`
+`date('now')` in SQLite is UTC. In Moscow after 21:00 that is already tomorrow, and the
+cadence dashboard starts lying by a day.
 
-При включённом WAL копирование файла `.sqlite` молча теряет всё, что осталось в `-wal`.
-`cp` для бэкапа не используется нигде, включая документацию.
+- Today's date is computed by `domain/cadence.ts:todayInTz()` from `app_user.timezone`.
+- Every query takes it as a bound `?today` parameter.
+- `tests/no-sql-now.test.ts` enforces this over `src/db/queries/` (migrations excepted).
+- `held_on` is strictly `YYYY-MM-DD`: it is the only x-axis for charts and the only thing
+  cadence arithmetic compares against. `scheduled_at` is the only instant, and it is always
+  wrapped in `date()` before comparison.
 
-## 7. Репозиторий публичный
+## 5. History is never rewritten
 
-`origin` — `github.com/ya-makariy/121`, коммиты от `me@ya-makariy.com`. Рабочий адрес сюда
-не попадает. В сидах, фикстурах и тестах — только выдуманные безымянные примеры, никаких
-реальных имён коллег. `data/` в `.gitignore`.
+- A template version is edited in place while `frozen_at IS NULL`. The first meeting bound
+  to it freezes it; any later edit forks it, copying sections, fields and options and
+  preserving `section_key` / `field_key` / `option_key`.
+- This yields the invariant the editor relies on: **a draft version cannot have answers**,
+  so changing a field's type, scale or visibility inside a draft is safe.
+- All editor operations address sections, fields and options **by key, not by id**: after a
+  fork the ids change and the keys do not.
+- `meeting_answer.field_id` has **no** `ON DELETE CASCADE`, deliberately. A field with
+  answers is not deleted; the attempt must fail rather than destroy history.
+- `metric.key` is immutable once referenced. Only `label` changes.
+- People, teams, templates and metrics are removed via `archived_at`. In a tool whose value
+  is longitudinal history, a hard delete is a bug.
 
-## 8. Графики: палитра и форма
+## 6. No build step
 
-Категориальная палитра — восемь слотов в фиксированном порядке
-(`--series-1..8` в `public/app.css`), проверенных валидатором на белом фоне.
-Девятый слот не генерируется: серий максимум восемь, дальше — список или фасеты.
+Bun + Hono + server-rendered HTML + HTMX. No bundler, no JSX, no runtime CDN — htmx and
+Chart.js are vendored into `public/vendor/`.
 
-- **Цветовой слот закреплён за сущностью, не за рангом.** Человек не меняет цвет из-за
-  того, что его оценка изменилась, и фильтр не перекрашивает оставшихся.
-- **Одна ось.** Никогда не две шкалы Y на одном полотне.
-- **Смешанные шкалы рисуются нормированными** (0-100%) и это написано в подписи под
-  графиком. Иначе смена шкалы 1-5 на 1-10 читается как рост.
-- **Легенда есть всегда при двух и более сериях**, при четырёх и меньше — плюс подписи у
-  концов линий: идентичность не должна держаться на одном цвете.
-- **Роут отдаёт готовые `{labels, datasets}`.** Клиент не считает данные.
-- Рецессивные сетка и оси; текст — текстовыми токенами, а не цветом серии.
+- `views/html.ts` is the **only** place escaping is implemented. The `html` tagged template
+  escapes every interpolated value unless it is wrapped in `raw()`.
+- `views/components/field-input.ts` renders both the editable and the read-only form of
+  every field type: one function, two modes, so the edit page and the share page cannot
+  drift apart in how they interpret a value.
+- Chart routes return JSON already shaped as `{labels, datasets}`. The client does not
+  compute.
+- Client scripts stay small and take their user-facing strings from `data-` attributes
+  rendered by the server, so no user-facing text is hardcoded in JavaScript.
+
+## 7. Backups only via `VACUUM INTO`
+
+With WAL enabled, copying the `.sqlite` file silently loses everything still in the `-wal`.
+`cp` is never used for backups, including in documentation.
+
+## 8. Charts: palette and form
+
+The categorical palette is eight slots in a fixed order (`--series-1..8` in
+`public/app.css`), validated against the light surface. A ninth slot is never generated:
+at most eight series, beyond that use a list or facets.
+
+- **A colour slot belongs to an entity, never to a rank.** A person does not change colour
+  because their score moved, and a filter does not repaint the survivors.
+- **One axis.** Never two y-scales on one plot.
+- **Mixed scales are drawn normalized** (0–100%) and the caption says so. Otherwise a
+  change from a 1–5 to a 1–10 scale reads as improvement.
+- **A legend is always present for two or more series**, and at four or fewer the lines are
+  also directly labelled: identity must never rest on colour alone.
+- Recessive grid and axes; text wears text tokens, not the series colour.
+
+## 9. The repository is public
+
+`origin` is `github.com/ya-makariy/121`, commits are authored as `me@ya-makariy.com`. A
+work address never lands here. Seeds, fixtures and tests contain invented placeholder
+names only — never a real colleague's name. `data/` is in `.gitignore`.

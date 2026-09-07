@@ -2,17 +2,17 @@ import { describe, expect, test } from "bun:test";
 import { classifyCadence } from "../src/domain/cadence.ts";
 import { addDays, daysBetween, todayInTz } from "../src/lib/dates.ts";
 
-describe("каденс", () => {
-  test("вечер в Москве не сдвигает дату на следующий день", () => {
-    // 2026-09-07 21:30 по Москве = 18:30 UTC. date('now') в SQLite отдал бы уже
-    // 2026-09-07 корректно, но в 23:30 MSK (20:30 UTC) — всё ещё 7-е по UTC,
-    // а вот в 02:00 MSK 8-го (23:00 UTC 7-го) UTC сказал бы 7-е, тогда как в Москве уже 8-е.
+describe("cadence", () => {
+  test("an evening in Moscow does not shift the date to the next day", () => {
+    // 21:30 Moscow is 18:30 UTC and both agree on the 7th. But at 00:30 Moscow on the
+    // 8th (21:30 UTC on the 7th) UTC still says the 7th while Moscow is already on the
+    // 8th — which is exactly how a cadence dashboard ends up a day off.
     expect(todayInTz("Europe/Moscow", new Date("2026-09-07T18:30:00Z"))).toBe("2026-09-07");
     expect(todayInTz("Europe/Moscow", new Date("2026-09-07T21:30:00Z"))).toBe("2026-09-08");
     expect(todayInTz("UTC", new Date("2026-09-07T21:30:00Z"))).toBe("2026-09-07");
   });
 
-  test("просрочка считается от последней завершённой встречи", () => {
+  test("overdue is measured from the last completed meeting", () => {
     const s = classifyCadence(
       { cadenceDays: 14, lastHeldOn: "2026-08-20", anchorOn: null }, "2026-09-07",
     );
@@ -22,7 +22,7 @@ describe("каденс", () => {
     expect(s.daysSinceLast).toBe(18);
   });
 
-  test("до первой встречи каденс считается от опоры", () => {
+  test("before the first meeting the cadence counts from the anchor", () => {
     const s = classifyCadence(
       { cadenceDays: 14, lastHeldOn: null, anchorOn: "2026-09-01" }, "2026-09-07",
     );
@@ -31,7 +31,7 @@ describe("каденс", () => {
     expect(s.daysSinceLast).toBeNull();
   });
 
-  test("без каденса статус no_cadence, а не просрочка", () => {
+  test("with no cadence the status is no_cadence, not overdue", () => {
     const s = classifyCadence(
       { cadenceDays: null, lastHeldOn: "2026-01-01", anchorOn: null }, "2026-09-07",
     );
@@ -39,7 +39,7 @@ describe("каденс", () => {
     expect(s.dueOn).toBeNull();
   });
 
-  test("граница due_soon зависит от порога", () => {
+  test("the due_soon boundary follows the threshold", () => {
     const input = { cadenceDays: 14, lastHeldOn: "2026-08-27", anchorOn: null };
     expect(classifyCadence(input, "2026-09-07", 3).status).toBe("due_soon"); // due 09-10
     expect(classifyCadence(input, "2026-09-07", 1).status).toBe("ok");
@@ -47,8 +47,8 @@ describe("каденс", () => {
     expect(classifyCadence(input, "2026-09-11", 3).status).toBe("overdue");
   });
 
-  test("арифметика дат не ломается на переходе на зимнее время", () => {
-    // В конце октября в европейских зонах сдвиг часов; счёт в UTC-полдне это игнорирует.
+  test("date arithmetic survives a daylight-saving change", () => {
+    // European zones shift clocks in late October; counting at UTC noon ignores that.
     expect(addDays("2026-10-24", 7)).toBe("2026-10-31");
     expect(addDays("2026-10-31", 1)).toBe("2026-11-01");
     expect(daysBetween("2026-10-24", "2026-11-01")).toBe(8);

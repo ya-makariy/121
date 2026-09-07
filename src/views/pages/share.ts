@@ -3,10 +3,10 @@ import { layout, publicLayout } from "../layout.ts";
 import { dict } from "../../i18n/index.ts";
 import type { Locale, MeetingRow, PersonRow, ShareLinkRow } from "../../db/types.ts";
 import type { SharePayload } from "../../domain/snapshot.ts";
-import { formatDate } from "../../lib/dates.ts";
+import { formatDate } from "../../i18n/dates.ts";
 import { config } from "../../config.ts";
 
-/** Внутренняя страница: собрать снапшот, посмотреть, скачать, отозвать. */
+/** The manager-side page: build a snapshot, view it, download it, revoke it. */
 export function sharePage(o: {
   locale: Locale;
   meeting: MeetingRow;
@@ -90,8 +90,8 @@ export function sharePage(o: {
 }
 
 /**
- * Публичная страница саммари. Рендерится ИЗ СНАПШОТА, не из живых данных:
- * подопечный видит ровно то, что было собрано на момент шаринга.
+ * The public summary page. Rendered FROM THE SNAPSHOT, not from live data: the mentee sees
+ * exactly what was assembled at the moment of sharing.
  */
 export function publicSharePage(payload: SharePayload): string {
   const t = dict(payload.locale);

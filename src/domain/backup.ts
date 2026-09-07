@@ -4,11 +4,11 @@ import { join } from "node:path";
 import { config } from "../config.ts";
 
 /**
- * Бэкап — ТОЛЬКО через VACUUM INTO. См. CLAUDE.md §6.
+ * Backups go through VACUUM INTO only. See CLAUDE.md rule 7.
  *
- * При включённом WAL копирование файла .sqlite молча теряет всё, что осталось в -wal:
- * получается «бэкап», в котором нет последней встречи. VACUUM INTO делает целостную
- * сжатую копию, не останавливая сервер.
+ * With WAL enabled, copying the .sqlite file silently loses whatever is still in the -wal:
+ * you get a "backup" without the latest meeting in it. VACUUM INTO produces a consistent,
+ * compacted copy without stopping the server.
  */
 export function backupTo(db: Database, dir: string = config.backupDir): string {
   mkdirSync(dir, { recursive: true });

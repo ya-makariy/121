@@ -5,9 +5,9 @@ import type { Locale } from "../db/types.ts";
 export interface LayoutOptions {
   locale: Locale;
   title: string;
-  /** Активный пункт навигации. */
-  nav?: "dashboard" | "people" | "compare" | "teams" | "templates" | "actions" | "settings";
-  /** Путь для переключателя языка (сохраняет текущую страницу). */
+  /** The active navigation item. */
+  nav?: "dashboard" | "people" | "compare" | "teams" | "templates" | "metrics" | "actions" | "settings";
+  /** Path used by the language switch so it returns to the current page. */
   path?: string;
   body: Raw;
 }
@@ -21,6 +21,7 @@ export function layout(o: LayoutOptions): string {
     ["compare", "/compare", t.nav.compare],
     ["actions", "/actions", t.nav.actions],
     ["templates", "/templates", t.nav.templates],
+    ["metrics", "/metrics", t.nav.metrics],
     ["settings", "/settings", t.nav.settings],
   ] as const;
 
@@ -58,7 +59,7 @@ ${page.value}
 </html>`;
 }
 
-/** Страница саммари для подопечного: без навигации и без htmx. */
+/** The mentee-facing summary page: no navigation and no htmx. */
 export function publicLayout(o: { locale: Locale; title: string; body: Raw }): string {
   return `<!doctype html>
 <html lang="${o.locale}">

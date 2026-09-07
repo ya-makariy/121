@@ -38,8 +38,8 @@ export function getVersion(db: Database, versionId: number): TemplateVersionRow 
 }
 
 /**
- * Полная структура версии шаблона: секции -> поля -> опции, в порядке отображения.
- * Три запроса вместо N+1; на этих объёмах этого более чем достаточно.
+ * The full structure of a template version: sections -> fields -> options, in display
+ * order. Three queries instead of N+1; at this scale that is more than enough.
  */
 export function loadVersionStructure(db: Database, versionId: number): SectionWithFields[] {
   const sections = db

@@ -15,8 +15,8 @@ export interface CadenceRow {
 export interface PersonCadence extends CadenceRow, CadenceState {}
 
 /**
- * Каденс целиком считается на чтении. ?today приходит параметром: date('now') в SQLite
- * это UTC, и вечером в Москве дашборд начал бы врать на день (CLAUDE.md §3).
+ * Cadence is computed entirely on read. ?today arrives as a parameter: date('now') in
+ * SQLite is UTC, and by evening in Moscow the dashboard would be a day off (CLAUDE.md 4).
  */
 export function cadenceOverview(db: Database, today: string, ownerId = 1): PersonCadence[] {
   const rows = db

@@ -3,7 +3,7 @@ import { layout } from "../layout.ts";
 import { dict } from "../../i18n/index.ts";
 import type { Locale, MeetingRow, MetricRow, PersonRow, ActionItemRow } from "../../db/types.ts";
 import type { PersonCadence } from "../../db/queries/cadence.ts";
-import { formatDate } from "../../lib/dates.ts";
+import { formatDate } from "../../i18n/dates.ts";
 
 export function personPage(o: {
   locale: Locale;
@@ -53,6 +53,7 @@ export function personPage(o: {
             </div>
             <div class="chart-wrap"><canvas id="metric-chart"
               data-person="${p.id}"
+              data-load-failed="${t.charts.loadFailed}"
               data-src="/api/charts/person/${p.id}/metric/"></canvas></div>
             <p class="chart-note" id="chart-note"></p>
           </div>

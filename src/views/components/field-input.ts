@@ -1,12 +1,12 @@
 import { html, raw, type Raw } from "../html.ts";
 import type { FieldWithOptions, Locale } from "../../db/types.ts";
 import { dict } from "../../i18n/index.ts";
-import { formatDate } from "../../lib/dates.ts";
+import { formatDate } from "../../i18n/dates.ts";
 
 /**
- * Одна функция рендерит и редактируемую, и read-only форму каждого типа поля.
- * Два режима вместо двух функций — чтобы страница правки и саммари не могли разойтись
- * в трактовке значения. См. CLAUDE.md §5.
+ * One function renders both the editable and the read-only form of every field type.
+ * Two modes instead of two functions, so the edit page and the summary cannot drift apart
+ * in how they interpret a value. See CLAUDE.md rule 6.
  */
 
 export interface AnswerValue {
@@ -30,18 +30,18 @@ function scaleSteps(field: FieldWithOptions): number[] {
   return out;
 }
 
-/** Редактируемое поле. Автосохранение по изменению — HTMX шлёт PATCH и получает партиал. */
+/** An editable field. Autosaves on change: HTMX sends a PATCH and gets a partial back. */
 export function fieldInput(
   field: FieldWithOptions, value: AnswerValue, meetingId: number, locale: Locale,
 ): Raw {
   const t = dict(locale);
   const url = `/meetings/${meetingId}/answers/${field.id}`;
-  // text/short_text сохраняются по уходу фокуса, остальное — сразу по change.
+  // text/short_text save as typing settles; everything else saves immediately on change.
   const trigger = field.type === "text" || field.type === "short_text"
     ? "change, keyup changed delay:800ms"
     : "change";
-  // Для наборов вариантов нужно послать весь набор: одиночный чекбокс сам по себе
-  // не описывает multi_select, а снятая галочка не описывается вообще ничем.
+  // Option sets must post the whole set: a single checkbox does not describe a
+  // multi_select on its own, and an unchecked box describes nothing at all.
   const include =
     field.type === "single_select" || field.type === "multi_select"
       ? ` hx-include="closest .field"`
@@ -138,7 +138,7 @@ export function fieldInput(
   `;
 }
 
-/** Read-only значение — используется в саммари и в просмотре завершённой встречи. */
+/** The read-only value — used in a summary and when viewing a completed meeting. */
 export function fieldReadout(
   field: { label: string; type: string; scale_min?: number | null; scale_max?: number | null;
            scale_min_label?: string | null; scale_max_label?: string | null },

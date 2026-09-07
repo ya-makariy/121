@@ -4,7 +4,7 @@ import type { Locale } from "../db/types.ts";
 import { isLocale } from "../i18n/index.ts";
 import { config } from "../config.ts";
 
-/** Приоритет: cookie > ?lang= > Accept-Language > дефолт из конфига. */
+/** Precedence: cookie > ?lang= > Accept-Language > the configured default. */
 export function locale(): MiddlewareHandler {
   return async (c, next) => {
     const fromQuery = c.req.query("lang");

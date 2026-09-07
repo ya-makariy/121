@@ -1,8 +1,8 @@
 /**
- * ЕДИНСТВЕННОЕ место, где реализовано экранирование HTML. См. CLAUDE.md §5.
+ * The ONLY place HTML escaping is implemented. See CLAUDE.md rule 6.
  *
- * `html` экранирует всё интерполированное. Чтобы вставить готовую разметку, её нужно
- * явно обернуть в raw() — то есть утечка XSS требует осознанного действия, а не забывчивости.
+ * `html` escapes everything interpolated. Inserting ready-made markup requires wrapping it
+ * in raw() explicitly, so an XSS hole takes a deliberate act rather than forgetfulness.
  */
 
 const ESCAPES: Record<string, string> = {
@@ -51,12 +51,12 @@ export function html(strings: TemplateStringsArray, ...values: Renderable[]): Ra
   return raw(out);
 }
 
-/** Значение для атрибута — экранируется так же, отдельная функция только для читаемости. */
+/** An attribute value — escaped the same way; a separate function purely for clarity. */
 export function attr(value: string | number | null | undefined): string {
   return value === null || value === undefined ? "" : escapeHtml(String(value));
 }
 
-/** Безопасная вставка данных в <script type="application/json">. */
+/** Safe embedding of data into <script type="application/json">. */
 export function jsonScript(data: unknown): Raw {
   return raw(JSON.stringify(data).replace(/</g, "\\u003c").replace(/>/g, "\\u003e"));
 }

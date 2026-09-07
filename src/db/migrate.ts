@@ -25,8 +25,7 @@ export function loadMigrations(dir: string = MIGRATIONS_DIR): Migration[] {
   const bad = files.filter((f) => !FILENAME_RE.test(f));
   if (bad.length > 0) {
     throw new Error(
-      `Миграции с недопустимыми именами: ${bad.join(", ")}. ` +
-        `Ожидается NNNN_snake_case.sql`,
+      `Migrations with invalid names: ${bad.join(", ")}. Expected NNNN_snake_case.sql`,
     );
   }
 
@@ -42,15 +41,15 @@ export function loadMigrations(dir: string = MIGRATIONS_DIR): Migration[] {
     })
     .sort((a, b) => a.version - b.version);
 
-  // Дыры и дубли номеров — падаем громко на старте, а не разбираемся потом.
+  // Gaps and duplicate numbers fail loudly at boot rather than being puzzled over later.
   migrations.forEach((m, i) => {
     const expected = i + 1;
     if (m.version !== expected) {
       const prev = migrations[i - 1];
       throw new Error(
         prev && prev.version === m.version
-          ? `Дубль номера миграции ${m.version}: ${prev.filename} и ${m.filename}`
-          : `Пропущен номер миграции ${expected} (следующая — ${m.filename})`,
+          ? `Duplicate migration number ${m.version}: ${prev.filename} and ${m.filename}`
+          : `Missing migration number ${expected} (next one is ${m.filename})`,
       );
     }
   });
@@ -64,8 +63,8 @@ function currentVersion(db: Database): number {
 }
 
 /**
- * Сверяет контрольные суммы уже применённых миграций. Ловит самый частый прострел
- * self-hosted инструмента: правку миграции, которая уже выполнилась на живой базе.
+ * Verifies the checksums of migrations already applied. This catches the most common
+ * self-hosted footgun: editing a migration that has already run against a live database.
  */
 function verifyApplied(db: Database, migrations: Migration[]): void {
   const hasLog = db
@@ -83,15 +82,15 @@ function verifyApplied(db: Database, migrations: Migration[]): void {
     const m = migrations.find((x) => x.version === row.version);
     if (!m) {
       throw new Error(
-        `Миграция ${row.version} (${row.filename}) применена к базе, но файла больше нет. ` +
-          `Удалять применённые миграции нельзя.`,
+        `Migration ${row.version} (${row.filename}) was applied to this database but its ` +
+          `file is gone. Applied migrations must not be deleted.`,
       );
     }
     if (m.sha256 !== row.sha256) {
       throw new Error(
-        `Миграция ${m.filename} изменена после применения к базе.\n` +
-          `  в базе:  ${row.sha256}\n  на диске: ${m.sha256}\n` +
-          `Правьте историю новой миграцией, а не старым файлом.`,
+        `Migration ${m.filename} was modified after being applied.\n` +
+          `  in database: ${row.sha256}\n  on disk:     ${m.sha256}\n` +
+          `Change history with a new migration, not by editing an old file.`,
       );
     }
   }
@@ -111,7 +110,7 @@ export function migrate(db: Database, migrations = loadMigrations()): MigrateRes
   const pending = migrations.filter((m) => m.version > from);
   if (pending.length === 0) return { from, to: from, applied: [] };
 
-  // Бесплатная страховка перед правкой незаменимого локального файла.
+  // Free insurance before touching an irreplaceable local file.
   let backup: string | undefined;
   const dbFile = db.filename;
   if (from > 0 && dbFile && dbFile !== ":memory:") {
@@ -123,12 +122,12 @@ export function migrate(db: Database, migrations = loadMigrations()): MigrateRes
 
   const applied: string[] = [];
   for (const m of pending) {
-    // foreign_keys нельзя переключать внутри транзакции — отсюда такой порядок.
+    // foreign_keys cannot be toggled inside a transaction, hence this ordering.
     db.exec("PRAGMA foreign_keys = OFF");
     try {
       db.exec("BEGIN IMMEDIATE");
       db.exec(m.sql);
-      // Прагмы не параметризуются; значение пришло из валидированного regex-ом имени файла.
+      // Pragmas take no parameters; the value came from a regex-validated filename.
       db.exec(`PRAGMA user_version = ${m.version}`);
       db.query(
         "INSERT INTO _migration_log (version, filename, sha256, applied_at) VALUES (?, ?, ?, ?)",
@@ -137,14 +136,14 @@ export function migrate(db: Database, migrations = loadMigrations()): MigrateRes
     } catch (err) {
       db.exec("ROLLBACK");
       db.exec("PRAGMA foreign_keys = ON");
-      throw new Error(`Миграция ${m.filename} не применилась: ${(err as Error).message}`);
+      throw new Error(`Migration ${m.filename} failed: ${(err as Error).message}`);
     }
 
     const violations = db.query("PRAGMA foreign_key_check").all();
     db.exec("PRAGMA foreign_keys = ON");
     if (violations.length > 0) {
       throw new Error(
-        `Миграция ${m.filename} оставила битые внешние ключи: ${JSON.stringify(violations)}`,
+        `Migration ${m.filename} left broken foreign keys: ${JSON.stringify(violations)}`,
       );
     }
     applied.push(m.filename);
@@ -157,10 +156,10 @@ if (import.meta.main) {
   const database = openDb();
   const result = migrate(database);
   if (result.applied.length === 0) {
-    console.log(`База уже на версии ${result.to}, применять нечего.`);
+    console.log(`Database is already at version ${result.to}; nothing to apply.`);
   } else {
-    if (result.backup) console.log(`Бэкап перед миграцией: ${result.backup}`);
-    console.log(`Применено ${result.from} -> ${result.to}: ${result.applied.join(", ")}`);
+    if (result.backup) console.log(`Pre-migration backup: ${result.backup}`);
+    console.log(`Applied ${result.from} -> ${result.to}: ${result.applied.join(", ")}`);
   }
   database.close();
 }

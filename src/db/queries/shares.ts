@@ -3,11 +3,11 @@ import type { Locale, ShareLinkRow } from "../types.ts";
 import { nowIso } from "../../lib/dates.ts";
 
 /**
- * Путь шаринга. Этот модуль НЕ импортирует другие query-модули и читает ответы ТОЛЬКО
- * из представления v_shared_answer. См. CLAUDE.md §1.
+ * The sharing path. This module imports NO other query module and reads answers ONLY from
+ * the v_shared_answer view. See CLAUDE.md rule 2.
  *
- * Колонки везде перечислены явно: `SELECT *` по meeting или person затянул бы
- * private_notes и notes.
+ * Columns are always listed explicitly: a `SELECT *` over meeting or person would drag in
+ * private_notes and notes.
  */
 
 export interface ShareHeaderRow {
@@ -58,7 +58,7 @@ export interface SharedAnswerRow {
   option_labels: string | null;
 }
 
-/** Только shared-поля: фильтр живёт в самом представлении. */
+/** Shared fields only: the filter lives in the view itself. */
 export function sharedAnswers(db: Database, meetingId: number): SharedAnswerRow[] {
   return db
     .query<SharedAnswerRow, [number]>(
@@ -88,7 +88,7 @@ export interface SharedActionRow {
   due_on: string | null;
 }
 
-/** Договорённости попадают в саммари только если сами помечены shared. */
+/** An agreement reaches the summary only if it is itself marked shared. */
 export function sharedActionsForMeeting(
   db: Database, meetingId: number, personId: number,
 ): SharedActionRow[] {
@@ -106,8 +106,8 @@ export function sharedActionsForMeeting(
 }
 
 /**
- * Страховка от утечки: список id приватных полей этой версии шаблона.
- * buildSharedSnapshot сверяет с ним собранный payload и падает при пересечении.
+ * Leak insurance: the ids of private fields in this template version.
+ * buildSharedSnapshot checks its assembled payload against them and throws on overlap.
  */
 export function privateFieldIds(db: Database, versionId: number): number[] {
   return db

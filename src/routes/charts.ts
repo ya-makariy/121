@@ -5,15 +5,16 @@ import {
 } from "../db/queries/metrics.ts";
 import { loc } from "../middleware/locale.ts";
 import { OWNER_ID } from "../middleware/current-user.ts";
-import { formatDate, formatMonth } from "../lib/dates.ts";
-import { dict } from "../i18n/index.ts";
+import { formatDate, formatMonth } from "../i18n/dates.ts";
+import { dict, format } from "../i18n/index.ts";
 
 /**
- * Роуты графиков отдают JSON уже в форме {labels, datasets} — клиент не считает.
+ * Chart routes return JSON already shaped as {labels, datasets} — the client does not
+ * compute.
  *
- * Ключевое решение: если серия собрана из версий шаблона с разными шкалами, рисуем
- * нормализованные значения (0..1) и говорим об этом в подписи. Иначе смена шкалы 1-5 на
- * 1-10 выглядела бы как скачок удовлетворённости.
+ * The decision that matters: when a series is assembled from template versions with
+ * different scales, plot normalized values (0..1) and say so in the caption. Otherwise a
+ * move from a 1-5 to a 1-10 scale would read as a jump in satisfaction.
  */
 export const chartRoutes = new Hono();
 
@@ -37,29 +38,14 @@ chartRoutes.get("/api/charts/person/:id/metric/:key", (c) => {
   const yMin = normalized ? 0 : (first?.scale_min ?? 1);
   const yMax = normalized ? 1 : (first?.scale_max ?? 5);
 
-  // Подписи в тултипе: из какой версии шаблона и какой формулировкой пришла точка.
+  // Tooltip captions: which template version and which wording a point came from.
   const tooltips = points.map((p) =>
-    versions.size > 1 ? `${p.field_label} (${t.templates.version} ${p.template_version_id})` : "",
-  );
+    versions.size > 1 ? `${p.field_label} (${t.templates.version} ${p.template_version_id})` : "");
 
   const notes: string[] = [];
-  if (normalized) {
-    notes.push(
-      locale === "ru"
-        ? "Шкалы разных версий шаблона отличаются, поэтому значения приведены к 0-100%."
-        : "Template versions use different scales, so values are normalized to 0-100%.",
-    );
-  }
-  if (metric.direction === -1) {
-    notes.push(locale === "ru" ? "Ниже — лучше." : "Lower is better.");
-  }
-  if (points.length === 1) {
-    notes.push(
-      locale === "ru"
-        ? "Одна точка — тренда пока нет, вернитесь после следующей встречи."
-        : "One data point — no trend yet; come back after the next meeting.",
-    );
-  }
+  if (normalized) notes.push(t.charts.normalizedNote);
+  if (metric.direction === -1) notes.push(t.charts.lowerIsBetter);
+  if (points.length === 1) notes.push(t.charts.singlePoint);
 
   return c.json({
     metric: { key: metric.key, label: metric.label, direction: metric.direction },
@@ -74,16 +60,17 @@ chartRoutes.get("/api/charts/person/:id/metric/:key", (c) => {
 });
 
 /**
- * Сравнение людей по одной метрике на общем полотне.
+ * Comparing people on one metric in a single plot.
  *
- * Форма выбрана под два разных вопроса, которые нельзя ответить одной картинкой:
- *   «какое настроение в команде» — линия среднего плюс полоса мин-макс, читается при
- *      любом размере команды;
- *   «кому уделить внимание»      — ранжированный список рядом с графиком (рендерится
- *      на сервере), потому что восемь ломаных на одном полотне на этот вопрос не отвечают.
+ * The form is chosen for two different questions that one picture cannot answer:
+ *   "how is the team feeling" — the average line plus a min-max band, readable at any team
+ *      size;
+ *   "who needs attention"    — the ranked list beside the chart (rendered on the server),
+ *      because eight lines on one plot do not answer that question.
  *
- * Индивидуальные линии — опция сверху, максимум 8: девятая серия в категориальной палитре
- * потребовала бы генерировать цвет, а это уже неразличимые пары.
+ * Individual lines are an opt-in above the chart, capped at eight: a ninth series in a
+ * categorical palette would mean generating a colour, and that produces indistinguishable
+ * pairs.
  */
 chartRoutes.get("/api/charts/compare/metric/:key", (c) => {
   const metric = getMetricByKey(db(), c.req.param("key"), OWNER_ID);
@@ -94,17 +81,18 @@ chartRoutes.get("/api/charts/compare/metric/:key", (c) => {
   const rows = compareByPeriod(db(), metric.id, teamId, "0000-01-01", OWNER_ID);
 
   const locale = loc(c);
+  const t = dict(locale);
   const normalized = distinctScaleCount(db(), metric.id) > 1 || metric.kind === "categorical";
   const valueOf = (r: (typeof rows)[number]) => (normalized ? r.avg_norm : r.avg_raw);
 
   const periods = [...new Set(rows.map((r) => r.period))].sort();
   const people = [...new Map(rows.map((r) => [r.person_id, r.full_name])).entries()]
-    .sort((a, b) => a[0] - b[0]); // порядок по id: цвет закреплён за человеком, не за рангом
+    .sort((a, b) => a[0] - b[0]); // ordered by id: colour belongs to a person, not a rank
 
   const byKey = new Map(rows.map((r) => [`${r.person_id}|${r.period}`, valueOf(r)]));
 
-  // Среднее считается по людям в периоде, а не по всем ответам: человек с двумя
-  // встречами за месяц не должен весить вдвое.
+  // The average is taken over people in the period, not over every answer: someone with
+  // two meetings in a month must not weigh double.
   const avg: (number | null)[] = [];
   const lo: (number | null)[] = [];
   const hi: (number | null)[] = [];
@@ -116,45 +104,35 @@ chartRoutes.get("/api/charts/compare/metric/:key", (c) => {
     hi.push(Math.max(...vals));
   }
 
-  const scales = db()
+  const scale = db()
     .query<{ scale_min: number | null; scale_max: number | null }, [number]>(
       "SELECT scale_min, scale_max FROM template_field WHERE metric_id = ? AND type = 'scale' LIMIT 1",
     )
     .get(metric.id);
 
   const notes: string[] = [];
-  if (normalized) {
-    notes.push(
-      locale === "ru"
-        ? "Значения приведены к 0-100%: шкалы разных версий шаблона отличаются."
-        : "Values normalized to 0-100%: template versions use different scales.",
-    );
-  }
-  if (metric.direction === -1) notes.push(locale === "ru" ? "Ниже — лучше." : "Lower is better.");
+  if (normalized) notes.push(t.charts.normalizedNote);
+  if (metric.direction === -1) notes.push(t.charts.lowerIsBetter);
   if (people.length > 8) {
-    notes.push(
-      locale === "ru"
-        ? `Индивидуальные линии доступны для 8 человек из ${people.length}; остальные — в списке ниже.`
-        : `Individual lines are available for 8 of ${people.length} people; the rest are in the list below.`,
-    );
+    notes.push(format(t.charts.partialPeople, { total: people.length }));
   }
 
   return c.json({
     metric: { key: metric.key, label: metric.label, direction: metric.direction },
     labels: periods.map((p) => formatMonth(p, locale)),
     normalized,
-    yMin: normalized ? 0 : (scales?.scale_min ?? 1),
-    yMax: normalized ? 1 : (scales?.scale_max ?? 5),
+    yMin: normalized ? 0 : (scale?.scale_min ?? 1),
+    yMax: normalized ? 1 : (scale?.scale_max ?? 5),
     note: notes.join(" "),
     team: {
       avg,
       lo,
       hi,
-      label: locale === "ru" ? "Среднее по команде" : "Team average",
-      bandLabel: locale === "ru" ? "Разброс мин-макс" : "Min-max range",
+      label: t.charts.teamAverage,
+      bandLabel: t.charts.minMaxBand,
     },
-    // Цветовой слот закреплён за человеком по порядку id, а не по его текущему месту
-    // в рейтинге: иначе изменение оценки перекрашивало бы график.
+    // A colour slot belongs to a person by id order, not to their current place in the
+    // ranking: otherwise a changed score would repaint the chart.
     people: people.slice(0, 8).map(([id, name], slot) => ({
       id,
       name,

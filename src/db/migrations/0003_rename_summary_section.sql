@@ -1,8 +1,8 @@
--- В саммари заголовок «Договорённости» встречался дважды: секция шаблона с текстовым
--- итогом и блок собственно договорённостей. Секция переименована в «Итог».
+-- The summary showed the "Agreements" heading twice: the template section holding the
+-- closing text, and the block of actual agreements. The section is renamed.
 --
--- Правится только label/title: section_key и field_key не трогаем — это идентичность
--- вопроса, от неё зависит непрерывность истории и графиков.
+-- Only label/title change: section_key and field_key are left alone, because they are the
+-- identity of the question and history and charts depend on their continuity.
 
 UPDATE template_section
 SET title = 'Итог',

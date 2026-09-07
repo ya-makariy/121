@@ -1,11 +1,13 @@
 import type { Locale } from "../db/types.ts";
 import { ru, type Dict } from "./ru.ts";
 import { en } from "./en.ts";
+import { CodedError } from "../lib/errors.ts";
 
 /**
- * Переводится только «хром» интерфейса. Пользовательский контент — названия шаблонов,
- * формулировки полей, подписи метрик — хранится на одном языке в колонке label:
- * писать каждый вопрос дважды это налог без выгоды для инструмента одного человека.
+ * Only the application chrome is translated. User-authored content — template names,
+ * question wording, metric labels — is stored in a single `label` column in one language:
+ * making the manager write every question twice is a tax with no payoff for a single-user
+ * tool. See PLAN.md.
  */
 const DICTS: Record<Locale, Dict> = { ru, en };
 
@@ -19,9 +21,40 @@ export function isLocale(v: string): v is Locale {
   return v === "ru" || v === "en";
 }
 
+/** Fills `{name}` placeholders in a dictionary string. */
+export function format(template: string, params: Record<string, string | number> = {}): string {
+  return template.replace(/\{(\w+)\}/g, (whole, key: string) =>
+    key in params ? String(params[key]) : whole);
+}
+
+type MessageTable = Record<string, string>;
+
 /**
- * Русский требует трёх форм там, где английскому хватает двух: «1 точка», «2 точки»,
- * «5 точек». Без этого интерфейс выдаёт «1 точек» и выглядит недоделанным.
+ * Renders a domain error for a person. The domain throws a code; the wording and its
+ * translation live here (CLAUDE.md rule 1).
+ */
+export function errorMessage(locale: Locale, err: unknown): string {
+  const t = dict(locale);
+  if (err instanceof CodedError) {
+    const table = t.errors as unknown as MessageTable;
+    const template = table[err.code];
+    if (template !== undefined) return format(template, err.params);
+  }
+  return t.errors.unknown;
+}
+
+/** Renders a template-check problem. Same split as errors: code in the domain, words here. */
+export function problemMessage(
+  locale: Locale, code: string, params: Record<string, string | number> = {},
+): string {
+  const table = dict(locale).problems as unknown as MessageTable;
+  const template = table[code];
+  return template === undefined ? code : format(template, params);
+}
+
+/**
+ * Pluralization. Russian needs three forms where English needs two; without this the
+ * interface says "1 точек" and looks unfinished.
  */
 export function plural(locale: Locale, n: number, forms: readonly string[]): string {
   if (locale === "en") return `${n} ${forms[n === 1 ? 0 : 1]}`;

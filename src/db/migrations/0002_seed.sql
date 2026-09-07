@@ -1,12 +1,15 @@
--- Стартовое наполнение. Процесс 1:1 строится с нуля, поэтому этот шаблон — не копия
--- чего-то существующего, а определение процесса: первую встречу можно провести
--- сразу после установки, ничего не настраивая.
+-- Starter content. The 1:1 process is being built from scratch, so this template is not a
+-- copy of something existing: it defines the process. The first meeting can be run right
+-- after installation with nothing configured.
 --
--- Ключи (metric.key, section_key, field_key) здесь читаемые, а не случайные: сид живёт
--- долго, и читаемый ключ в графике и в экспорте экономит время. Поля, созданные в
--- редакторе, получают сгенерированные ключи — важна только стабильность, не форма.
+-- Keys here (metric.key, section_key, field_key) are readable rather than random: the seed
+-- lives a long time, and a readable key in a chart or an export saves time. Fields created
+-- in the builder get generated keys — only stability matters, not shape.
+--
+-- The Russian text below is user content, not code. See CLAUDE.md rule 1: a manager's
+-- template content is single-language by design, and so is the starter template.
 
------------------------------------------------------------------- метрики
+------------------------------------------------------------------ metrics
 INSERT INTO metric (key, label, description, kind, direction, created_at) VALUES
   ('job_satisfaction', 'Удовлетворённость работой',
    'Насколько работа сейчас в целом устраивает.', 'scalar', 1,
@@ -33,7 +36,7 @@ INSERT INTO metric (key, label, description, kind, direction, created_at) VALUES
    'Приватная оценка руководителя. Больше — хуже: направление -1.', 'categorical', -1,
    strftime('%Y-%m-%dT%H:%M:%SZ','now'));
 
------------------------------------------------------------------- шаблон
+------------------------------------------------------------------ template
 INSERT INTO template (name, description, is_default, created_at, updated_at)
 VALUES ('Регулярный 1:1',
         'План встречи по умолчанию. Последняя секция видна только руководителю.',
@@ -48,7 +51,7 @@ SET current_version_id = (SELECT id FROM template_version WHERE version_no = 1
                           AND template_id = template.id)
 WHERE is_default = 1;
 
------------------------------------------------------------------- секции
+------------------------------------------------------------------ sections
 INSERT INTO template_section (version_id, section_key, title, description, position)
 SELECT tv.id, s.section_key, s.title, s.description, s.position
 FROM template_version tv,
@@ -64,9 +67,9 @@ FROM template_version tv,
           'Только для меня. Не попадает в саммари для подопечного никогда.', 5) s
 WHERE tv.version_no = 1;
 
------------------------------------------------------------------- поля
--- visibility задаётся явно у каждого поля: дефолт в БД — 'private' (fail closed),
--- поэтому shared-поля обязаны сказать это вслух.
+------------------------------------------------------------------ fields
+-- visibility is stated explicitly on every field: the database default is 'private'
+-- (fail closed), so shared fields have to say so out loud.
 INSERT INTO template_field (
   version_id, section_id, field_key, label, help_text, type, visibility,
   is_required, position, metric_id, scale_min, scale_max, scale_min_label, scale_max_label
@@ -125,8 +128,8 @@ JOIN (
 ) f ON f.sk = ts.section_key
 WHERE ts.version_id = (SELECT id FROM template_version WHERE version_no = 1);
 
------------------------------------------------------------------- опции
--- score обязателен для метричного select: без него поле не построится в график.
+------------------------------------------------------------------ options
+-- score is required for a metric-bound select: without it the field never becomes a chart.
 INSERT INTO template_field_option (field_id, option_key, label, score, color, position)
 SELECT tf.id, o.option_key, o.label, o.score, o.color, o.position
 FROM template_field tf
@@ -137,7 +140,7 @@ JOIN (
 ) o
 WHERE tf.field_key = 'attrition_risk';
 
------------------------------------------------------------------- настройки
+------------------------------------------------------------------ settings
 INSERT INTO app_setting (owner_id, key, value) VALUES
   (1, 'locale', 'ru'),
   (1, 'onboarded', 'false');

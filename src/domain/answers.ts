@@ -1,28 +1,28 @@
 import type { Database } from "bun:sqlite";
 import type { AnswerRow, FieldWithOptions } from "../db/types.ts";
-import { isDateOnly } from "../lib/dates.ts";
-import { nowIso } from "../lib/dates.ts";
+import { isDateOnly, nowIso } from "../lib/dates.ts";
+import { AnswerValidationError } from "../lib/errors.ts";
 
 /**
- * ЕДИНСТВЕННОЕ место, где решается, в какую колонку ложится значение поля.
- * См. CLAUDE.md §2. Таблица правил:
+ * The ONLY place that decides which column a field's value goes into.
+ * See CLAUDE.md rule 3. The rules:
  *
  *   scale              -> num_value
  *   text, short_text   -> text_value
  *   checkbox           -> bool_value
  *   date               -> date_value
- *   single_select      -> num_value = score выбранной опции, ровно одна строка опции
- *   multi_select       -> строки опций, 0..n
+ *   single_select      -> num_value = chosen option's score, plus exactly one option row
+ *   multi_select       -> option rows, 0..n
  *
- * num_value для single_select — единственная денормализация в таблице значений: она
- * позволяет v_metric_point остаться плоским джойном. Пишет её эта же функция, которая
- * разрешает опцию, поэтому разъехаться они не могут.
+ * Writing the option score into num_value for single_select is the one denormalization in
+ * the values table: it lets v_metric_point stay a flat join. The same function that
+ * resolves the option writes it, so the two cannot drift apart.
  */
 
 export interface RawAnswer {
-  /** Для scale/date/text/short_text — строка из формы; для checkbox — наличие значения. */
+  /** scale/date/text/short_text take a form string; checkbox takes presence. */
   value?: string | null;
-  /** Для single_select — один ключ; для multi_select — набор ключей. */
+  /** single_select takes one key; multi_select takes a set. */
   optionKeys?: string[];
 }
 
@@ -35,15 +35,9 @@ export interface AnswerValues {
   optionKeys: string[];
 }
 
-export class AnswerValidationError extends Error {}
-
-function fail(message: string): never {
-  throw new AnswerValidationError(message);
-}
-
-/** Пустой ответ — это стирание, а не ошибка: встречу заполняют по ходу разговора. */
+/** An empty answer erases rather than fails: a meeting is filled in as it goes. */
 export function isBlank(field: FieldWithOptions, raw: RawAnswer): boolean {
-  if (field.type === "checkbox") return false; // чекбокс всегда имеет значение
+  if (field.type === "checkbox") return false; // a checkbox always has a value
   if (field.type === "single_select" || field.type === "multi_select") {
     return (raw.optionKeys ?? []).filter((k) => k !== "").length === 0;
   }
@@ -59,10 +53,14 @@ export function normalizeAnswer(field: FieldWithOptions, raw: RawAnswer): Answer
   switch (field.type) {
     case "scale": {
       const n = Number.parseFloat((raw.value ?? "").trim());
-      if (!Number.isFinite(n)) fail(`«${field.label}»: ожидается число`);
+      if (!Number.isFinite(n)) {
+        throw new AnswerValidationError("ANSWER_NOT_A_NUMBER", { label: field.label });
+      }
       const min = field.scale_min ?? 1;
       const max = field.scale_max ?? 5;
-      if (n < min || n > max) fail(`«${field.label}»: значение вне шкалы ${min}-${max}`);
+      if (n < min || n > max) {
+        throw new AnswerValidationError("ANSWER_OUT_OF_SCALE", { label: field.label, min, max });
+      }
       return { ...empty, num_value: n };
     }
 
@@ -77,34 +75,34 @@ export function normalizeAnswer(field: FieldWithOptions, raw: RawAnswer): Answer
 
     case "date": {
       const v = (raw.value ?? "").trim();
-      if (!isDateOnly(v)) fail(`«${field.label}»: ожидается дата в формате ГГГГ-ММ-ДД`);
+      if (!isDateOnly(v)) {
+        throw new AnswerValidationError("ANSWER_BAD_DATE", { label: field.label });
+      }
       return { ...empty, date_value: v };
     }
 
     case "single_select": {
       const keys = (raw.optionKeys ?? []).filter((k) => k !== "");
-      if (keys.length !== 1) fail(`«${field.label}»: нужно выбрать ровно один вариант`);
-      const opt = field.options.find((o) => o.option_key === keys[0]);
-      if (!opt) fail(`«${field.label}»: неизвестный вариант ${keys[0]}`);
-      if (field.metric_id !== null && opt.score === null) {
-        fail(
-          `«${field.label}»: вариант «${opt.label}» без score, а поле привязано к метрике. ` +
-            `Проставьте score всем вариантам в редакторе шаблона.`,
-        );
+      if (keys.length !== 1) {
+        throw new AnswerValidationError("ANSWER_NEED_ONE_OPTION", { label: field.label });
       }
-      return {
-        ...empty,
-        num_value: opt.score,
-        optionIds: [opt.id],
-        optionKeys: [opt.option_key],
-      };
+      const opt = field.options.find((o) => o.option_key === keys[0]);
+      if (!opt) {
+        throw new AnswerValidationError("ANSWER_UNKNOWN_OPTION", { label: field.label });
+      }
+      if (field.metric_id !== null && opt.score === null) {
+        throw new AnswerValidationError("ANSWER_OPTION_NEEDS_SCORE", {
+          label: field.label, option: opt.label,
+        });
+      }
+      return { ...empty, num_value: opt.score, optionIds: [opt.id], optionKeys: [opt.option_key] };
     }
 
     case "multi_select": {
       const keys = [...new Set((raw.optionKeys ?? []).filter((k) => k !== ""))];
       const opts = keys.map((k) => {
         const o = field.options.find((x) => x.option_key === k);
-        if (!o) fail(`«${field.label}»: неизвестный вариант ${k}`);
+        if (!o) throw new AnswerValidationError("ANSWER_UNKNOWN_OPTION", { label: field.label });
         return o;
       });
       return {
@@ -116,7 +114,7 @@ export function normalizeAnswer(field: FieldWithOptions, raw: RawAnswer): Answer
   }
 }
 
-/** Записывает или стирает ответ. Возвращает строку ответа или null, если стёрли. */
+/** Writes or erases an answer. Returns the row, or null if it was erased. */
 export function saveAnswer(
   db: Database,
   meetingId: number,
@@ -133,7 +131,7 @@ export function saveAnswer(
   const now = nowIso();
 
   const row = db
-    .query<AnswerRow, [number, number, string, number | null, string | null, string | null, number | null, string]>(
+    .query<AnswerRow, any[]>(
       `INSERT INTO meeting_answer
          (meeting_id, field_id, field_key, num_value, text_value, date_value, bool_value, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -161,3 +159,5 @@ export function saveAnswer(
   db.query("UPDATE meeting SET updated_at = ? WHERE id = ?").run(now, meetingId);
   return row;
 }
+
+export { AnswerValidationError };

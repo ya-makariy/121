@@ -4,7 +4,7 @@ import { dict } from "../../i18n/index.ts";
 import type { Locale } from "../../db/types.ts";
 import type { PersonCadence } from "../../db/queries/cadence.ts";
 import type { OpenActionRow } from "../../db/queries/actions.ts";
-import { formatDate } from "../../lib/dates.ts";
+import { formatDate } from "../../i18n/dates.ts";
 
 function cadenceLine(p: PersonCadence, t: ReturnType<typeof dict>): string {
   if (p.status === "no_cadence") {

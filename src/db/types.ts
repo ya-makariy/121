@@ -1,4 +1,4 @@
-/** Интерфейсы строк пишутся руками: без ORM и без кодогенерации. */
+/** Row interfaces are written by hand: no ORM, no codegen. */
 
 export type Locale = "ru" | "en";
 export type FieldType =
@@ -179,7 +179,7 @@ export interface ShareLinkRow {
   last_viewed_at: string | null;
 }
 
-/** Поле вместе с его опциями — форма, в которой рендерится и валидируется ввод. */
+/** A field together with its options — the shape input is rendered and validated in. */
 export interface FieldWithOptions extends FieldRow {
   options: OptionRow[];
 }

@@ -1,8 +1,11 @@
-// Клиент не считает данные: роут отдаёт готовые серии. Здесь только форма и цвет.
+// The client does not compute the data: the route returns ready series. This handles
+// shape and colour only.
 //
-// Палитра — восемь слотов в фиксированном порядке из руководства по визуализации,
-// проверенные валидатором на белом фоне (худшая соседняя пара: CVD ΔE 9.1,
-// обычное зрение ΔE 19.6). Девятый слот не генерируется: линий максимум восемь.
+// The palette is eight slots in a fixed order from the data-visualization guidance,
+// validated against a white surface (worst adjacent pair: CVD dE 9.1, normal vision
+// dE 19.6). A ninth slot is never generated: at most eight lines.
+//
+// User-facing strings arrive in data- attributes from the server (CLAUDE.md rule 1).
 (function () {
   var PALETTE = [
     "#2a78d6", "#eb6834", "#1baf7a", "#eda100",
@@ -28,8 +31,8 @@
     return name.length > LABEL_MAX ? name.slice(0, LABEL_MAX - 1) + "…" : name;
   }
 
-  // Ширина, которую надо зарезервировать справа под подписи, считается по самому
-  // длинному видимому имени: иначе подпись обрезается краем полотна.
+  // The right-hand reserve is measured from the longest visible name; otherwise the
+  // label gets clipped by the edge of the canvas.
   function labelPadding(names) {
     if (names.length === 0 || names.length > 4) return 8;
     var ctx = document.createElement("canvas").getContext("2d");
@@ -41,9 +44,9 @@
     return Math.ceil(widest) + 16;
   }
 
-  // Подпись у конца линии: при четырёх и меньше серий идентичность не должна
-  // держаться на одном цвете даже при наличии легенды. Подписи разводятся по
-  // вертикали, иначе совпавшие значения дают наложение вместо подписи.
+  // End-of-line labels: at four or fewer series, identity must not rest on colour alone
+  // even with a legend present. Labels are spread vertically, otherwise equal values
+  // overlap into an unreadable smudge.
   var endLabels = {
     id: "endLabels",
     afterDatasetsDraw: function (c) {
@@ -60,7 +63,7 @@
       });
       if (candidates.length === 0 || candidates.length > 4) return;
 
-      // Развести: сверху вниз, каждая следующая не ближе LABEL_GAP к предыдущей.
+      // Spread top to bottom, each label at least LABEL_GAP from the previous one.
       candidates.sort(function (a, b) { return a.y - b.y; });
       var top = c.chartArea.top + 6;
       var bottom = c.chartArea.bottom - 6;
@@ -68,7 +71,7 @@
         var min = i === 0 ? top : candidates[i - 1].y + LABEL_GAP;
         item.y = Math.min(Math.max(item.y, min), bottom);
       });
-      // Если уехали за низ — поджать снизу вверх.
+      // If they ran past the bottom, push them back up.
       for (var i = candidates.length - 1; i > 0; i--) {
         if (candidates[i].y - candidates[i - 1].y < LABEL_GAP) {
           candidates[i - 1].y = candidates[i].y - LABEL_GAP;
@@ -91,12 +94,13 @@
   function buildDatasets() {
     var sets = [];
 
-    // Полоса разброса — рецессивная серая, а не цвет серии: это контекст, не сущность.
+    // The spread band is recessive grey rather than a series colour: it is context,
+    // not an entity.
     sets.push({
       label: payload.team.bandLabel, kind: "band", data: payload.team.lo,
       borderWidth: 0, pointRadius: 0, fill: "+1",
       backgroundColor: "rgba(35,32,28,.08)",
-      // рамка нужна только легенде: на полотне линия не рисуется при borderWidth 0
+      // the border is only for the legend: with borderWidth 0 no line is drawn
       borderColor: "rgba(35,32,28,.35)",
       tension: 0.25, spanGaps: true, order: 3,
     });
@@ -162,7 +166,7 @@
             labels: {
               color: INK_MUTED, boxWidth: 10, boxHeight: 10, usePointStyle: false,
               filter: function (item, data) {
-                // Полоса разброса в легенде один раз, а не дважды.
+                // The spread band appears in the legend once, not twice.
                 return !(data.datasets[item.datasetIndex].kind === "band"
                          && item.datasetIndex === 1);
               },
@@ -213,13 +217,13 @@
     .then(function (data) {
       payload = data;
       if (note) note.textContent = data.note || "";
-      // По умолчанию линии выключены: сначала читается настроение команды,
-      // индивидуальные линии добавляются осознанно.
+      // Lines are off by default: the team mood reads first, and individual lines are
+      // added deliberately.
       payload.people.forEach(function (p) { enabled[p.id] = false; });
       renderToggles();
       draw();
     })
     .catch(function () {
-      if (note) note.textContent = "Не удалось загрузить данные графика.";
+      if (note) note.textContent = canvas.dataset.loadFailed || "";
     });
 })();

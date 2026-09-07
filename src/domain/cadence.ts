@@ -5,16 +5,16 @@ export type CadenceStatus = "overdue" | "due_soon" | "ok" | "no_cadence";
 
 export interface CadenceInput {
   cadenceDays: number | null;
-  /** held_on последней завершённой встречи, считающейся за 1:1. */
+  /** held_on of the last completed meeting that counts as a 1:1. */
   lastHeldOn: string | null;
-  /** Опора до первой встречи: cadence_anchor_on или дата создания человека. */
+  /** Anchor used before the first meeting: cadence_anchor_on, or the person's created date. */
   anchorOn: string | null;
 }
 
 export interface CadenceState {
   status: CadenceStatus;
   dueOn: string | null;
-  /** Отрицательное — просрочено на столько дней. */
+  /** Negative means overdue by that many days. */
   daysUntilDue: number | null;
   lastHeldOn: string | null;
   daysSinceLast: number | null;
@@ -25,11 +25,11 @@ export function today(timezone: string = config.timezone): string {
 }
 
 /**
- * Каденс считается на чтении, крона нет.
+ * Cadence is computed on read; there is no cron.
  *
- * Намеренно: запланированная будущая встреча НЕ снимает просрочку — встреча через три
- * недели не значит, что каденс соблюдён. «Запланировано» показывается отдельным флагом,
- * а не подменяет статус.
+ * Deliberate: a scheduled future meeting does NOT clear an overdue state — a meeting
+ * booked three weeks out does not mean the cadence is being kept. "Scheduled" is shown as
+ * a separate flag rather than replacing the status.
  */
 export function classifyCadence(
   input: CadenceInput,

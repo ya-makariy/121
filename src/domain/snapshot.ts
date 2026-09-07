@@ -4,13 +4,14 @@ import {
   privateFieldIds, shareHeader, sharedActionsForMeeting, sharedAnswers,
 } from "../db/queries/shares.ts";
 import { nowIso } from "../lib/dates.ts";
+import { PrivacyLeakError, SnapshotError } from "../lib/errors.ts";
 
 /**
- * ЕДИНСТВЕННЫЙ сборщик снапшота для подопечного. См. CLAUDE.md §1.
+ * The ONLY builder of the summary a mentee receives. See CLAUDE.md rule 2.
  *
- * Снапшот неизменяем: собирается один раз на момент шаринга и сохраняется в
- * share_link.snapshot_json. Подопечный не увидит правок, сделанных после — пока не
- * поделишься заново. Это осознанно: отправленное саммари не должно меняться за спиной.
+ * A snapshot is immutable: it is built once at share time and stored in
+ * share_link.snapshot_json. The mentee will not see edits made afterwards until you share
+ * again. That is on purpose — a summary you already sent must not change behind your back.
  */
 
 export const SNAPSHOT_VERSION = 1;
@@ -20,7 +21,7 @@ export interface SnapshotItem {
   label: string;
   helpText: string | null;
   type: string;
-  /** Готовое к показу значение. */
+  /** Ready-to-display value. */
   text: string | null;
   scale: { value: number; min: number; max: number; minLabel: string | null; maxLabel: string | null } | null;
   checked: boolean | null;
@@ -53,28 +54,25 @@ export interface SharePayload {
   actions: SnapshotAction[];
 }
 
-export class PrivacyLeakError extends Error {}
-export class SnapshotError extends Error {}
-
 export function buildSharedSnapshot(
   db: Database, meetingId: number, locale: Locale, ownerId = 1,
 ): SharePayload {
   const header = shareHeader(db, meetingId, ownerId);
-  if (!header) throw new SnapshotError(`Встреча ${meetingId} не найдена`);
-  if (!header.held_on) throw new SnapshotError("У встречи не указана дата — нечего отправлять");
+  if (!header) throw new SnapshotError("MEETING_NOT_FOUND", { meeting: meetingId });
+  if (!header.held_on) throw new SnapshotError("MEETING_NO_DATE", { meeting: meetingId });
 
   const rows = sharedAnswers(db, meetingId);
 
-  // Страховка: ни одно приватное поле не могло попасть в выборку. Представление уже
-  // фильтрует, но проверка стоит один запрос и ловит будущую правку представления.
+  // Belt and braces: no private field could have made it into the selection. The view
+  // already filters, but this check costs one query and catches a future edit to the view.
   if (header.template_version_id !== null) {
     const forbidden = new Set(privateFieldIds(db, header.template_version_id));
     const leaked = rows.filter((r) => forbidden.has(r.field_id));
     if (leaked.length > 0) {
-      throw new PrivacyLeakError(
-        `Приватные поля попали в снапшот встречи ${meetingId}: ` +
-          leaked.map((r) => `${r.field_key} (#${r.field_id})`).join(", "),
-      );
+      throw new PrivacyLeakError("PRIVACY_LEAK", {
+        meeting: meetingId,
+        fields: leaked.map((r) => r.field_key).join(", "),
+      });
     }
   }
 
@@ -131,10 +129,12 @@ function personIdOf(db: Database, meetingId: number): number {
   const row = db
     .query<{ person_id: number }, [number]>("SELECT person_id FROM meeting WHERE id = ?")
     .get(meetingId);
-  if (!row) throw new SnapshotError(`Встреча ${meetingId} не найдена`);
+  if (!row) throw new SnapshotError("MEETING_NOT_FOUND", { meeting: meetingId });
   return row.person_id;
 }
 
 export function hashPayload(payload: SharePayload): string {
   return new Bun.CryptoHasher("sha256").update(JSON.stringify(payload)).digest("hex");
 }
+
+export { PrivacyLeakError, SnapshotError };

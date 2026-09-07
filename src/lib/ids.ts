@@ -1,16 +1,14 @@
+import { slugify } from "../i18n/translit.ts";
+
 /**
- * Ключи, стабильные при форке версии шаблона. Форма не важна — важно, что ключ
- * генерируется один раз и потом копируется. Читаемый префикс помогает при отладке
- * экспорта и графиков.
+ * Keys that stay stable when a template version is forked. Their shape does not matter —
+ * what matters is that a key is generated once and copied thereafter. A readable Latin
+ * prefix helps when debugging exports and charts, and keeps builder URLs clean.
  */
 export function mintKey(prefix: string, label?: string): string {
-  const slug = (label ?? "")
-    .toLowerCase()
-    .replace(/[^a-z0-9а-яё]+/gi, "_")
-    .replace(/^_+|_+$/g, "")
-    .slice(0, 24);
+  const slug = slugify(label ?? "", 24);
   const rand = crypto.randomUUID().slice(0, 8);
-  return slug ? `${prefix}_${slug}_${rand}` : `${prefix}_${rand}`;
+  return slug === "" ? `${prefix}_${rand}` : `${prefix}_${slug}_${rand}`;
 }
 
 export function randomToken(bytes = 32): string {
