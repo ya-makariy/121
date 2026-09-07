@@ -7,6 +7,7 @@
  * The script adds data, it does not clear the database. To start over, delete
  * data/121.sqlite (and the -wal/-shm files).
  */
+import { config } from "../src/config.ts";
 import { openDb } from "../src/db/index.ts";
 import { migrate } from "../src/db/migrate.ts";
 import { createPerson } from "../src/db/queries/people.ts";
@@ -125,5 +126,11 @@ for (const person of CAST) {
   });
 }
 
-console.log(`Added: ${CAST.length} people, ${created} completed meetings, team "Demo team".`);
+// The database is named in the output on purpose. `bun run demo` pins DB_PATH to the
+// throwaway database, but nothing stops this script being run directly, and invented
+// people appearing among real records is the one mistake here that is not undoable.
+console.log(
+  `Added to ${config.dbPath}: ${CAST.length} people, ${created} completed meetings, ` +
+  `team "Demo team".`,
+);
 db.close();

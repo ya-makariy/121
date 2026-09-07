@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun --watch src/server.ts",
+    "dev": "DB_PATH=data/dev.sqlite bun --watch src/server.ts",
+    "demo": "DB_PATH=data/dev.sqlite bun scripts/demo-data.ts",
     "start": "bun src/server.ts",
     "migrate": "bun src/db/migrate.ts",
     "backup": "bun scripts/backup.ts",
