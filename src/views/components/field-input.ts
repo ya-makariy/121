@@ -55,6 +55,24 @@ function scaleSteps(field: FieldWithOptions): number[] {
 }
 
 /** An editable field. Autosaves on change: HTMX sends a PATCH and gets a partial back. */
+/**
+ * Input names are scoped per field.
+ *
+ * A radio group's scope is its form owner plus its name, and these inputs have no form
+ * owner at all: the meeting page wraps each question in a plain `div.field`, not a form.
+ * With a shared `name="value"` every scale on the page therefore formed ONE radio group,
+ * so choosing a value in one scale silently unchecked every other scale, and the whole set
+ * collapsed into a single tab stop. Scoping the name by field id keeps each group to
+ * itself. The route already knows the field from the URL, so it resolves the same names.
+ */
+export function valueName(fieldId: number): string {
+  return `value-${fieldId}`;
+}
+
+export function optionName(fieldId: number): string {
+  return `option-${fieldId}`;
+}
+
 export function fieldInput(
   field: FieldWithOptions, value: AnswerValue, meetingId: number, locale: Locale,
 ): Raw {
@@ -85,7 +103,7 @@ export function fieldInput(
           ${scaleSteps(field).map(
             (n) => html`
               <label class="scale-opt">
-                <input type="radio" name="value" value="${n}" ${value.num === n ? "checked" : ""}
+                <input type="radio" name="${valueName(field.id)}" value="${n}" ${value.num === n ? "checked" : ""}
                        ${hx} />
                 <span>${n}</span>
               </label>
@@ -100,23 +118,23 @@ export function fieldInput(
       break;
 
     case "text":
-      control = html`<textarea id="${id}" name="value" ${hx}>${value.text ?? ""}</textarea>`;
+      control = html`<textarea id="${id}" name="${valueName(field.id)}" ${hx}>${value.text ?? ""}</textarea>`;
       break;
 
     case "short_text":
-      control = html`<input id="${id}" type="text" name="value" value="${value.text ?? ""}" ${hx} />`;
+      control = html`<input id="${id}" type="text" name="${valueName(field.id)}" value="${value.text ?? ""}" ${hx} />`;
       break;
 
     case "checkbox":
       control = html`
         <label class="opts">
-          <input type="checkbox" name="value" value="on" ${value.bool === 1 ? "checked" : ""} ${hx} />
+          <input type="checkbox" name="${valueName(field.id)}" value="on" ${value.bool === 1 ? "checked" : ""} ${hx} />
         </label>
       `;
       break;
 
     case "date":
-      control = html`<input id="${id}" type="date" name="value" value="${value.date ?? ""}" ${hx} />`;
+      control = html`<input id="${id}" type="date" name="${valueName(field.id)}" value="${value.date ?? ""}" ${hx} />`;
       break;
 
     case "single_select":
@@ -125,7 +143,7 @@ export function fieldInput(
           ${field.options.map(
             (o) => html`
               <label>
-                <input type="radio" name="option" value="${o.option_key}"
+                <input type="radio" name="${optionName(field.id)}" value="${o.option_key}"
                        ${value.optionKeys.includes(o.option_key) ? "checked" : ""} ${hx} />
                 ${o.label}
               </label>
@@ -141,7 +159,7 @@ export function fieldInput(
           ${field.options.map(
             (o) => html`
               <label>
-                <input type="checkbox" name="option" value="${o.option_key}"
+                <input type="checkbox" name="${optionName(field.id)}" value="${o.option_key}"
                        ${value.optionKeys.includes(o.option_key) ? "checked" : ""} ${hx} />
                 ${o.label}
               </label>

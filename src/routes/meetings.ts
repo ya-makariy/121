@@ -13,7 +13,7 @@ import { loc } from "../middleware/locale.ts";
 import { OWNER_ID, user } from "../middleware/current-user.ts";
 import { today } from "../domain/cadence.ts";
 import { saveAnswer } from "../domain/answers.ts";
-import type { AnswerValue } from "../views/components/field-input.ts";
+import { optionName, valueName, type AnswerValue } from "../views/components/field-input.ts";
 import type { Assignee, Visibility } from "../db/types.ts";
 import { dict } from "../i18n/index.ts";
 import { escapeHtml } from "../views/html.ts";
@@ -128,11 +128,11 @@ meetingRoutes.patch("/meetings/:id/answers/:fieldId", async (c) => {
   if (!field || field.version_id !== meeting.template_version_id) return c.notFound();
 
   const form = await c.req.parseBody({ all: true });
-  const optionRaw = form["option"];
+  const optionRaw = form[optionName(fieldId)];
   const optionKeys = optionRaw === undefined
     ? []
     : Array.isArray(optionRaw) ? optionRaw.map(String) : [String(optionRaw)];
-  const value = form["value"];
+  const value = form[valueName(fieldId)];
 
   saveAnswer(db(), meetingId, field, {
     value: value === undefined ? null : String(value),

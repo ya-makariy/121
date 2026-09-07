@@ -110,6 +110,25 @@ describe("fieldInput markup", () => {
     expect(duplicateIds(page.replace(/\bid="f7(-state)?"/g, ""))).toEqual([]);
   });
 
+  /**
+   * A radio group's scope is its form owner plus its name. These inputs have no form
+   * owner, so a shared name made every scale on the meeting page one exclusive group:
+   * answering one question unchecked all the others. The names must differ per field.
+   */
+  test("radio and option names are scoped per field, so groups do not merge", () => {
+    for (const type of ["scale", "single_select"] as FieldType[]) {
+      const a = fieldInput(makeField(type, { id: 11, field_key: "q_a" }), EMPTY_ANSWER, 3, "en").value;
+      const b = fieldInput(makeField(type, { id: 12, field_key: "q_b" }), EMPTY_ANSWER, 3, "en").value;
+      const nameOf = (out: string) => [...out.matchAll(/name="([^"]+)"/g)].map((m) => m[1]);
+      const namesA = new Set(nameOf(a));
+      const namesB = new Set(nameOf(b));
+      // Each field posts under exactly one name, and never under the other field's name.
+      expect(namesA.size).toBe(1);
+      expect(namesB.size).toBe(1);
+      for (const n of namesA) expect(namesB.has(n)).toBe(false);
+    }
+  });
+
   test("the fieldset stays inside div.field, so hx-include=closest .field is intact", () => {
     for (const type of ["single_select", "multi_select"] as FieldType[]) {
       const out = fieldInput(makeField(type), EMPTY_ANSWER, 3, "en").value;
@@ -119,7 +138,7 @@ describe("fieldInput markup", () => {
       expect(out.indexOf(`class="field"`)).toBeLessThan(out.indexOf("<fieldset>"));
       expect(out).not.toMatch(/<fieldset[^>]*class="[^"]*\bfield\b/);
       // Every option input is inside that div, so the posted set is the whole group.
-      expect([...out.matchAll(/name="option"/g)]).toHaveLength(2);
+      expect([...out.matchAll(/name="option-7"/g)]).toHaveLength(2);
     }
   });
 
