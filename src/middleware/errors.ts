@@ -1,4 +1,5 @@
 import type { ErrorHandler, NotFoundHandler } from "hono";
+import { thm } from "./theme.ts";
 import { AnswerValidationError, CodedError, PrivacyLeakError } from "../lib/errors.ts";
 import { html } from "../views/html.ts";
 import { layout } from "../views/layout.ts";
@@ -37,6 +38,7 @@ export const onError: ErrorHandler = (err, c) => {
   return c.html(
     layout({
       locale,
+      theme: thm(c),
       title: t.errors.pageTitle,
       body: html`<h1>${t.errors.pageHeading}</h1><pre class="md">${text}</pre>`,
     }),
@@ -50,6 +52,7 @@ export const onNotFound: NotFoundHandler = (c) => {
   return c.html(
     layout({
       locale,
+      theme: thm(c),
       title: t.errors.notFoundTitle,
       body: html`
         <h1>404</h1>

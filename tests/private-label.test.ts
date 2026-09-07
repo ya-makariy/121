@@ -34,7 +34,7 @@ describe("the privacy label", () => {
     expect(privateSection).toBeDefined();
 
     const page = meetingPage({
-      locale: "en", meeting, person: getPerson(db, personId, 1)!, sections,
+      locale: "en", theme: "auto", meeting, person: getPerson(db, personId, 1)!, sections,
       answers: new Map(), answered: answeredFieldIds(db, meetingId),
       carryOver: [], shares: [], today: "2026-09-07",
     });
@@ -56,7 +56,7 @@ describe("the privacy label", () => {
       .run("Worth a conversation about scope next quarter.", nowIso(), personId);
 
     const page = personPage({
-      locale: "en", person: getPerson(db, personId, 1)!, cadence: null,
+      locale: "en", theme: "auto", person: getPerson(db, personId, 1)!, cadence: null,
       meetings: [], actions: [], metrics: [],
     });
 
@@ -70,7 +70,7 @@ describe("the privacy label", () => {
     const template = getTemplate(db, 1)!;
 
     const page = templateEditorPage({
-      locale: "en", template, version: getVersion(db, versionId)!,
+      locale: "en", theme: "auto", template, version: getVersion(db, versionId)!,
       sections: loadVersionStructure(db, versionId), metrics: listMetrics(db),
       problems: [], answerCounts: new Map(), meetingsOnVersion: 0,
       editField: null, editSection: null, addFieldTo: null, forked: false, error: null,

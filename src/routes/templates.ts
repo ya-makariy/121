@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { thm } from "../middleware/theme.ts";
 import type { Context } from "hono";
 import { db } from "../db/index.ts";
 import { getTemplate, loadVersionStructure } from "../db/queries/templates.ts";
@@ -75,7 +76,7 @@ function renderEditor(c: Context, templateId: number, opts: { error?: string; fo
 
   return c.html(
     templateEditorPage({
-      locale: loc(c),
+      locale: loc(c), theme: thm(c),
       template,
       version,
       sections,
@@ -133,7 +134,7 @@ templateRoutes.get("/templates", (c) => {
     .all(OWNER_ID);
 
   return c.html(
-    templatesPage({ locale: loc(c), templates, metrics: listMetrics(db(), OWNER_ID) }),
+    templatesPage({ locale: loc(c), theme: thm(c), templates, metrics: listMetrics(db(), OWNER_ID) }),
   );
 });
 
@@ -360,5 +361,5 @@ templateRoutes.get("/templates/:id/versions", (c) => {
     }
   }
 
-  return c.html(templateVersionsPage({ locale: loc(c), template, versions, diff }));
+  return c.html(templateVersionsPage({ locale: loc(c), theme: thm(c), template, versions, diff }));
 });

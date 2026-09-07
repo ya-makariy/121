@@ -8,6 +8,8 @@ export const en: Dict = {
   nav: { dashboard: "Dashboard", people: "People", teams: "Teams", templates: "Templates",
          compare: "Compare", metrics: "Metrics", actions: "Agreements", settings: "Settings" },
 
+  theme: { label: "Theme", auto: "system", light: "light", dark: "dark" },
+
   common: {
     save: "Save", cancel: "Cancel", add: "Add", edit: "Edit",
     archive: "Archive", back: "Back", saved: "Saved", of: "of",
@@ -378,6 +380,8 @@ export const en: Dict = {
   settings: {
     title: "Settings", language: "Language",
     languageNames: { ru: "Русский", en: "English" },
+    themeField: "Appearance",
+    themeHint: "\"System\" hands the choice to your operating system and follows it as it changes. Stored in this browser rather than in your profile: a surface belongs to the device.",
     timezone: "Time zone", timezoneField: "Zone",
     timezoneHint: "Cadence counts \"today\" in this zone. UTC here is a day off.",
     timezoneToday: "Today in this zone: {date}",

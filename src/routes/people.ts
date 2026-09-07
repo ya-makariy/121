@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { thm } from "../middleware/theme.ts";
 import { db } from "../db/index.ts";
 import {
   archivePerson, createPerson, getPerson, listArchivedPeople, listPeople, restorePerson,
@@ -108,14 +109,14 @@ function parseTeamAssignment(form: Record<string, unknown>): TeamAssignment {
 
 peopleRoutes.get("/people", (c) =>
   c.html(peopleListPage({
-    locale: loc(c),
+    locale: loc(c), theme: thm(c),
     people: listPeople(db(), OWNER_ID),
     archived: listArchivedPeople(db(), OWNER_ID),
   })));
 
 peopleRoutes.get("/people/new", (c) =>
   c.html(personFormPage({
-    locale: loc(c), person: null, templates: listTemplates(db(), OWNER_ID),
+    locale: loc(c), theme: thm(c), person: null, templates: listTemplates(db(), OWNER_ID),
     teams: listTeams(db(), OWNER_ID),
   })));
 
@@ -125,7 +126,7 @@ peopleRoutes.post("/people", async (c) => {
   const showForm = (error: string) =>
     c.html(
       personFormPage({
-        locale: loc(c),
+        locale: loc(c), theme: thm(c),
         // Rendered as a draft with id 0, so the form still posts to /people.
         person: null,
         draft: draftPerson(form, null),
@@ -181,7 +182,7 @@ peopleRoutes.get("/people/:id", (c) => {
 
   return c.html(
     personPage({
-      locale: loc(c),
+      locale: loc(c), theme: thm(c),
       person,
       cadence,
       meetings: listMeetingsForPerson(db(), id),
@@ -196,7 +197,7 @@ peopleRoutes.get("/people/:id/edit", (c) => {
   const person = getPerson(db(), id, OWNER_ID);
   if (!person) return c.notFound();
   return c.html(personFormPage({
-    locale: loc(c), person, templates: listTemplates(db(), OWNER_ID),
+    locale: loc(c), theme: thm(c), person, templates: listTemplates(db(), OWNER_ID),
     teams: listTeams(db(), OWNER_ID), memberships: teamsForPerson(db(), id),
   }));
 });
@@ -210,7 +211,7 @@ peopleRoutes.post("/people/:id", async (c) => {
     if (!person) return c.notFound();
     return c.html(
       personFormPage({
-        locale: loc(c), person, draft: draftPerson(form, person),
+        locale: loc(c), theme: thm(c), person, draft: draftPerson(form, person),
         templates: listTemplates(db(), OWNER_ID), teams: listTeams(db(), OWNER_ID),
         memberships: teamsForPerson(db(), id), teamDraft: team, error,
       }),

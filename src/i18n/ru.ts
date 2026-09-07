@@ -6,6 +6,9 @@ export const ru = {
   nav: { dashboard: "Дашборд", people: "Люди", teams: "Команды", templates: "Шаблоны",
          compare: "Сравнение", metrics: "Метрики", actions: "Договорённости", settings: "Настройки" },
 
+  /** The appearance switch in the header. `label: state` is what its title reads. */
+  theme: { label: "Тема", auto: "как в системе", light: "светлая", dark: "тёмная" },
+
   common: {
     save: "Сохранить", cancel: "Отмена", add: "Добавить", edit: "Править",
     archive: "В архив", back: "Назад", saved: "Сохранено", of: "из",
@@ -381,6 +384,8 @@ export const ru = {
   settings: {
     title: "Настройки", language: "Язык",
     languageNames: { ru: "Русский", en: "English" },
+    themeField: "Оформление",
+    themeHint: "«Как в системе» отдаёт выбор настройкам ОС и меняется вместе с ними. Хранится в этом браузере, а не в профиле: тема — свойство устройства.",
     timezone: "Часовой пояс", timezoneField: "Пояс",
     timezoneHint: "От него считается «сегодня» для каденса. UTC здесь врёт на день.",
     timezoneToday: "Сегодня в этом поясе: {date}",

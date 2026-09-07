@@ -11,6 +11,7 @@ import { templateRoutes } from "./templates.ts";
 import { metricRoutes } from "./metrics.ts";
 import { teamRoutes } from "./teams.ts";
 import { locale } from "../middleware/locale.ts";
+import { theme } from "../middleware/theme.ts";
 import { currentUser } from "../middleware/current-user.ts";
 
 export function mountRoutes(app: Hono): void {
@@ -21,7 +22,7 @@ export function mountRoutes(app: Hono): void {
   // The manager's branch. In v1 currentUser() is a stub returning user id=1; in v2 a
   // session check appears here, and this is the only place that changes.
   const app_ = new Hono();
-  app_.use("*", locale(), currentUser());
+  app_.use("*", locale(), theme(), currentUser());
   app_.route("/", dashboardRoutes);
   app_.route("/", peopleRoutes);
   app_.route("/", meetingRoutes);

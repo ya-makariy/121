@@ -1,4 +1,5 @@
 import { html } from "../html.ts";
+import type { Theme } from "../../lib/theme.ts";
 import { layout } from "../layout.ts";
 import { dict } from "../../i18n/index.ts";
 import { formatDate } from "../../i18n/dates.ts";
@@ -7,7 +8,7 @@ import type { PersonTeamRow, TeamWithMembers } from "../../db/queries/teams.ts";
 import { joinLink } from "../components/join-link.ts";
 
 export function peopleListPage(o: {
-  locale: Locale; people: PersonRow[]; archived: PersonRow[];
+  locale: Locale; theme: Theme; people: PersonRow[]; archived: PersonRow[];
 }): string {
   const t = dict(o.locale);
   const body = html`
@@ -57,11 +58,11 @@ export function peopleListPage(o: {
         `
       : ""}
   `;
-  return layout({ locale: o.locale, title: t.people.title, nav: "people", path: "/people", body });
+  return layout({ locale: o.locale, theme: o.theme, title: t.people.title, nav: "people", path: "/people", body });
 }
 
 export function personFormPage(o: {
-  locale: Locale;
+  locale: Locale; theme: Theme;
   person: PersonRow | null;
   /** What to put in the inputs when a save failed: the submitted values, not the stored ones. */
   draft?: PersonRow;
@@ -225,6 +226,7 @@ export function personFormPage(o: {
 
   return layout({
     locale: o.locale,
+    theme: o.theme,
     title: o.person ? t.people.editTitle : t.people.addTitle,
     nav: "people",
     path: o.person ? `/people/${o.person.id}/edit` : "/people/new",

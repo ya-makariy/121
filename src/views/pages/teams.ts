@@ -1,4 +1,5 @@
 import { html } from "../html.ts";
+import type { Theme } from "../../lib/theme.ts";
 import { layout } from "../layout.ts";
 import { dict, plural } from "../../i18n/index.ts";
 import { formatDate } from "../../i18n/dates.ts";
@@ -18,7 +19,7 @@ export interface TeamWithRoster extends TeamWithMembers {
  * hiding them would make the aggregates look like they came from nowhere.
  */
 export function teamsPage(o: {
-  locale: Locale;
+  locale: Locale; theme: Theme;
   teams: TeamWithRoster[];
   archived: TeamWithMembers[];
   editing: TeamRow | null;
@@ -151,6 +152,6 @@ export function teamsPage(o: {
   `;
 
   return layout({
-    locale: o.locale, title: t.teams.title, nav: "teams", path: "/teams", body,
+    locale: o.locale, theme: o.theme, title: t.teams.title, nav: "teams", path: "/teams", body,
   });
 }

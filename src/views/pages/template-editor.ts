@@ -1,4 +1,5 @@
 import { html, type Raw } from "../html.ts";
+import type { Theme } from "../../lib/theme.ts";
 import { layout } from "../layout.ts";
 import { dict, plural, problemMessage } from "../../i18n/index.ts";
 import type {
@@ -29,6 +30,7 @@ const SELECT_TYPES: FieldType[] = ["single_select", "multi_select"];
 
 export interface EditorState {
   locale: Locale;
+  theme: Theme;
   template: TemplateRow;
   version: TemplateVersionRow;
   sections: SectionWithFields[];
@@ -455,7 +457,7 @@ export function templateEditorPage(s: EditorState): string {
   `;
 
   return layout({
-    locale: s.locale, title: `${tpl.name} · ${t.editor.title}`, nav: "templates",
+    locale: s.locale, theme: s.theme, title: `${tpl.name} · ${t.editor.title}`, nav: "templates",
     path: base, body,
   });
 }

@@ -1,4 +1,5 @@
 import { classes, html, type Raw } from "../html.ts";
+import type { Theme } from "../../lib/theme.ts";
 import { layout } from "../layout.ts";
 import { dict, format, plural, pluralForm } from "../../i18n/index.ts";
 import type { Locale } from "../../db/types.ts";
@@ -68,7 +69,7 @@ function personRow(
 }
 
 export function dashboardPage(o: {
-  locale: Locale;
+  locale: Locale; theme: Theme;
   cadence: CadenceOverview;
   actions: OpenActionRow[];
   /** Today in the owner's timezone, from domain/cadence.ts:todayInTz(). */
@@ -142,5 +143,5 @@ export function dashboardPage(o: {
         `}
   `;
 
-  return layout({ locale: o.locale, title: t.dashboard.title, nav: "dashboard", path: "/", body });
+  return layout({ locale: o.locale, theme: o.theme, title: t.dashboard.title, nav: "dashboard", path: "/", body });
 }

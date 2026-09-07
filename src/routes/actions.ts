@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { thm } from "../middleware/theme.ts";
 import { db } from "../db/index.ts";
 import { openActions, setActionStatus } from "../db/queries/actions.ts";
 import { actionsPage } from "../views/pages/misc.ts";
@@ -12,7 +13,7 @@ export const actionRoutes = new Hono();
 actionRoutes.get("/actions", (c) =>
   c.html(
     actionsPage({
-      locale: loc(c),
+      locale: loc(c), theme: thm(c),
       actions: openActions(db(), today(user(c).timezone), null, OWNER_ID),
     }),
   ));

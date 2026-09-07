@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { thm } from "../middleware/theme.ts";
 import type { Context } from "hono";
 import { db } from "../db/index.ts";
 import { metricsPage } from "../views/pages/metrics.ts";
@@ -25,7 +26,7 @@ function render(c: Context, error: string | null = null) {
 
   return c.html(
     metricsPage({
-      locale: loc(c),
+      locale: loc(c), theme: thm(c),
       metrics: all.filter((m) => m.archived_at === null),
       archived: all.filter((m) => m.archived_at !== null),
       editing,

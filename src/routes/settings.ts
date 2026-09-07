@@ -8,6 +8,8 @@ import { settingsPage } from "../views/pages/misc.ts";
 import { loc } from "../middleware/locale.ts";
 import { OWNER_ID, user } from "../middleware/current-user.ts";
 import { errorMessage, isLocale } from "../i18n/index.ts";
+import { isTheme, THEMES } from "../lib/theme.ts";
+import { thm } from "../middleware/theme.ts";
 import { assertTimezone, timezoneChoices, today } from "../domain/cadence.ts";
 import { backupTo } from "../domain/backup.ts";
 import { exportFullJson, exportFullMarkdown } from "../domain/export.ts";
@@ -25,6 +27,8 @@ function render(c: Context, error: string | null = null) {
   return c.html(
     settingsPage({
       locale: loc(c),
+      theme: thm(c),
+      themes: [...THEMES],
       timezone,
       timezones: timezoneChoices(timezone),
       todayInZone: today(timezone),
@@ -41,6 +45,25 @@ settingsRoutes.post("/settings/locale", async (c) => {
   if (isLocale(next)) {
     setCookie(c, "lang", next, { path: "/", httpOnly: true, sameSite: "Lax", maxAge: 31_536_000 });
     setLocale(db(), next, OWNER_ID);
+  }
+  const back = typeof form["return_to"] === "string" && form["return_to"] !== ""
+    ? form["return_to"]
+    : "/settings";
+  return c.redirect(back, 303);
+});
+
+/**
+ * The surface. Unlike the locale, nothing is written to app_user: the operating system's
+ * appearance setting is per device, so an override of it belongs on the same device. An
+ * unrecognised value is simply ignored rather than refused with a code — there is no way
+ * to reach this route except through the switch or the settings form, both of which offer
+ * a closed set, and a bad surface cannot corrupt anything the way a bad timezone can.
+ */
+settingsRoutes.post("/settings/theme", async (c) => {
+  const form = await c.req.parseBody();
+  const next = String(form["theme"] ?? "");
+  if (isTheme(next)) {
+    setCookie(c, "theme", next, { path: "/", httpOnly: true, sameSite: "Lax", maxAge: 31_536_000 });
   }
   const back = typeof form["return_to"] === "string" && form["return_to"] !== ""
     ? form["return_to"]

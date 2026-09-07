@@ -1,14 +1,17 @@
 /* ================================================================
    Two surfaces, one token layer.
 
-   The bare :root below is the complete light theme: every colour the stylesheet uses has
-   a value here and nowhere else. The dark branch further down only *redefines* those same
-   names — it never introduces a colour of its own. That is the invariant worth keeping,
-   because a colour that exists only inside a media block is a colour that is missing on
-   the other surface, and nothing in the rest of the file would tell you.
+   The bare :root below holds every colour value in the file: the light theme under its
+   semantic names, and the dark theme under `--dark-*`. The blocks that apply the dark
+   surface only re-point the semantic names at those values — they never introduce a
+   colour of their own. That is the invariant worth keeping, because a colour whose only
+   definition sits inside a media block is a colour missing on the other surface, and
+   nothing in the rest of the file would tell you.
 
-   `prefers-color-scheme` is the only mechanism: the app has no theme switch, and the
-   surface is the operating system's decision, not a setting this tool keeps.
+   The system preference is still the default but no longer the only mechanism: the header
+   carries a switch, and once the manager has chosen a surface the server puts `data-theme`
+   on <html>. `auto` asserts nothing and leaves `prefers-color-scheme` in charge, so
+   following the system stays the behaviour nobody has to opt into.
    ================================================================ */
 :root {
   /* Native controls — select, checkbox, scrollbar, caret — follow this, and it is the
@@ -58,62 +61,104 @@
   --series-6: #008300;
   --series-7: #4a3aa7;
   --series-8: #e34948;
+
+  /* ---------- the dark surface ----------
+     The dark values live here beside the light ones and are applied further down by the
+     two selectors that can mean "dark": the system preference, and an explicit choice
+     from the switch in the header. They are named once and aliased twice rather than
+     written twice — a palette spelled out in two places is a palette that disagrees with
+     itself the first time one copy is edited. tests/theme.test.ts holds the two in step.
+
+     The surfaces keep the warm cast of the light theme (the light bg is an off-white, not a
+     white) and keep its relation: the card is a step *lighter* than the page, the same way
+     #ffffff sits on #fbfaf8. Every foreground/background pair the stylesheet actually
+     renders was measured rather than eyeballed — body text 13.2:1 on a card, muted text
+     5.9:1, links 7.4:1, the primary button's label 8.2:1, and each badge's ink on its own
+     soft fill between 6.4:1 and 10:1.
+
+     The eight series slots are a re-stepping, not a flip. Hue is held to within 1.6 degrees
+     of the light slot in OKLCH, so a person keeps their colour across the two surfaces;
+     only lightness and chroma move, and they move by solving each slot for at least 4:1
+     against the dark card. Run against the data-visualization validator on this surface the
+     set passes every check: lightness band, chroma floor, adjacent colour-vision separation
+     dE 10.1 (the light set scores 9.1), normal-vision separation dE 18.4, and — unlike the
+     light set, where three slots sit in the sub-3:1 relief band — contrast at or above 4:1
+     for all eight. Reusing the light values here would not do: slot 7 falls to 1.92:1 on
+     this surface, and four of the eight fall outside the dark lightness band. */
+  --dark-bg: #1a1713;
+  --dark-surface: #221f1a;
+  --dark-border: #3a352c;
+  --dark-text: #ece6dc;
+  --dark-muted: #a49a8b;
+  --dark-accent: #7fb3e8;
+  --dark-accent-soft: #1f2b38;
+  --dark-danger: #f0908b;
+  --dark-danger-soft: #33201e;
+  --dark-warn: #e2b45d;
+  --dark-warn-soft: #2f2617;
+  --dark-ok: #7fc994;
+  --dark-ok-soft: #1c2b20;
+  --dark-private: #bb9be0;
+  --dark-private-soft: #292236;
+  --dark-on-accent: #11161b;
+  --dark-notice-border: #4c3b1c;
+  --dark-notice-text: #e7d2a0;
+  --dark-danger-border: #5b3431;
+  --dark-series-1: #317edd;
+  --dark-series-2: #d6541c;
+  --dark-series-3: #1caf7a;
+  --dark-series-4: #c78400;
+  --dark-series-5: #c45a84;
+  --dark-series-6: #3ca837;
+  --dark-series-7: #8780f3;
+  --dark-series-8: #f45956;
 }
 
-/* ---------- the dark surface ----------
-   Every declaration below redefines a token declared above. Nothing new is introduced
-   here, so there is no colour whose only definition is inside a media query.
+/* ---------- applying the dark surface ----------
+   Two selectors, one set of values.
 
-   The surfaces keep the warm cast of the light theme (the light bg is an off-white, not a
-   white) and keep its relation: the card is a step *lighter* than the page, the same way
-   #ffffff sits on #fbfaf8. Every foreground/background pair the stylesheet actually
-   renders was measured rather than eyeballed — body text 13.2:1 on a card, muted text
-   5.9:1, links 7.4:1, the primary button's label 8.2:1, and each badge's ink on its own
-   soft fill between 6.4:1 and 10:1.
+   The first is the system preference, and it steps aside for an explicit `light`: a
+   manager who asked for the light surface on a machine set to dark meant it. The second
+   is an explicit `dark`, which needs no media query at all. `auto` matches neither, and
+   that is exactly what makes it "whatever the OS says" rather than a third palette.
 
-   The eight series slots are a re-stepping, not a flip. Hue is held to within 1.6 degrees
-   of the light slot in OKLCH, so a person keeps their colour across the two surfaces;
-   only lightness and chroma move, and they move by solving each slot for at least 4:1
-   against the dark card. Run against the data-visualization validator on this surface the
-   set passes every check: lightness band, chroma floor, adjacent colour-vision separation
-   dE 10.1 (the light set scores 9.1), normal-vision separation dE 18.4, and — unlike the
-   light set, where three slots sit in the sub-3:1 relief band — contrast at or above 4:1
-   for all eight. Reusing the light values here would not do: slot 7 falls to 1.92:1 on
-   this surface, and four of the eight fall outside the dark lightness band. */
+   Both declaration lists must stay identical; tests/theme.test.ts fails if they drift. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     color-scheme: dark;
-
-    --bg: #1a1713;
-    --surface: #221f1a;
-    --border: #3a352c;
-    --text: #ece6dc;
-    --muted: #a49a8b;
-    --accent: #7fb3e8;
-    --accent-soft: #1f2b38;
-    --danger: #f0908b;
-    --danger-soft: #33201e;
-    --warn: #e2b45d;
-    --warn-soft: #2f2617;
-    --ok: #7fc994;
-    --ok-soft: #1c2b20;
-    --private: #bb9be0;
-    --private-soft: #292236;
-    /* The accent is now the light half of the pair, so its label is the dark one. */
-    --on-accent: #11161b;
-    --notice-border: #4c3b1c;
-    --notice-text: #e7d2a0;
-    --danger-border: #5b3431;
-
-    --series-1: #317edd;
-    --series-2: #d6541c;
-    --series-3: #1caf7a;
-    --series-4: #c78400;
-    --series-5: #c45a84;
-    --series-6: #3ca837;
-    --series-7: #8780f3;
-    --series-8: #f45956;
+    --bg: var(--dark-bg); --surface: var(--dark-surface); --border: var(--dark-border);
+    --text: var(--dark-text); --muted: var(--dark-muted);
+    --accent: var(--dark-accent); --accent-soft: var(--dark-accent-soft);
+    --danger: var(--dark-danger); --danger-soft: var(--dark-danger-soft);
+    --warn: var(--dark-warn); --warn-soft: var(--dark-warn-soft);
+    --ok: var(--dark-ok); --ok-soft: var(--dark-ok-soft);
+    --private: var(--dark-private); --private-soft: var(--dark-private-soft);
+    --on-accent: var(--dark-on-accent);
+    --notice-border: var(--dark-notice-border); --notice-text: var(--dark-notice-text);
+    --danger-border: var(--dark-danger-border);
+    --series-1: var(--dark-series-1); --series-2: var(--dark-series-2);
+    --series-3: var(--dark-series-3); --series-4: var(--dark-series-4);
+    --series-5: var(--dark-series-5); --series-6: var(--dark-series-6);
+    --series-7: var(--dark-series-7); --series-8: var(--dark-series-8);
   }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: var(--dark-bg); --surface: var(--dark-surface); --border: var(--dark-border);
+  --text: var(--dark-text); --muted: var(--dark-muted);
+  --accent: var(--dark-accent); --accent-soft: var(--dark-accent-soft);
+  --danger: var(--dark-danger); --danger-soft: var(--dark-danger-soft);
+  --warn: var(--dark-warn); --warn-soft: var(--dark-warn-soft);
+  --ok: var(--dark-ok); --ok-soft: var(--dark-ok-soft);
+  --private: var(--dark-private); --private-soft: var(--dark-private-soft);
+  --on-accent: var(--dark-on-accent);
+  --notice-border: var(--dark-notice-border); --notice-text: var(--dark-notice-text);
+  --danger-border: var(--dark-danger-border);
+  --series-1: var(--dark-series-1); --series-2: var(--dark-series-2);
+  --series-3: var(--dark-series-3); --series-4: var(--dark-series-4);
+  --series-5: var(--dark-series-5); --series-6: var(--dark-series-6);
+  --series-7: var(--dark-series-7); --series-8: var(--dark-series-8);
 }
 
 * { box-sizing: border-box; }
@@ -149,8 +194,8 @@ body.public main { max-width: 720px; }
 /* On a wide screen the wrapper is not a box: brand, nav and the language switch are the
    header's own three flex items, exactly as before this file knew about .bar. */
 .top > .bar { display: contents; }
-/* The switch is second in the markup and last on the wide line. */
-.lang { order: 1; }
+/* The switches are second in the markup and last on the wide line. */
+.switches { order: 1; display: flex; align-items: center; gap: var(--s-2); }
 .top .brand {
   font-weight: 700; font-size: var(--fs-lg); letter-spacing: .02em;
   color: var(--text); text-decoration: none;
@@ -162,11 +207,15 @@ body.public main { max-width: 720px; }
 }
 .top nav a:hover { background: var(--bg); color: var(--text); }
 .top nav a.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-.lang button {
+/* One rule for both chrome switches: the theme glyph and the locale code are the same
+   kind of control, so they must not drift into looking like two. The glyph needs a
+   slightly wider box than a two-letter code to stay square. */
+.switches button {
   border: 1px solid var(--border); background: var(--surface); color: var(--muted);
   border-radius: var(--radius-sm); padding: var(--s-1) 9px; font-size: var(--fs-xs); cursor: pointer; font-weight: 600;
 }
-.lang button:hover { color: var(--text); }
+.switches button:hover { color: var(--text); }
+.theme button { font-size: var(--fs-md); line-height: 1; padding: 3px 8px; }
 
 /* Below the width where the nav still fits beside the brand in the longer of the two
    languages, the header stops trying: the brand and the language switch keep the first

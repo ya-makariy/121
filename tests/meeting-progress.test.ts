@@ -19,7 +19,7 @@ function render(db: Database, meetingId: number): string {
   const meeting = getMeeting(db, meetingId)!;
   const person = getPerson(db, meeting.person_id, 1)!;
   return meetingPage({
-    locale: "en",
+    locale: "en", theme: "auto",
     meeting,
     person,
     sections: loadVersionStructure(db, meeting.template_version_id!),

@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { thm } from "../middleware/theme.ts";
 import { db } from "../db/index.ts";
 import { getMeeting } from "../db/queries/meetings.ts";
 import { getPerson } from "../db/queries/people.ts";
@@ -34,7 +35,7 @@ shareRoutes.get("/meetings/:id/share", (c) => {
 
   return c.html(
     sharePage({
-      locale: loc(c),
+      locale: loc(c), theme: thm(c),
       meeting,
       person,
       shares,

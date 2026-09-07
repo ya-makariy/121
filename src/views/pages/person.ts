@@ -1,4 +1,5 @@
 import { html } from "../html.ts";
+import type { Theme } from "../../lib/theme.ts";
 import { layout } from "../layout.ts";
 import { dict } from "../../i18n/index.ts";
 import type { Locale, MeetingRow, MetricRow, PersonRow, ActionItemRow } from "../../db/types.ts";
@@ -7,7 +8,7 @@ import { formatDate } from "../../i18n/dates.ts";
 import { joinLink } from "../components/join-link.ts";
 
 export function personPage(o: {
-  locale: Locale;
+  locale: Locale; theme: Theme;
   person: PersonRow;
   cadence: PersonCadence | null;
   meetings: MeetingRow[];
@@ -139,6 +140,6 @@ export function personPage(o: {
   `;
 
   return layout({
-    locale: o.locale, title: p.full_name, nav: "people", path: `/people/${p.id}`, body,
+    locale: o.locale, theme: o.theme, title: p.full_name, nav: "people", path: `/people/${p.id}`, body,
   });
 }

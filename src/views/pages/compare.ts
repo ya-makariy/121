@@ -1,4 +1,5 @@
 import { html } from "../html.ts";
+import type { Theme } from "../../lib/theme.ts";
 import { layout } from "../layout.ts";
 import { dict, plural } from "../../i18n/index.ts";
 import type { Locale, MetricRow } from "../../db/types.ts";
@@ -15,7 +16,7 @@ import { formatDate } from "../../i18n/dates.ts";
  * is why identity never rests on colour alone anywhere here.
  */
 export function comparePage(o: {
-  locale: Locale;
+  locale: Locale; theme: Theme;
   metrics: MetricRow[];
   teams: TeamOption[];
   selectedMetric: MetricRow | null;
@@ -27,7 +28,7 @@ export function comparePage(o: {
 
   if (o.metrics.length === 0 || o.selectedMetric === null) {
     return layout({
-      locale: o.locale, title: t.compare.title, nav: "compare", path: "/compare",
+      locale: o.locale, theme: o.theme, title: t.compare.title, nav: "compare", path: "/compare",
       body: html`
         <h1>${t.compare.title}</h1>
         <p class="sub">${t.compare.subtitle}</p>
@@ -134,6 +135,6 @@ export function comparePage(o: {
   `;
 
   return layout({
-    locale: o.locale, title: t.compare.title, nav: "compare", path: "/compare", body,
+    locale: o.locale, theme: o.theme, title: t.compare.title, nav: "compare", path: "/compare", body,
   });
 }

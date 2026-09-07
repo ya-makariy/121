@@ -1,4 +1,5 @@
 import { html } from "../html.ts";
+import type { Theme } from "../../lib/theme.ts";
 import { layout, publicLayout } from "../layout.ts";
 import { dict } from "../../i18n/index.ts";
 import type { Locale, MeetingRow, PersonRow, ShareLinkRow } from "../../db/types.ts";
@@ -8,7 +9,7 @@ import { config } from "../../config.ts";
 
 /** The manager-side page: build a snapshot, view it, download it, revoke it. */
 export function sharePage(o: {
-  locale: Locale;
+  locale: Locale; theme: Theme;
   meeting: MeetingRow;
   person: PersonRow;
   shares: ShareLinkRow[];
@@ -84,7 +85,7 @@ export function sharePage(o: {
   `;
 
   return layout({
-    locale: o.locale, title: t.share.title, nav: "people",
+    locale: o.locale, theme: o.theme, title: t.share.title, nav: "people",
     path: `/meetings/${o.meeting.id}/share`, body,
   });
 }

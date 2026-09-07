@@ -1,11 +1,12 @@
 import { html } from "../html.ts";
+import type { Theme } from "../../lib/theme.ts";
 import { layout } from "../layout.ts";
 import { dict } from "../../i18n/index.ts";
 import type { Locale, MetricRow } from "../../db/types.ts";
 import type { MetricUsage } from "../../domain/metrics-editor.ts";
 
 export function metricsPage(o: {
-  locale: Locale;
+  locale: Locale; theme: Theme;
   metrics: MetricUsage[];
   archived: MetricUsage[];
   editing: MetricRow | null;
@@ -161,6 +162,6 @@ export function metricsPage(o: {
   `;
 
   return layout({
-    locale: o.locale, title: t.metrics.title, nav: "metrics", path: "/metrics", body,
+    locale: o.locale, theme: o.theme, title: t.metrics.title, nav: "metrics", path: "/metrics", body,
   });
 }

@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { thm } from "../middleware/theme.ts";
 import { db } from "../db/index.ts";
 import { getPerson } from "../db/queries/people.ts";
 import { defaultTemplate, getFieldWithOptions, getTemplate, listTemplates, loadVersionStructure } from "../db/queries/templates.ts";
@@ -32,7 +33,7 @@ meetingRoutes.get("/people/:id/meetings/new", (c) => {
   if (!person) return c.notFound();
   return c.html(
     newMeetingPage({
-      locale: loc(c),
+      locale: loc(c), theme: thm(c),
       person,
       templates: listTemplates(db(), OWNER_ID),
       today: today(user(c).timezone),
@@ -102,7 +103,7 @@ meetingRoutes.get("/meetings/:id", (c) => {
 
   return c.html(
     meetingPage({
-      locale: loc(c),
+      locale: loc(c), theme: thm(c),
       meeting,
       person,
       sections,

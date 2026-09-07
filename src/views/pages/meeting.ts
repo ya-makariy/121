@@ -1,4 +1,5 @@
 import { html } from "../html.ts";
+import type { Theme } from "../../lib/theme.ts";
 import { layout } from "../layout.ts";
 import { dict, format } from "../../i18n/index.ts";
 import type {
@@ -10,7 +11,7 @@ import { formatDate } from "../../i18n/dates.ts";
 import { joinLink } from "../components/join-link.ts";
 
 export function newMeetingPage(o: {
-  locale: Locale; person: PersonRow; templates: TemplateRow[]; today: string;
+  locale: Locale; theme: Theme; person: PersonRow; templates: TemplateRow[]; today: string;
 }): string {
   const t = dict(o.locale);
   const preselected = o.person.default_template_id
@@ -48,13 +49,13 @@ export function newMeetingPage(o: {
   `;
 
   return layout({
-    locale: o.locale, title: t.meeting.newTitle, nav: "people",
+    locale: o.locale, theme: o.theme, title: t.meeting.newTitle, nav: "people",
     path: `/people/${o.person.id}/meetings/new`, body,
   });
 }
 
 export function meetingPage(o: {
-  locale: Locale;
+  locale: Locale; theme: Theme;
   meeting: MeetingRow;
   person: PersonRow;
   sections: SectionWithFields[];
@@ -304,6 +305,7 @@ export function meetingPage(o: {
 
   return layout({
     locale: o.locale,
+    theme: o.theme,
     title: `${o.person.full_name} · ${m.held_on ?? ""}`,
     nav: "people",
     path: `/meetings/${m.id}`,

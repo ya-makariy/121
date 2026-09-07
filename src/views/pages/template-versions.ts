@@ -1,4 +1,5 @@
 import { html } from "../html.ts";
+import type { Theme } from "../../lib/theme.ts";
 import { layout } from "../layout.ts";
 import { dict } from "../../i18n/index.ts";
 import type { Locale, TemplateRow, TemplateVersionRow } from "../../db/types.ts";
@@ -33,7 +34,7 @@ export interface VersionRow extends TemplateVersionRow {
 }
 
 export function templateVersionsPage(o: {
-  locale: Locale;
+  locale: Locale; theme: Theme;
   template: TemplateRow;
   versions: VersionRow[];
   diff: VersionDiff | null;
@@ -117,7 +118,7 @@ export function templateVersionsPage(o: {
   `;
 
   return layout({
-    locale: o.locale, title: t.editor.versions, nav: "templates",
+    locale: o.locale, theme: o.theme, title: t.editor.versions, nav: "templates",
     path: `${base}/versions`, body,
   });
 }

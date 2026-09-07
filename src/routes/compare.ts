@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { thm } from "../middleware/theme.ts";
 import { db } from "../db/index.ts";
 import {
   distinctScaleCount, getMetricByKey, metricsWithAnyData, sortByAttention, standings,
@@ -24,7 +25,7 @@ compareRoutes.get("/compare", (c) => {
 
   return c.html(
     comparePage({
-      locale: loc(c),
+      locale: loc(c), theme: thm(c),
       metrics,
       teams: teamsWithPeople(db(), OWNER_ID),
       selectedMetric: metric,

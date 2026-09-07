@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { thm } from "../middleware/theme.ts";
 import type { Context } from "hono";
 import { db } from "../db/index.ts";
 import { listTeamMembers, listTeams, getTeam } from "../db/queries/teams.ts";
@@ -35,7 +36,7 @@ function render(c: Context, error: string | null = null) {
 
   return c.html(
     teamsPage({
-      locale: loc(c),
+      locale: loc(c), theme: thm(c),
       teams: active,
       archived: all.filter((t) => t.archived_at !== null),
       editing,

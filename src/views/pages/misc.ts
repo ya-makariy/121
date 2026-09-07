@@ -5,8 +5,9 @@ import type { Locale, MetricRow, TemplateRow } from "../../db/types.ts";
 import type { OpenActionRow } from "../../db/queries/actions.ts";
 import { formatDate } from "../../i18n/dates.ts";
 import { LOCALES } from "../../i18n/index.ts";
+import type { Theme } from "../../lib/theme.ts";
 
-export function actionsPage(o: { locale: Locale; actions: OpenActionRow[] }): string {
+export function actionsPage(o: { locale: Locale; theme: Theme; actions: OpenActionRow[] }): string {
   const t = dict(o.locale);
   const body = html`
     <h1>${t.actions.title}</h1>
@@ -46,7 +47,7 @@ export function actionsPage(o: { locale: Locale; actions: OpenActionRow[] }): st
           </div>
         `}
   `;
-  return layout({ locale: o.locale, title: t.actions.title, nav: "actions", path: "/actions", body });
+  return layout({ locale: o.locale, theme: o.theme, title: t.actions.title, nav: "actions", path: "/actions", body });
 }
 
 export interface TemplateSummary extends TemplateRow {
@@ -57,7 +58,7 @@ export interface TemplateSummary extends TemplateRow {
 }
 
 export function templatesPage(o: {
-  locale: Locale; templates: TemplateSummary[]; metrics: MetricRow[];
+  locale: Locale; theme: Theme; templates: TemplateSummary[]; metrics: MetricRow[];
 }): string {
   const t = dict(o.locale);
   const body = html`
@@ -100,12 +101,15 @@ export function templatesPage(o: {
     </form>
   `;
   return layout({
-    locale: o.locale, title: t.templates.title, nav: "templates", path: "/templates", body,
+    locale: o.locale, theme: o.theme, title: t.templates.title, nav: "templates", path: "/templates", body,
   });
 }
 
 export interface SettingsView {
   locale: Locale;
+  /** The surface in force, and the closed set the form offers. */
+  theme: Theme;
+  themes: readonly Theme[];
   /** The zone stored on app_user — the one cadence is counted in right now. */
   timezone: string;
   timezones: readonly string[];
@@ -130,6 +134,30 @@ export function settingsPage(o: SettingsView): string {
             }</option>`,
           )}
         </select>
+      </div>
+      <input type="hidden" name="return_to" value="/settings" />
+      <button class="primary" type="submit">${t.common.save}</button>
+    </form>
+
+    <h2>${t.theme.label}</h2>
+    <form method="post" action="/settings/theme" class="card">
+      <div class="field">
+        <fieldset>
+          <legend>
+            ${t.settings.themeField}
+            <span class="hint">${t.settings.themeHint}</span>
+          </legend>
+          <div class="opts">
+            ${o.themes.map(
+              (v) => html`
+                <label>
+                  <input type="radio" name="theme" value="${v}" ${v === o.theme ? "checked" : ""} />
+                  ${t.theme[v]}
+                </label>
+              `,
+            )}
+          </div>
+        </fieldset>
       </div>
       <input type="hidden" name="return_to" value="/settings" />
       <button class="primary" type="submit">${t.common.save}</button>
@@ -170,6 +198,6 @@ export function settingsPage(o: SettingsView): string {
     </div>
   `;
   return layout({
-    locale: o.locale, title: t.settings.title, nav: "settings", path: "/settings", body,
+    locale: o.locale, theme: o.theme, title: t.settings.title, nav: "settings", path: "/settings", body,
   });
 }

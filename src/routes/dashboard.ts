@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { thm } from "../middleware/theme.ts";
 import { db } from "../db/index.ts";
 import { cadenceGroups } from "../db/queries/cadence.ts";
 import { openActions } from "../db/queries/actions.ts";
@@ -13,7 +14,7 @@ dashboardRoutes.get("/", (c) => {
   const t = today(user(c).timezone);
   return c.html(
     dashboardPage({
-      locale: loc(c),
+      locale: loc(c), theme: thm(c),
       cadence: cadenceGroups(db(), t, OWNER_ID),
       actions: openActions(db(), t, null, OWNER_ID),
       today: t,
