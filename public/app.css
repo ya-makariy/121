@@ -53,13 +53,30 @@ body {
 
 main { max-width: 940px; margin: 0 auto; padding: var(--s-6) 20px 80px; }
 body.public main { max-width: 720px; }
+/* On a phone the 20px gutters are 10% of the screen and the 80px tail is a screenful of
+   nothing under a short page. Both shrink; the content column does not. */
+@media (max-width: 640px) {
+  main { padding: var(--s-5) var(--s-5) 48px; }
+}
 
-/* ---------- header ---------- */
+/* ---------- header ----------
+   min-height, not height. The nav is eight items and its labels are translated, so its
+   width is not something the stylesheet can know: measured, the row needs about 800px in
+   English and about 880px in Russian. With a fixed 52px it wrapped inside that height and
+   the first line was simply cut off — at 768px the nav was already 67px tall. An
+   intrinsic height cannot clip at any width, in any language, so the guarantee no longer
+   depends on picking the right breakpoint. The header does not stick, so the extra height
+   is paid once at the top of the page and scrolls away. */
 .top {
-  display: flex; align-items: center; gap: 20px;
-  padding: 0 20px; height: 52px;
+  display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+  padding: var(--s-2) 20px; min-height: 52px;
   background: var(--surface); border-bottom: 1px solid var(--border);
 }
+/* On a wide screen the wrapper is not a box: brand, nav and the language switch are the
+   header's own three flex items, exactly as before this file knew about .bar. */
+.top > .bar { display: contents; }
+/* The switch is second in the markup and last on the wide line. */
+.lang { order: 1; }
 .top .brand {
   font-weight: 700; font-size: var(--fs-lg); letter-spacing: .02em;
   color: var(--text); text-decoration: none;
@@ -76,6 +93,26 @@ body.public main { max-width: 720px; }
   border-radius: var(--radius-sm); padding: var(--s-1) 9px; font-size: var(--fs-xs); cursor: pointer; font-weight: 600;
 }
 .lang button:hover { color: var(--text); }
+
+/* Below the width where the nav still fits beside the brand in the longer of the two
+   languages, the header stops trying: the brand and the language switch keep the first
+   line and the nav becomes a one-line strip of its own that scrolls sideways — the same
+   idiom the meeting rail uses at the same width, so the app has one narrow-screen answer
+   for "a row of links that no longer fits" rather than two. Wrapping the nav instead
+   would cost three or four lines of chrome on every page; scrolling costs one, and the
+   items stay a full touch target tall. */
+@media (max-width: 900px) {
+  .top { row-gap: var(--s-2); }
+  .top > .bar {
+    display: flex; flex: 1 0 100%;
+    align-items: center; justify-content: space-between; gap: var(--s-4);
+  }
+  .top nav {
+    flex: 1 0 100%; flex-wrap: nowrap; gap: var(--s-2);
+    overflow-x: auto; padding-bottom: var(--s-1);
+  }
+  .top nav a { padding: var(--s-2) 10px; white-space: nowrap; }
+}
 
 /* ---------- typography ---------- */
 h1 { font-size: var(--fs-xl); margin: 0 0 var(--s-1); letter-spacing: -.01em; }
@@ -119,12 +156,20 @@ a { color: var(--accent); }
   border-radius: var(--radius) var(--radius) 0 0;
 }
 .rows { display: flex; flex-direction: column; gap: var(--s-3); }
+/* A row wraps at the width where its text stops being text, not at a breakpoint ----------
+   min-width: 0 let the label column shrink without limit, so on a phone a name and its
+   cadence line came out one word per line while the buttons beside it kept their full
+   size. A floor of 12em (about 25 characters) plus flex-wrap turns that into a decision
+   the row makes for itself: the buttons drop to a second line the moment the label can no
+   longer hold a readable line, at whatever width and in whatever language that happens.
+   No media query can know that width, because it depends on the translated button labels.
+   Above the floor nothing wraps, so the desktop row is unchanged to the pixel. */
 .row {
-  display: flex; align-items: center; gap: var(--s-4);
+  display: flex; align-items: center; gap: var(--s-4); flex-wrap: wrap; row-gap: var(--s-3);
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius); padding: var(--s-4) 14px;
 }
-.row .grow { flex: 1; min-width: 0; }
+.row .grow { flex: 1; min-width: 12em; overflow-wrap: break-word; }
 .row .name { font-weight: 600; }
 .row a.name { text-decoration: none; color: var(--text); }
 .row a.name:hover { color: var(--accent); }
@@ -252,7 +297,7 @@ button.link {
 .chart-note { font-size: var(--fs-xs); color: var(--muted); margin-top: var(--s-3); }
 
 /* ---------- meeting sections ---------- */
-.section-head { display: flex; align-items: baseline; gap: 10px; }
+.section-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .section-head h2 { margin-bottom: 2px; }
 .section-desc { color: var(--muted); font-size: var(--fs-sm); margin: 0 0 var(--s-4); }
 
@@ -299,16 +344,22 @@ button.link {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius);
 }
-.commit-bar .grow { flex: 1; min-width: 0; }
+/* Same floor as .row, for the same reason: the progress recap used to be squeezed into a
+   column one word wide next to the completion button. */
+.commit-bar .grow { flex: 1; min-width: 12em; }
 
-/* Narrow screens: the two columns become one and the rail unpins into a scrollable strip
-   above the questions. D8 owns the mobile layout properly; this only keeps it unbroken. */
+/* Narrow screens: the rail folds. Two columns become one and the index unpins into a
+   one-line strip that scrolls sideways above the questions, instead of keeping a 180px
+   column and squeezing the answers into what is left. It is the same strip the header nav
+   becomes, and it keeps the same touch target height. */
 @media (max-width: 720px) {
   .meeting-grid { grid-template-columns: minmax(0, 1fr); gap: var(--s-4); }
   .rail {
     position: static; grid-auto-flow: column; grid-auto-columns: max-content;
     justify-content: start; overflow-x: auto;
+    padding-bottom: var(--s-1); border-bottom: 1px solid var(--border);
   }
+  .rail a { white-space: nowrap; }
 }
 
 /* ---------- summary ---------- */
@@ -442,16 +493,19 @@ label.inline input { width: auto; }
 
 .empty.small { padding: 14px; font-size: var(--fs-sm); }
 
-/* The control group does not wrap across lines: the question label stretches and the
-   buttons stay together on the right. */
+/* The control group itself never breaks across lines: the four icon forms are one cluster
+   and read as one. It moves as a block, and margin-left:auto keeps it on the right of
+   whichever line it ends up on. */
 .controls {
   display: flex; align-items: center; gap: var(--s-2); flex: none; flex-wrap: nowrap;
+  margin-left: auto;
 }
-.field-bar, .section-bar { flex-wrap: nowrap; }
 /* flex:1 is what makes the two columns to its right actually line up: without it the
    question wording only takes the width it needs and the visibility label lands at a
-   different place in every row. */
-.field-bar .grow, .section-bar .grow { flex: 1; min-width: 0; }
+   different place in every row. The 12em floor is the same decision as in .row — the
+   wording keeps a readable line and the cluster of controls drops below it instead,
+   which is what used to leave two characters per line in the builder on a phone. */
+.field-bar .grow, .section-bar .grow { flex: 1; min-width: 12em; }
 
 /* ---------- the visibility column ----------
    Every question row used to carry four icon forms plus a visibility badge in one nowrap
@@ -468,13 +522,6 @@ label.inline input { width: auto; }
 .controls .link:hover { color: var(--text); }
 .controls .link.danger { color: var(--muted); }
 .controls .link.danger:hover { color: var(--danger); }
-
-@media (max-width: 720px) {
-  .field-bar, .section-bar { flex-wrap: wrap; }
-  .controls { margin-left: auto; }
-  /* Once the row wraps, a 130px column is no longer a column. */
-  .field-bar .vis { width: auto; }
-}
 
 /* The call button: an outward action, so it reads differently from navigation. */
 .btn.join { white-space: nowrap; }

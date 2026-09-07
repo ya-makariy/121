@@ -28,7 +28,21 @@ export function layout(o: LayoutOptions): string {
 
   const page = html`
     <header class="top">
-      <a class="brand" href="/">${t.appName}</a>
+      <!--
+        The brand and the language switch are wrapped together because on a narrow screen
+        they share the header's first line while the navigation drops to a strip of its
+        own below them. Grouping them in the markup is what keeps the tab order equal to
+        the reading order there; on a wide screen the wrapper is display:contents, so the
+        header is still the same single row of three items it always was.
+      -->
+      <div class="bar">
+        <a class="brand" href="/">${t.appName}</a>
+        <form method="post" action="/settings/locale" class="lang">
+          <input type="hidden" name="locale" value="${other}" />
+          <input type="hidden" name="return_to" value="${o.path ?? "/"}" />
+          <button type="submit" title="${other.toUpperCase()}">${other.toUpperCase()}</button>
+        </form>
+      </div>
       <nav>
         ${items.map(
           ([key, href, label]) => html`
@@ -36,11 +50,6 @@ export function layout(o: LayoutOptions): string {
           `,
         )}
       </nav>
-      <form method="post" action="/settings/locale" class="lang">
-        <input type="hidden" name="locale" value="${other}" />
-        <input type="hidden" name="return_to" value="${o.path ?? "/"}" />
-        <button type="submit" title="${other.toUpperCase()}">${other.toUpperCase()}</button>
-      </form>
     </header>
     <main>${o.body}</main>
   `;
