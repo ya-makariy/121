@@ -81,6 +81,32 @@ a { color: var(--accent); }
   border-radius: var(--radius); padding: var(--s-5); margin-bottom: var(--s-4);
 }
 .card.private { border-left: 3px solid var(--private); background: var(--private-soft); }
+
+/* ---------- privacy wears its own label ----------
+   A lilac edge plus a lilac fill is exactly what .notice uses in yellow, so privacy and
+   warning read as one kind of thing. Privacy here is an invariant, not a shade: a manager
+   who has learned that the lilac frame means "the report will not see this" would one day
+   read a yellow one the same way. So the colour and the wording move up onto a label of
+   their own, and the card underneath returns to the ordinary surface — attached to the
+   label, sharing its edge, carrying only a thin spine. */
+.private-head {
+  display: flex; align-items: center; gap: var(--s-3);
+  padding: var(--s-2) var(--s-4); margin-bottom: -1px;
+  background: var(--private-soft); color: var(--private);
+  border: 1px solid var(--border); border-bottom: none;
+  border-radius: var(--radius) var(--radius) 0 0;
+  font-size: var(--fs-sm); font-weight: 600;
+}
+.card.private.attached { border-radius: 0 0 var(--radius) var(--radius); background: var(--surface); }
+/* In the template builder the label lives inside the section card, bled to its edges, so
+   that a drag carries it — see the comment in views/pages/template-editor.ts. The card
+   keeps the surface and wears only the spine. */
+.section-card.private { border-left: 3px solid var(--private); }
+.section-card > .private-head {
+  margin: -14px -14px var(--s-4);
+  border-width: 0 0 1px;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
 .rows { display: flex; flex-direction: column; gap: var(--s-3); }
 .row {
   display: flex; align-items: center; gap: var(--s-4);

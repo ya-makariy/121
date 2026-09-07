@@ -143,12 +143,22 @@ export function meetingPage(o: {
         <!-- The rail links here; the id is a page anchor, never an addressing key. -->
         <div class="section-head" id="section-${section.id}">
           <h2>${section.title}</h2>
-          ${isPrivateSection
-            ? html`<span class="badge private">${t.meeting.privateSection}</span>`
-            : ""}
         </div>
         ${section.description ? html`<p class="section-desc">${section.description}</p>` : ""}
-        <div class="card ${isPrivateSection ? "private" : ""}">${rendered}</div>
+        <!--
+          A private section says so on a label of its own rather than by tinting the card.
+          Privacy is an invariant, and its one visual carrier must not share a device with
+          the yellow .notice; a badge inside the heading was also easy to read past.
+        -->
+        ${isPrivateSection
+          ? html`
+              <div class="private-head">
+                <span>${t.meeting.privateSection}</span>
+                <span class="muted small">${t.meeting.notInSummary}</span>
+              </div>
+            `
+          : ""}
+        <div class="card ${isPrivateSection ? "private attached" : ""}">${rendered}</div>
       `;
     })}
 
@@ -183,7 +193,11 @@ export function meetingPage(o: {
     </form>
 
     <h2>${t.meeting.privateNotes}</h2>
-    <form method="post" action="/meetings/${m.id}/private-notes" class="card private">
+    <div class="private-head">
+      <span>${t.meeting.privateSection}</span>
+      <span class="muted small">${t.meeting.notInSummary}</span>
+    </div>
+    <form method="post" action="/meetings/${m.id}/private-notes" class="card private attached">
       <div class="field">
         <label for="private_notes"><span class="hint">${t.meeting.privateHint}</span></label>
         <textarea id="private_notes" name="private_notes">${m.private_notes ?? ""}</textarea>

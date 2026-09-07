@@ -118,10 +118,19 @@ export function personPage(o: {
           </div>
         `}
 
+    <!--
+      person.notes never reaches a snapshot under any condition (rule 2). The label above
+      the card is the same device the meeting page uses, so "the report will not see this"
+      looks the same wherever it is true — and never looks like a warning.
+    -->
     ${p.notes
       ? html`
           <h2>${t.people.notes}</h2>
-          <div class="card private">
+          <div class="private-head">
+            <span>${t.meeting.privateSection}</span>
+            <span class="muted small">${t.meeting.notInSummary}</span>
+          </div>
+          <div class="card private attached">
             <p class="small muted">${t.people.notesHint}</p>
             <div class="a" style="white-space: pre-wrap">${p.notes}</div>
           </div>

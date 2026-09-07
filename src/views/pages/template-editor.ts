@@ -254,9 +254,28 @@ export function templateEditorPage(s: EditorState): string {
     <p class="small muted">${t.editor.dragHint}</p>
 
     <div class="sections" data-reorder="sections" data-url="${base}/reorder-sections">
-      ${s.sections.map(
-        (section) => html`
-          <section class="section-card" draggable="true" data-key="${section.section_key}">
+      ${s.sections.map((section) => {
+        // A section every question of which is private is a section that never leaves the
+        // instance, and the author should see that while writing it — with the same label
+        // the meeting page uses, not a shade the yellow notices also wear.
+        const isPrivateSection = section.fields.length > 0
+          && section.fields.every((f) => f.visibility === "private");
+        return html`
+          <section class="section-card ${isPrivateSection ? "private" : ""}"
+                   draggable="true" data-key="${section.section_key}">
+            <!--
+              The label sits inside the card here, bled to its edges, so that dragging the
+              section carries it: reorder.js moves .section-card nodes, and a label left
+              behind would briefly caption the wrong section.
+            -->
+            ${isPrivateSection
+              ? html`
+                  <div class="private-head">
+                    <span>${t.meeting.privateSection}</span>
+                    <span class="muted small">${t.meeting.notInSummary}</span>
+                  </div>
+                `
+              : ""}
             <div class="section-bar">
               <span class="handle" title="${t.editor.dragHint}">⠿</span>
               <span class="grow"><strong>${section.title}</strong></span>
@@ -378,8 +397,8 @@ export function templateEditorPage(s: EditorState): string {
                   </p>
                 `}
           </section>
-        `,
-      )}
+        `;
+      })}
     </div>
 
     <form method="post" action="${base}/sections" class="card">
