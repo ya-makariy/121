@@ -18,6 +18,21 @@ export const ru = {
     title: "Дашборд",
     cadence: "Каденс",
     overdue: "Просрочено", dueSoon: "Скоро", ok: "В порядке", noCadence: "Без каденса",
+    // Group headings. Keys match CadenceStatus; the display order lives in
+    // CADENCE_GROUP_ORDER, not here. "Ближайшие дни" rather than "На этой неделе":
+    // DUE_SOON_DAYS is three days by default, and the heading must not promise a week.
+    groupTitle: {
+      overdue: "Просрочено",
+      due_soon: "Ближайшие дни",
+      ok: "В порядке",
+      no_cadence: "Без каденса",
+    },
+    peopleForms: ["человек", "человека", "человек"],
+    waitingForms: ["ждёт встречи", "ждут встречи", "ждут встречи"],
+    openActionForms: [
+      "открытая договорённость", "открытые договорённости", "открытых договорённостей",
+    ],
+    todayIs: "сегодня {date}",
     scheduled: "запланировано",
     lastMeeting: "последняя 1:1",
     neverMet: "встреч ещё не было",

@@ -1,5 +1,5 @@
 import type { Database } from "bun:sqlite";
-import { classifyCadence, type CadenceState } from "../../domain/cadence.ts";
+import { classifyCadence, type CadenceState, type CadenceStatus } from "../../domain/cadence.ts";
 
 export interface CadenceRow {
   id: number;
@@ -14,6 +14,34 @@ export interface CadenceRow {
 }
 
 export interface PersonCadence extends CadenceRow, CadenceState {}
+
+/**
+ * The urgency groups in the order the dashboard shows them, most urgent first.
+ *
+ * The order is structure, not text: it lives in this array and nowhere else. Reading it
+ * off a dictionary object's keys, or sorting by the translated heading, would let a
+ * change of locale silently reshuffle the page.
+ *
+ * `no_cadence` is last and deliberately outside the three urgency buckets: a person with
+ * no cadence is not on time, late or nearly late — there is nothing to be late for.
+ */
+export const CADENCE_GROUP_ORDER: readonly CadenceStatus[] = [
+  "overdue", "due_soon", "ok", "no_cadence",
+];
+
+export interface CadenceGroup {
+  key: CadenceStatus;
+  people: PersonCadence[];
+}
+
+export interface CadenceOverview {
+  /** In CADENCE_GROUP_ORDER. A group with nobody in it is not returned at all. */
+  groups: CadenceGroup[];
+  /** Everyone unarchived, across every group. */
+  total: number;
+  /** overdue + due_soon: the people today is actually asking about. */
+  waiting: number;
+}
 
 /**
  * Cadence is computed entirely on read. ?today arrives as a parameter: date('now') in
@@ -56,8 +84,6 @@ export function cadenceOverview(db: Database, today: string, ownerId = 1): Perso
     )
     .all(today, ownerId);
 
-  const order: Record<string, number> = { overdue: 0, due_soon: 1, ok: 2, no_cadence: 3 };
-
   return rows
     .map((r) => ({
       ...r,
@@ -67,9 +93,34 @@ export function cadenceOverview(db: Database, today: string, ownerId = 1): Perso
       ),
     }))
     .sort((a, b) => {
-      const byStatus = order[a.status]! - order[b.status]!;
+      const byStatus =
+        CADENCE_GROUP_ORDER.indexOf(a.status) - CADENCE_GROUP_ORDER.indexOf(b.status);
       if (byStatus !== 0) return byStatus;
       if (a.dueOn && b.dueOn) return a.dueOn.localeCompare(b.dueOn);
       return a.full_name.localeCompare(b.full_name);
     });
+}
+
+/**
+ * The dashboard's list, already grouped by urgency.
+ *
+ * The grouping belongs here rather than in the view: which bucket a person falls into is
+ * a fact about the data, computed from the same `?today` and the same
+ * `classifyCadence()` as every other status in the app. A view that regrouped a flat list
+ * would be free to answer differently than the person page does.
+ */
+export function cadenceGroups(db: Database, today: string, ownerId = 1): CadenceOverview {
+  const people = cadenceOverview(db, today, ownerId);
+
+  const groups: CadenceGroup[] = [];
+  for (const key of CADENCE_GROUP_ORDER) {
+    const inGroup = people.filter((p) => p.status === key);
+    if (inGroup.length > 0) groups.push({ key, people: inGroup });
+  }
+
+  return {
+    groups,
+    total: people.length,
+    waiting: people.filter((p) => p.status === "overdue" || p.status === "due_soon").length,
+  };
 }

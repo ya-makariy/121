@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { db } from "../db/index.ts";
-import { cadenceOverview } from "../db/queries/cadence.ts";
+import { cadenceGroups } from "../db/queries/cadence.ts";
 import { openActions } from "../db/queries/actions.ts";
 import { dashboardPage } from "../views/pages/dashboard.ts";
 import { loc } from "../middleware/locale.ts";
@@ -14,8 +14,9 @@ dashboardRoutes.get("/", (c) => {
   return c.html(
     dashboardPage({
       locale: loc(c),
-      people: cadenceOverview(db(), t, OWNER_ID),
+      cadence: cadenceGroups(db(), t, OWNER_ID),
       actions: openActions(db(), t, null, OWNER_ID),
+      today: t,
     }),
   );
 });

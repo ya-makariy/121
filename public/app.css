@@ -208,6 +208,31 @@ pre.md {
   white-space: pre-wrap;
 }
 
+/* ---------- grouped lists ----------
+   A flat list of identical rows has no hierarchy: on the dashboard every
+   person carries the same neutral button and the same green badge, so the
+   eye has nowhere to land. Grouping by urgency gives it one. */
+.group { margin-bottom: var(--s-6); }
+.group-head {
+  display: flex; align-items: baseline; gap: var(--s-3);
+  margin: 0 0 var(--s-3);
+}
+.group-head h3 { margin: 0; font-size: var(--fs-md); }
+.group-head .count {
+  font-size: var(--fs-xs); font-weight: 600; color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.group.attention .group-head h3 { color: var(--danger); }
+.group.soon .group-head h3 { color: var(--warn); }
+
+/* A one-line answer to "what do I do today", above the lists. */
+.headline {
+  display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-5);
+  align-items: baseline; margin: 0 0 var(--s-6);
+  font-size: var(--fs-md); color: var(--muted);
+}
+.headline strong { color: var(--text); font-variant-numeric: tabular-nums; }
+
 /* ---------- comparing people ---------- */
 /* The categorical palette from the data-visualization guidance: eight slots in a fixed
    order. A slot belongs to a person, never to their place in a ranking. */

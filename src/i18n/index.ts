@@ -57,7 +57,16 @@ export function problemMessage(
  * interface says "1 точек" and looks unfinished.
  */
 export function plural(locale: Locale, n: number, forms: readonly string[]): string {
-  if (locale === "en") return `${n} ${forms[n === 1 ? 0 : 1]}`;
+  return `${n} ${pluralForm(locale, n, forms)}`;
+}
+
+/**
+ * The agreeing form on its own, without the number in front of it. The dashboard headline
+ * sets the digits in their own element so they can be emphasized, and still must not
+ * reimplement the three-form rule to do it.
+ */
+export function pluralForm(locale: Locale, n: number, forms: readonly string[]): string {
+  if (locale === "en") return forms[n === 1 ? 0 : 1] ?? "";
   const mod100 = Math.abs(n) % 100;
   const mod10 = mod100 % 10;
   const form =
@@ -65,5 +74,5 @@ export function plural(locale: Locale, n: number, forms: readonly string[]): str
     : mod10 === 1 ? 0
     : mod10 >= 2 && mod10 <= 4 ? 1
     : 2;
-  return `${n} ${forms[form]}`;
+  return forms[form] ?? "";
 }
