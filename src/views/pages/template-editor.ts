@@ -279,7 +279,8 @@ export function templateEditorPage(s: EditorState): string {
             <div class="section-bar">
               <span class="handle" title="${t.editor.dragHint}">⠿</span>
               <span class="grow"><strong>${section.title}</strong></span>
-              <span class="controls">
+              <!-- A div, not a span: it holds forms, and a form is flow content. -->
+              <div class="controls">
                 <form method="post" action="${base}/sections/${encodeURIComponent(section.section_key)}/move">
                   <input type="hidden" name="direction" value="up" />
                   <button class="link" type="submit" title="${t.editor.up}">↑</button>
@@ -296,7 +297,7 @@ export function templateEditorPage(s: EditorState): string {
                   <button class="link danger" type="submit"
                           title="${t.editor.deleteSection}">×</button>
                 </form>
-              </span>
+              </div>
             </div>
             ${section.description ? html`<p class="section-desc">${section.description}</p>` : ""}
 
@@ -349,12 +350,18 @@ export function templateEditorPage(s: EditorState): string {
                             </span>
                             ${fieldPreview(field)}
                           </span>
-                          <span class="controls">
-                            <span class="badge ${field.visibility === "private" ? "private" : "shared"}">
-                              ${field.visibility === "private"
-                                ? t.templates.visibilityPrivate
-                                : t.templates.visibilityShared}
-                            </span>
+                          <!--
+                            Visibility is the one thing in this row worth reading down the
+                            column, so it gets a column: a fixed width at a fixed place,
+                            out of the cluster of four icon forms it used to sit inside.
+                          -->
+                          <span class="vis ${field.visibility === "private" ? "priv" : "shared"}">
+                            ${field.visibility === "private"
+                              ? t.templates.visibilityPrivate
+                              : t.templates.visibilityShared}
+                          </span>
+                          <!-- A div, not a span: it holds forms, and a form is flow content. -->
+                          <div class="controls">
                             <form method="post" action="${base}/fields/${encodeURIComponent(field.field_key)}/move">
                               <input type="hidden" name="direction" value="up" />
                               <button class="link" type="submit" title="${t.editor.up}">↑</button>
@@ -371,7 +378,7 @@ export function templateEditorPage(s: EditorState): string {
                               <button class="link danger" type="submit"
                                       title="${t.editor.deleteField}">×</button>
                             </form>
-                          </span>
+                          </div>
                         </div>
                         ${expanded
                           ? html`

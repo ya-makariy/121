@@ -427,10 +427,32 @@ label.inline input { width: auto; }
   display: flex; align-items: center; gap: var(--s-2); flex: none; flex-wrap: nowrap;
 }
 .field-bar, .section-bar { flex-wrap: nowrap; }
-.field-bar .grow, .section-bar .grow { min-width: 0; }
+/* flex:1 is what makes the two columns to its right actually line up: without it the
+   question wording only takes the width it needs and the visibility label lands at a
+   different place in every row. */
+.field-bar .grow, .section-bar .grow { flex: 1; min-width: 0; }
+
+/* ---------- the visibility column ----------
+   Every question row used to carry four icon forms plus a visibility badge in one nowrap
+   cluster, all competing for the same attention. Visibility is the one thing there worth
+   scanning down the column with your eye, so it gets a column: fixed width, fixed place.
+   The arrows and the delete cross are recessive until the pointer is on them — including
+   the cross, which reddens only on hover instead of shouting from every row. */
+.field-bar .vis {
+  flex: none; width: 130px; font-size: var(--fs-xs); font-weight: 600;
+}
+.field-bar .vis.shared { color: var(--accent); }
+.field-bar .vis.priv { color: var(--private); }
+.controls .link { color: var(--muted); font-weight: 600; }
+.controls .link:hover { color: var(--text); }
+.controls .link.danger { color: var(--muted); }
+.controls .link.danger:hover { color: var(--danger); }
+
 @media (max-width: 720px) {
   .field-bar, .section-bar { flex-wrap: wrap; }
   .controls { margin-left: auto; }
+  /* Once the row wraps, a 130px column is no longer a column. */
+  .field-bar .vis { width: auto; }
 }
 
 /* The call button: an outward action, so it reads differently from navigation. */
