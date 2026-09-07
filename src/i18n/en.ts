@@ -278,6 +278,9 @@ export const en: Dict = {
 
     MEETING_NOT_FOUND: "Meeting not found.",
     MEETING_NO_DATE: "This meeting has no date — there is nothing to send.",
+
+    TIMEZONE_INVALID: "The zone \"{timezone}\" will not do: pick an IANA zone from the list, for example Europe/Moscow.",
+
     PRIVACY_LEAK: "Summary build stopped: private fields got into it ({fields}). This is the leak guard doing its job, not a crash — please report it.",
   },
 
@@ -326,6 +329,9 @@ export const en: Dict = {
   settings: {
     title: "Settings", language: "Language",
     languageNames: { ru: "Русский", en: "English" },
+    timezone: "Time zone", timezoneField: "Zone",
+    timezoneHint: "Cadence counts \"today\" in this zone. UTC here is a day off.",
+    timezoneToday: "Today in this zone: {date}",
     backup: "Database backup", backupHint: "Download a copy of the DB file (VACUUM INTO, safe while the server runs).",
     exportJson: "Export JSON", exportMd: "Export Markdown",
     exportHint: "Full dump including private content. This is a backup, not a summary for them.",

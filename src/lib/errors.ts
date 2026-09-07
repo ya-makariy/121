@@ -35,6 +35,9 @@ export class AnswerValidationError extends CodedError {}
 /** Building a snapshot for the person the manager meets. */
 export class SnapshotError extends CodedError {}
 
+/** An instance-wide setting the manager tried to change to something unusable. */
+export class SettingsError extends CodedError {}
+
 /**
  * Private content reached a sharing surface. Not an ordinary failure: it is the one bug
  * that damages a relationship rather than data, so it is loud and separate.

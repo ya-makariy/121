@@ -276,6 +276,9 @@ export const ru = {
 
     MEETING_NOT_FOUND: "Встреча не найдена.",
     MEETING_NO_DATE: "У встречи не указана дата — нечего отправлять.",
+
+    TIMEZONE_INVALID: "Пояс «{timezone}» не подходит: выберите зону IANA из списка, например Europe/Moscow.",
+
     PRIVACY_LEAK: "Сборка саммари остановлена: в него попали приватные поля ({fields}). Это защита от утечки, а не сбой — сообщите об этом.",
   },
 
@@ -324,6 +327,9 @@ export const ru = {
   settings: {
     title: "Настройки", language: "Язык",
     languageNames: { ru: "Русский", en: "English" },
+    timezone: "Часовой пояс", timezoneField: "Пояс",
+    timezoneHint: "От него считается «сегодня» для каденса. UTC здесь врёт на день.",
+    timezoneToday: "Сегодня в этом поясе: {date}",
     backup: "Бэкап базы", backupHint: "Скачать копию файла БД (VACUUM INTO, безопасно при работающем сервере).",
     exportJson: "Экспорт JSON", exportMd: "Экспорт Markdown",
     exportHint: "Полная выгрузка, включая приватное. Это бэкап, а не саммари для подопечного.",

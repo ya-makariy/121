@@ -1,6 +1,6 @@
 import { html } from "../html.ts";
 import { layout } from "../layout.ts";
-import { dict } from "../../i18n/index.ts";
+import { dict, format } from "../../i18n/index.ts";
 import type { Locale, MetricRow, TemplateRow } from "../../db/types.ts";
 import type { OpenActionRow } from "../../db/queries/actions.ts";
 import { formatDate } from "../../i18n/dates.ts";
@@ -104,10 +104,21 @@ export function templatesPage(o: {
   });
 }
 
-export function settingsPage(o: { locale: Locale }): string {
+export interface SettingsView {
+  locale: Locale;
+  /** The zone stored on app_user — the one cadence is counted in right now. */
+  timezone: string;
+  timezones: readonly string[];
+  /** Today in that zone, YYYY-MM-DD, so the page shows the consequence of the choice. */
+  todayInZone: string;
+  error: string | null;
+}
+
+export function settingsPage(o: SettingsView): string {
   const t = dict(o.locale);
   const body = html`
     <h1>${t.settings.title}</h1>
+    ${o.error ? html`<div class="notice error">${o.error}</div>` : ""}
 
     <h2>${t.settings.language}</h2>
     <form method="post" action="/settings/locale" class="card">
@@ -121,6 +132,25 @@ export function settingsPage(o: { locale: Locale }): string {
         </select>
       </div>
       <input type="hidden" name="return_to" value="/settings" />
+      <button class="primary" type="submit">${t.common.save}</button>
+    </form>
+
+    <h2>${t.settings.timezone}</h2>
+    <form method="post" action="/settings/timezone" class="card">
+      <div class="field">
+        <label for="timezone">
+          ${t.settings.timezoneField}
+          <span class="hint">${t.settings.timezoneHint}</span>
+        </label>
+        <select id="timezone" name="timezone">
+          ${o.timezones.map(
+            (z) => html`<option value="${z}" ${z === o.timezone ? "selected" : ""}>${z}</option>`,
+          )}
+        </select>
+        <p class="small muted">
+          ${format(t.settings.timezoneToday, { date: formatDate(o.todayInZone, o.locale) })}
+        </p>
+      </div>
       <button class="primary" type="submit">${t.common.save}</button>
     </form>
 

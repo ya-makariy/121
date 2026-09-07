@@ -33,3 +33,16 @@ export function closeDb(): void {
   singleton?.close();
   singleton = undefined;
 }
+
+/**
+ * Points the singleton at a database the caller owns, and returns the previous one.
+ *
+ * This exists so tests can drive the real routes against a throwaway in-memory database
+ * instead of re-deriving behaviour from fixtures. A rule that is only tested one layer
+ * below the request is a rule that can still be broken on the way to the user.
+ */
+export function useDb(instance: Database | undefined): Database | undefined {
+  const previous = singleton;
+  singleton = instance;
+  return previous;
+}

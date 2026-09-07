@@ -1,5 +1,6 @@
 import { addDays, daysBetween, todayInTz } from "../lib/dates.ts";
 import { config } from "../config.ts";
+import { SettingsError } from "../lib/errors.ts";
 
 export type CadenceStatus = "overdue" | "due_soon" | "ok" | "no_cadence";
 
@@ -22,6 +23,47 @@ export interface CadenceState {
 
 export function today(timezone: string = config.timezone): string {
   return todayInTz(timezone);
+}
+
+let zoneCache: readonly string[] | undefined;
+
+/**
+ * The zones the runtime itself knows, straight from Intl.
+ *
+ * Deliberately not a table of our own: zone names, offsets and daylight-saving rules
+ * change by legislation several times a year, and a hand-kept list would quietly disagree
+ * with the very Intl call that todayInTz() uses to answer "what day is it".
+ */
+export function supportedTimezones(): readonly string[] {
+  if (zoneCache === undefined) zoneCache = Intl.supportedValuesOf("timeZone");
+  return zoneCache;
+}
+
+export function isSupportedTimezone(value: string): boolean {
+  return supportedTimezones().includes(value);
+}
+
+/**
+ * What the picker offers. The stored zone is prepended when Intl does not list it — TZ in
+ * the environment may hold a legacy alias such as Asia/Calcutta, and a picker that cannot
+ * show the zone in force would read as if a different one were selected.
+ */
+export function timezoneChoices(current: string): readonly string[] {
+  const all = supportedTimezones();
+  return all.includes(current) ? all : [current, ...all];
+}
+
+/**
+ * The timezone is the single input to todayInTz(), so a value Intl does not know would
+ * not degrade gracefully: every cadence read would throw, or worse, silently answer with
+ * a different day. It is refused before it is stored, with a code the view translates
+ * (CLAUDE.md rules 1 and 4).
+ */
+export function assertTimezone(value: string): string {
+  if (!isSupportedTimezone(value)) {
+    throw new SettingsError("TIMEZONE_INVALID", { timezone: value });
+  }
+  return value;
 }
 
 /**
