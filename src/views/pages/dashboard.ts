@@ -23,7 +23,7 @@ const GROUP_TONE: Record<CadenceStatus, string> = {
 function cadenceLine(p: PersonCadence, t: ReturnType<typeof dict>): string {
   if (p.status === "no_cadence") {
     return p.lastHeldOn
-      ? `${t.dashboard.lastMeeting}: ${p.daysSinceLast} ${t.dashboard.days} ${t.dashboard.daysAgo}`
+      ? `${t.dashboard.lastMeeting}: ${p.daysSinceLast} ${t.dashboard.daysAgo}`
       : t.dashboard.neverMet;
   }
   if (p.status === "overdue") {
