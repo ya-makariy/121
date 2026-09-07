@@ -18,6 +18,11 @@ export interface PersonCadence extends CadenceRow, CadenceState {}
 /**
  * Cadence is computed entirely on read. ?today arrives as a parameter: date('now') in
  * SQLite is UTC, and by evening in Moscow the dashboard would be a day off (CLAUDE.md 4).
+ *
+ * "Last meeting" is the last completed meeting with counts_for_cadence = 1, and this is
+ * the only query that narrows on that flag. A corridor check-in with the flag cleared
+ * still carries answers into v_metric_point and into the summary; it must simply not
+ * reset the clock on the next real 1:1.
  */
 export function cadenceOverview(db: Database, today: string, ownerId = 1): PersonCadence[] {
   const rows = db

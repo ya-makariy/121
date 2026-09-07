@@ -68,6 +68,8 @@ export const en: Dict = {
     actionVisibility: "Visibility",
     visibilityShared: "Visible to them", visibilityPrivate: "Only me",
     share: "Share",
+    countsForCadence: "Counts as a 1:1",
+    countsForCadenceHint: "Clear this for a short check-in: it stays in the charts and in the summary, but does not push the next 1:1 out.",
     privateSection: "Only for you",
     noTemplate: "No templates — create one or run the meeting without a template.",
   },

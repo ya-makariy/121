@@ -173,6 +173,26 @@ export function meetingPage(o: {
       <button type="submit">${t.common.save}</button>
     </form>
 
+    <!--
+      Whether this meeting counts as a 1:1 for cadence. Cleared for a corridor check-in:
+      without it every recorded conversation pushes the next real 1:1 out by a full
+      cadence. Excluded from cadence only — the answers still reach the charts and the
+      summary. Lives in the completion area of the page; the Meeting artboard puts it in
+      the sticky .commit-bar panel, which D4 builds.
+    -->
+    <form class="cadence-flag" hx-post="/meetings/${m.id}/counts-for-cadence"
+          hx-trigger="change" hx-target="#cadence-flag-state" hx-swap="innerHTML">
+      <!-- An unchecked box sends nothing; the hidden 0 makes "off" an explicit value. -->
+      <input type="hidden" name="counts_for_cadence" value="0" />
+      <label for="counts_for_cadence">
+        <input type="checkbox" id="counts_for_cadence" name="counts_for_cadence" value="1"
+               ${m.counts_for_cadence === 1 ? "checked" : ""} />
+        <span>${t.meeting.countsForCadence}</span>
+      </label>
+      <span class="saved-flag" id="cadence-flag-state"></span>
+      <span class="hint">${t.meeting.countsForCadenceHint}</span>
+    </form>
+
     <div class="actions-bar">
       ${m.status === "completed"
         ? html`

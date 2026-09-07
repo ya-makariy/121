@@ -66,6 +66,8 @@ export const ru = {
     actionVisibility: "Видимость",
     visibilityShared: "Видно подопечному", visibilityPrivate: "Только мне",
     share: "Поделиться",
+    countsForCadence: "Считать за 1:1",
+    countsForCadenceHint: "Снимите для короткой сверки: она останется в графиках и в саммари, но не отодвинет следующую 1:1.",
     privateSection: "Только для вас",
     noTemplate: "Шаблонов нет — создайте шаблон или проведите встречу без него.",
   },

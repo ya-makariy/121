@@ -140,6 +140,30 @@ meetingRoutes.patch("/meetings/:id/answers/:fieldId", async (c) => {
   return c.html(escapeHtml(dict(loc(c)).common.saved));
 });
 
+/**
+ * Toggles whether this meeting counts as a 1:1 for cadence. Autosaves like an answer and
+ * returns the same tiny "saved" partial.
+ *
+ * The flag narrows cadence arithmetic only (see db/queries/cadence.ts). The meeting keeps
+ * its answers, its chart points and its summary: a five-minute check-in is still a
+ * recorded conversation, it just must not push the next real 1:1 out by a full cadence.
+ */
+meetingRoutes.post("/meetings/:id/counts-for-cadence", async (c) => {
+  const id = Number.parseInt(c.req.param("id"), 10);
+  const meeting = getMeeting(db(), id, OWNER_ID);
+  if (!meeting) return c.notFound();
+
+  // The form carries a hidden 0 alongside the box, so "off" arrives as a value rather
+  // than as a missing key: an unchecked checkbox submits nothing at all.
+  const form = await c.req.parseBody({ all: true });
+  const raw = form["counts_for_cadence"];
+  const values = raw === undefined ? [] : Array.isArray(raw) ? raw.map(String) : [String(raw)];
+  const counts = values.includes("1") ? 1 : 0;
+
+  updateMeetingFields(db(), id, { counts_for_cadence: counts }, OWNER_ID);
+  return c.html(escapeHtml(dict(loc(c)).common.saved));
+});
+
 meetingRoutes.post("/meetings/:id/private-notes", async (c) => {
   const id = Number.parseInt(c.req.param("id"), 10);
   const form = await c.req.parseBody();

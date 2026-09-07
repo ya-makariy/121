@@ -159,6 +159,18 @@ button.link {
 .opts label { font-weight: 400; display: flex; gap: var(--s-3); align-items: center; }
 .opts input { width: auto; }
 
+/* ---------- cadence flag ----------
+   The "counts as a 1:1" toggle in the completion area of the meeting page. One flex
+   row for the box and its saved indicator; the explanation wraps onto its own line. */
+.cadence-flag {
+  display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap; margin-top: var(--s-5);
+}
+.cadence-flag label {
+  display: flex; align-items: center; gap: var(--s-3); margin-bottom: 0; font-weight: 400;
+}
+.cadence-flag input[type=checkbox] { width: auto; margin: 0; }
+.cadence-flag .hint { flex-basis: 100%; color: var(--muted); font-size: var(--fs-sm); }
+
 /* ---------- save indicator ---------- */
 .saved-flag { color: var(--ok); font-size: var(--fs-xs); font-weight: 600; }
 .htmx-request .saved-flag { color: var(--muted); }
