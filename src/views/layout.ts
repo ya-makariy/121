@@ -18,6 +18,7 @@ export function layout(o: LayoutOptions): string {
   const items = [
     ["dashboard", "/", t.nav.dashboard],
     ["people", "/people", t.nav.people],
+    ["teams", "/teams", t.nav.teams],
     ["compare", "/compare", t.nav.compare],
     ["actions", "/actions", t.nav.actions],
     ["templates", "/templates", t.nav.templates],

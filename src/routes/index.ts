@@ -9,6 +9,7 @@ import { publicShareRoutes, shareRoutes } from "./shares.ts";
 import { settingsRoutes } from "./settings.ts";
 import { templateRoutes } from "./templates.ts";
 import { metricRoutes } from "./metrics.ts";
+import { teamRoutes } from "./teams.ts";
 import { locale } from "../middleware/locale.ts";
 import { currentUser } from "../middleware/current-user.ts";
 
@@ -31,5 +32,6 @@ export function mountRoutes(app: Hono): void {
   app_.route("/", settingsRoutes);
   app_.route("/", templateRoutes);
   app_.route("/", metricRoutes);
+  app_.route("/", teamRoutes);
   app.route("/", app_);
 }

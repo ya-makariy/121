@@ -72,22 +72,40 @@ export interface TeamAggregateRow {
 }
 
 /**
+ * Which roster an aggregate is built on.
+ *
+ * "current" answers "how is my team, as it stands, trending" — the manager's usual
+ * question, and the default PLAN.md settled on. "at_the_time" answers "what was this team
+ * like in March", which needs the people who were in it in March, whether or not they are
+ * still around: `left_on` is a departure date, not a deletion. Both are one query away
+ * because joined_on/left_on have been stored from the first day.
+ */
+export type TeamMembership = "current" | "at_the_time";
+
+const MEMBERSHIP_JOIN: Record<TeamMembership, string> = {
+  current: "tm.left_on IS NULL",
+  at_the_time:
+    `(tm.joined_on IS NULL OR tm.joined_on <= p.on_date)
+     AND (tm.left_on IS NULL OR p.on_date <= tm.left_on)`,
+};
+
+/**
  * Team aggregate: average per person within the period first, then across people —
  * otherwise someone with two meetings in a month carries double the weight.
  *
- * Membership is taken as it stands now (left_on IS NULL): the manager's real question is
- * "how is my team, as it stands, trending". joined_on/left_on are stored, so the
- * alternative ("membership at the time") stays a query change rather than a migration.
+ * The roster is chosen by the caller, never guessed; see TeamMembership above.
  */
 export function teamAggregate(
   db: Database, teamId: number, metricId: number, fromDate: string, minPeople: number,
+  membership: TeamMembership = "current",
 ): TeamAggregateRow[] {
   return db
     .query<TeamAggregateRow, [number, number, string, number]>(
       `WITH per_person AS (
          SELECT p.person_id, strftime('%Y-%m', p.on_date) AS period, AVG(p.norm_value) AS v
          FROM v_metric_point p
-         JOIN team_member tm ON tm.person_id = p.person_id AND tm.left_on IS NULL
+         JOIN team_member tm ON tm.person_id = p.person_id
+           AND ${MEMBERSHIP_JOIN[membership] ?? MEMBERSHIP_JOIN.current}
          WHERE tm.team_id = ? AND p.metric_id = ? AND p.on_date >= ?
          GROUP BY p.person_id, period
        )

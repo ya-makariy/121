@@ -1,7 +1,9 @@
 import { html } from "../html.ts";
 import { layout } from "../layout.ts";
 import { dict } from "../../i18n/index.ts";
+import { formatDate } from "../../i18n/dates.ts";
 import type { Locale, PersonRow, TemplateRow } from "../../db/types.ts";
+import type { PersonTeamRow, TeamWithMembers } from "../../db/queries/teams.ts";
 import { joinLink } from "../components/join-link.ts";
 
 export function peopleListPage(o: {
@@ -42,11 +44,77 @@ export function personFormPage(o: {
   /** What to put in the inputs when a save failed: the submitted values, not the stored ones. */
   draft?: PersonRow;
   templates: TemplateRow[];
+  /** Teams available to join: the live ones. */
+  teams: TeamWithMembers[];
+  /** Every team the person has been in, current spells first. */
+  memberships?: PersonTeamRow[];
+  /** The team pre-selected in the picker, and whether the primary box is ticked. */
+  teamDraft?: { teamId: number | null; isPrimary: boolean };
   error?: string;
 }): string {
   const t = dict(o.locale);
   const p = o.draft ?? o.person;
   const action = o.person ? `/people/${o.person.id}` : "/people";
+
+  const current = (o.memberships ?? []).filter((m) => m.left_on === null);
+  const past = (o.memberships ?? []).filter((m) => m.left_on !== null);
+  const selectedTeam = o.teamDraft
+    ? o.teamDraft.teamId
+    : current.find((m) => m.is_primary === 1)?.team_id ?? current[0]?.team_id ?? null;
+  const primaryChecked = o.teamDraft
+    ? o.teamDraft.isPrimary
+    : current.some((m) => m.is_primary === 1 && m.team_id === selectedTeam);
+
+  /**
+   * The picker adds the person to a team; it never takes them out. Leaving a team is a
+   * date (`left_on`) recorded on the teams page, because a person who left in March is
+   * still part of that team's March in every aggregate (CLAUDE.md rule 5).
+   */
+  const teamPicker = html`
+    <div class="field">
+      <label for="team_id">
+        ${t.people.team}
+        <span class="hint">${t.people.teamHint}</span>
+      </label>
+      ${o.teams.length === 0
+        ? html`<p class="small muted">${t.people.noTeams}</p>`
+        : html`
+            <select id="team_id" name="team_id">
+              <option value="">${t.common.none}</option>
+              ${o.teams.map(
+                (team) => html`
+                  <option value="${team.id}" ${team.id === selectedTeam ? "selected" : ""}>
+                    ${team.name}
+                  </option>
+                `,
+              )}
+            </select>
+            <label class="small">
+              <input type="checkbox" name="is_primary" value="1" ${primaryChecked ? "checked" : ""} />
+              ${t.people.primaryTeam}
+            </label>
+            <span class="hint">${t.people.primaryTeamHint}</span>
+          `}
+      ${current.length > 0 || past.length > 0
+        ? html`
+            <div class="small muted">
+              ${current.map(
+                (m) => html`
+                  <span class="chip">${m.name}${m.is_primary === 1 ? ` · ${t.teams.primary}` : ""}</span>
+                `,
+              )}
+              ${past.map(
+                (m) => html`
+                  <span class="chip">${m.name} · ${t.teams.leftOn} ${
+                    formatDate(m.left_on!, o.locale)
+                  }</span>
+                `,
+              )}
+            </div>
+          `
+        : ""}
+    </div>
+  `;
 
   const body = html`
     <h1>${o.person ? t.people.editTitle : t.people.addTitle}</h1>
@@ -106,6 +174,7 @@ export function personFormPage(o: {
           )}
         </select>
       </div>
+      ${teamPicker}
       <div class="field">
         <label for="notes">
           ${t.people.notes}

@@ -26,6 +26,9 @@ export class TemplateEditError extends CodedError {}
 /** Creating or changing a metric. */
 export class MetricEditError extends CodedError {}
 
+/** Creating or changing a team, or moving a person between teams. */
+export class TeamEditError extends CodedError {}
+
 /** A link that is not something safe to render. */
 export class UrlError extends CodedError {}
 
