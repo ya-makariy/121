@@ -151,8 +151,26 @@ select, textarea {
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
 }
 textarea { min-height: 92px; resize: vertical; }
+
+/* One focus ring for the whole app: fields, buttons, links, checkboxes and the scale, in
+   one declaration, so it cannot drift into two different rings again.
+   The offset earns its place. A primary button is filled with --accent as well, and
+   without the 1px gap of page background the ring would disappear into it; on --surface
+   and --bg the accent carries 6.7:1 and 6.5:1.
+   The scale is the one indirection. `.scale-opt input` is visually hidden with opacity: 0,
+   and an outline on a transparent element is transparent too, so there the ring is drawn
+   on the visible span beside the input. Same declaration, not a second description.
+   What is left below is not the ring: a focused field also tints its border. */
+:focus-visible,
+.scale-opt input:focus-visible + span {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+/* The hidden input must not claim a ring nobody could see. */
+.scale-opt input:focus-visible { outline: none; }
+
 input:focus, select:focus, textarea:focus {
-  outline: 2px solid var(--accent-soft); border-color: var(--accent);
+  border-color: var(--accent);
 }
 .field { margin-bottom: var(--s-5); }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -186,7 +204,7 @@ button.link {
 .scale-opt input:checked + span {
   background: var(--accent); border-color: var(--accent); color: var(--on-accent);
 }
-.scale-opt input:focus-visible + span { outline: 2px solid var(--accent); }
+/* The focus ring for this control lives with the app-wide :focus-visible rule above. */
 .scale-ends {
   display: flex; justify-content: space-between; font-size: var(--fs-xs);
   color: var(--muted); margin-top: var(--s-1);
