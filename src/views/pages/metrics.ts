@@ -116,14 +116,14 @@ export function metricsPage(o: {
                   <span class="badge ${m.direction === 1 ? "ok" : "due_soon"}">
                     ${m.direction === 1 ? "↑" : "↓"}
                   </span>
-                  <span class="grow">
+                  <div class="grow">
                     <strong>${m.label}</strong>
                     <span class="small muted"> · <code>${m.key}</code> · ${
                       m.kind === "scalar" ? t.metrics.kindScalar : t.metrics.kindCategorical
                     }</span>
                     ${m.description ? html`<div class="small muted">${m.description}</div>` : ""}
                     <div>${usageLine(m)}</div>
-                  </span>
+                  </div>
                   <a class="btn small-btn" href="/metrics?edit=${m.id}">${t.common.edit}</a>
                   <form method="post" action="/metrics/${m.id}/remove"
                         onsubmit="return confirm('${
@@ -144,11 +144,11 @@ export function metricsPage(o: {
             ${o.archived.map(
               (m) => html`
                 <div class="row">
-                  <span class="grow">
+                  <div class="grow">
                     <strong class="muted">${m.label}</strong>
                     <span class="small muted"> · <code>${m.key}</code></span>
                     <div>${usageLine(m)}</div>
-                  </span>
+                  </div>
                   <form method="post" action="/metrics/${m.id}/restore">
                     <button class="link" type="submit">${t.metrics.restore}</button>
                   </form>

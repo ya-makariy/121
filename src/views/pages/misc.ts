@@ -71,7 +71,7 @@ export function templatesPage(o: {
       ${o.templates.map(
         (tpl) => html`
           <div class="row">
-            <span class="grow">
+            <div class="grow">
               <a class="name" href="/templates/${tpl.id}">${tpl.name}</a>
               ${tpl.is_default === 1
                 ? html` <span class="badge shared">${t.templates.defaultBadge}</span>`
@@ -83,7 +83,7 @@ export function templatesPage(o: {
                 · ${tpl.frozen_at ? t.templates.frozen : t.templates.draft}
               </span>
               ${tpl.description ? html`<div class="small muted">${tpl.description}</div>` : ""}
-            </span>
+            </div>
             <a class="btn small-btn" href="/templates/${tpl.id}">${t.common.edit}</a>
           </div>
         `,

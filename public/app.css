@@ -351,3 +351,18 @@ label.inline input { width: auto; }
 .btn.join { white-space: nowrap; }
 .btn.join:not(.primary) { color: var(--accent); border-color: var(--accent-soft); }
 .btn.join:not(.primary):hover { border-color: var(--accent); }
+
+/* ---------- grouped controls ----------
+   A scale and an option set are groups of radios or checkboxes. A single <label for>
+   cannot address a group, so those questions render as <fieldset><legend>. The legend
+   has to be dressed to look exactly like a label, because it now carries the question
+   wording that a label used to carry. */
+.field fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.field legend {
+  padding: 0; margin-bottom: var(--s-1);
+  font-weight: 600; font-size: var(--fs-md);
+}
+.field legend .hint {
+  display: block; font-weight: 400;
+  color: var(--muted); font-size: var(--fs-sm);
+}

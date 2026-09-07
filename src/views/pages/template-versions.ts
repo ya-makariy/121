@@ -84,13 +84,13 @@ export function templateVersionsPage(o: {
                     (c) => html`
                       <div class="row">
                         <span class="badge neutral">${t.templates.sections}</span>
-                        <span class="grow">
+                        <div class="grow">
                           <strong>${c.label}</strong>
                           <span class="small muted"> · ${changeLabel(t, c.kind)}</span>
                           ${c.from !== undefined && c.to !== undefined
                             ? html`<div class="small muted">${c.from} → ${c.to}</div>`
                             : ""}
-                        </span>
+                        </div>
                       </div>
                     `,
                   )}
@@ -100,13 +100,13 @@ export function templateVersionsPage(o: {
                         <span class="badge ${c.kind === "visibility" ? "private" : "neutral"}">
                           ${changeLabel(t, c.kind)}
                         </span>
-                        <span class="grow">
+                        <div class="grow">
                           <strong>${c.label}</strong>
                           ${c.from !== undefined || c.to !== undefined
                             ? html`<div class="small muted">${c.from ?? t.common.none} → ${c.to ?? t.common.none}</div>`
                             : ""}
                           <div class="small muted"><code>${c.fieldKey}</code></div>
-                        </span>
+                        </div>
                       </div>
                     `,
                   )}

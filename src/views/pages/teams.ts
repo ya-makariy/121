@@ -49,7 +49,7 @@ export function teamsPage(o: {
   const member = (team: TeamWithRoster, m: TeamMemberRow) => html`
     <div class="field-row">
       <div class="field-bar">
-        <span class="grow">
+        <div class="grow">
           <a class="name ${m.left_on === null ? "" : "muted"}" href="/people/${m.person_id}">
             ${m.full_name}
           </a>
@@ -71,7 +71,7 @@ export function teamsPage(o: {
                     : ""}
                 </div>
               `}
-        </span>
+        </div>
         ${m.left_on === null && m.is_primary === 0
           ? html`
               <form method="post" action="/teams/${team.id}/members/${m.person_id}/primary">
@@ -95,11 +95,11 @@ export function teamsPage(o: {
   const teamCard = (team: TeamWithRoster) => html`
     <div class="section-card">
       <div class="section-bar">
-        <span class="grow">
+        <div class="grow">
           <strong>${team.name}</strong>
           <span class="small muted"> · ${plural(o.locale, team.member_count, t.teams.memberForms)}</span>
           ${team.description ? html`<div class="small muted">${team.description}</div>` : ""}
-        </span>
+        </div>
         <a class="btn small-btn" href="/teams?edit=${team.id}">${t.common.edit}</a>
         <form method="post" action="/teams/${team.id}/archive"
               onsubmit="return confirm('${t.teams.archiveConfirm}')">
