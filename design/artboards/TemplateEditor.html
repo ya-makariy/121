@@ -1,0 +1,195 @@
+<!--nav:templates-->
+  <main>
+    <h1>Регулярный 1:1</h1>
+    <p class="sub">
+      <span class="badge shared">Шаблон по умолчанию</span>
+      · версия 2
+      · <span class="badge neutral">черновик</span>
+      · <a href="#">Версии</a>
+      · <a href="#">Шаблоны</a>
+    </p>
+    <p class="sub small">
+      Версия правится на месте, пока по ней не прошла ни одна встреча. После первой
+      встречи правка создаёт новую версию, а заполненные встречи остаются при своей.
+    </p>
+
+    <h2>Секции встречи</h2>
+    <p class="small muted">Порядок можно менять перетаскиванием или стрелками.</p>
+
+    <section class="section-card">
+      <div class="section-bar">
+        <span class="handle">⠿</span>
+        <span class="grow"><strong>Как дела</strong></span>
+        <span class="controls">
+          <button class="link" type="button" title="Выше">↑</button>
+          <button class="link" type="button" title="Ниже">↓</button>
+          <a class="btn small-btn" href="#">Править</a>
+          <button class="link danger" type="button" title="Удалить секцию">×</button>
+        </span>
+      </div>
+      <p class="section-desc">Разговор до цифр. Что произошло с прошлой встречи.</p>
+      <div class="fields">
+        <div class="field-row">
+          <div class="field-bar">
+            <span class="handle">⠿</span>
+            <span class="grow">
+              <strong>Что произошло с прошлой встречи</strong>
+              <span class="small muted"> · Текст · 4 ответа в прошлых встречах</span>
+            </span>
+            <span class="vis shared">видно подопечному</span>
+            <span class="controls">
+              <button class="link" type="button" title="Выше">↑</button>
+              <button class="link" type="button" title="Ниже">↓</button>
+              <a class="btn small-btn" href="#">Править</a>
+              <button class="link danger" type="button" title="Удалить вопрос">×</button>
+            </span>
+          </div>
+        </div>
+        <div class="field-row expanded">
+          <div class="field-bar">
+            <span class="handle">⠿</span>
+            <span class="grow">
+              <strong>Энергия</strong>
+              <span class="small muted">
+                · Шкала · <span class="metric-tag">Энергия</span> · 21 ответ в прошлых встречах
+              </span>
+              <span class="preview-line">1–5 <span class="muted">(на нуле … полон сил)</span></span>
+            </span>
+            <span class="vis shared">видно подопечному</span>
+            <span class="controls">
+              <button class="link" type="button" title="Выше">↑</button>
+              <button class="link" type="button" title="Ниже">↓</button>
+              <a class="btn small-btn" href="#">Свернуть</a>
+              <button class="link danger" type="button" title="Удалить вопрос">×</button>
+            </span>
+          </div>
+          <div class="field-form">
+            <div class="notice">
+              По этой версии ещё не прошло ни одной встречи, поэтому тип и шкалу можно менять
+              свободно. После первой встречи правка создаст версию 3.
+            </div>
+            <div class="field">
+              <label for="fl">Формулировка вопроса</label>
+              <input type="text" id="fl" value="Энергия" />
+            </div>
+            <div class="grid2">
+              <div class="field">
+                <label for="ft">Тип</label>
+                <select id="ft">
+                  <option>Шкала</option>
+                  <option>Текст</option>
+                  <option>Строка</option>
+                  <option>Чекбокс</option>
+                  <option>Дата</option>
+                  <option>Один из списка</option>
+                  <option>Несколько из списка</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="fm">Метрика</label>
+                <select id="fm">
+                  <option>Энергия</option>
+                  <option>—</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid2">
+              <div class="field">
+                <label for="fmin">Минимум и подпись</label>
+                <div class="option-row">
+                  <input type="number" id="fmin" value="1" />
+                  <input type="text" value="на нуле" />
+                </div>
+              </div>
+              <div class="field">
+                <label for="fmax">Максимум и подпись</label>
+                <div class="option-row">
+                  <input type="number" id="fmax" value="5" />
+                  <input type="text" value="полон сил" />
+                </div>
+              </div>
+            </div>
+            <div class="field">
+              <label class="inline" for="fv">
+                <input type="checkbox" id="fv" checked="checked" />
+                Видно подопечному
+              </label>
+              <span class="hint">Снятая галочка означает «только для вас»: в саммари не попадёт.</span>
+            </div>
+            <div class="actions-bar">
+              <button class="primary" type="button">Сохранить</button>
+              <a class="btn" href="#">Отмена</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="actions-bar">
+        <a class="btn" href="#">Добавить вопрос</a>
+      </p>
+    </section>
+
+    <section class="section-card">
+      <div class="section-bar">
+        <span class="handle">⠿</span>
+        <span class="grow"><strong>Пульс</strong></span>
+        <span class="controls">
+          <button class="link" type="button" title="Выше">↑</button>
+          <button class="link" type="button" title="Ниже">↓</button>
+          <a class="btn small-btn" href="#">Править</a>
+          <button class="link danger" type="button" title="Удалить секцию">×</button>
+        </span>
+      </div>
+      <p class="section-desc">Четыре шкалы, которые потом становятся графиком.</p>
+      <div class="fields">
+        <div class="field-row">
+          <div class="field-bar">
+            <span class="handle">⠿</span>
+            <span class="grow">
+              <strong>Удовлетворённость работой</strong>
+              <span class="small muted">
+                · Шкала · <span class="metric-tag">Удовлетворённость работой</span> · 21 ответ
+              </span>
+              <span class="preview-line">1–5 <span class="muted">(совсем нет … полностью)</span></span>
+            </span>
+            <span class="vis shared">видно подопечному</span>
+            <span class="controls">
+              <button class="link" type="button" title="Выше">↑</button>
+              <button class="link" type="button" title="Ниже">↓</button>
+              <a class="btn small-btn" href="#">Править</a>
+              <button class="link danger" type="button" title="Удалить вопрос">×</button>
+            </span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-bar">
+            <span class="handle">⠿</span>
+            <span class="grow">
+              <strong>Риск ухода, как я его оцениваю</strong>
+              <span class="small muted">
+                · Шкала · <span class="metric-tag">Риск ухода</span> · 21 ответ
+              </span>
+            </span>
+            <span class="vis priv">только вам</span>
+            <span class="controls">
+              <button class="link" type="button" title="Выше">↑</button>
+              <button class="link" type="button" title="Ниже">↓</button>
+              <a class="btn small-btn" href="#">Править</a>
+              <button class="link danger" type="button" title="Удалить вопрос">×</button>
+            </span>
+          </div>
+        </div>
+      </div>
+      <p class="actions-bar">
+        <a class="btn" href="#">Добавить вопрос</a>
+      </p>
+    </section>
+
+    <h2>Новая секция</h2>
+    <form class="card">
+      <div class="field">
+        <label for="sname">Название секции</label>
+        <input type="text" id="sname" value="" placeholder="Развитие" />
+      </div>
+      <button class="primary" type="button">Добавить секцию</button>
+    </form>
+  </main>

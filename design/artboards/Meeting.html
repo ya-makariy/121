@@ -1,0 +1,225 @@
+<!--nav:-->
+  <main>
+    <h1>Анна Ким</h1>
+    <p class="sub">
+      7 сентября 2026
+      · <span class="badge neutral">Черновик</span>
+      · Регулярный 1:1 · v1
+      · <a href="#">Анна Ким</a>
+    </p>
+
+    <div class="progress">
+      <span>Заполнено 7 из 8</span>
+      <span class="track"><i style="width: 88%"></i></span>
+      <span class="saved-flag">сохранено</span>
+    </div>
+
+    <div class="meeting-grid">
+      <nav class="rail">
+        <a class="current" href="#">Как дела <span class="of">2/2</span></a>
+        <a href="#">Пульс <span class="of">3/3</span></a>
+        <a href="#">Развитие <span class="of">1/2</span></a>
+        <a class="private-item" href="#">Только для вас <span class="of">1/1</span></a>
+      </nav>
+
+      <div>
+        <h2>С прошлого раза</h2>
+        <div class="card">
+          <ul class="check">
+            <li>
+              Прочитать главу про code review
+              <span class="small muted"> · закрыто 20 августа</span>
+            </li>
+            <li>
+              Договориться о ревью архитектуры с платформой
+              <span class="small muted"> · срок 15 сентября</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="section-head">
+          <h2>Как дела</h2>
+        </div>
+        <p class="section-desc">Разговор до цифр. Что произошло с прошлой встречи.</p>
+        <div class="card">
+          <div class="field">
+            <label for="q1">Что произошло с прошлой встречи</label>
+            <textarea id="q1">Закрыли миграцию биллинга. Ушло на неделю больше плана — упёрлись в чужой сервис.</textarea>
+            <span class="saved-flag">сохранено</span>
+          </div>
+          <div class="field">
+            <fieldset>
+              <legend>
+                Энергия
+                <span class="hint">Как ощущается темп прямо сейчас, а не в среднем за месяц.</span>
+              </legend>
+              <div class="scale">
+                <label class="scale-opt"><input type="radio" name="q2" /><span>1</span></label>
+                <label class="scale-opt"><input type="radio" name="q2" /><span>2</span></label>
+                <label class="scale-opt"><input type="radio" name="q2" /><span>3</span></label>
+                <label class="scale-opt"><input type="radio" name="q2" checked="checked" /><span>4</span></label>
+                <label class="scale-opt"><input type="radio" name="q2" /><span>5</span></label>
+              </div>
+              <div class="scale-ends">
+                <span>на нуле</span>
+                <span>полон сил</span>
+              </div>
+            </fieldset>
+            <span class="saved-flag">сохранено</span>
+          </div>
+        </div>
+
+        <div class="section-head">
+          <h2>Пульс</h2>
+        </div>
+        <p class="section-desc">Шкалы и категории, из которых потом строится график.</p>
+        <div class="card">
+          <div class="field">
+            <fieldset>
+              <legend>Удовлетворённость работой</legend>
+              <div class="scale">
+                <label class="scale-opt"><input type="radio" name="q3" /><span>1</span></label>
+                <label class="scale-opt"><input type="radio" name="q3" /><span>2</span></label>
+                <label class="scale-opt"><input type="radio" name="q3" /><span>3</span></label>
+                <label class="scale-opt"><input type="radio" name="q3" /><span>4</span></label>
+                <label class="scale-opt"><input type="radio" name="q3" checked="checked" /><span>5</span></label>
+              </div>
+              <div class="scale-ends">
+                <span>совсем нет</span>
+                <span>полностью</span>
+              </div>
+            </fieldset>
+            <span class="saved-flag">сохранено</span>
+          </div>
+          <div class="field">
+            <fieldset>
+              <legend>Нагрузка</legend>
+              <div class="scale">
+                <label class="scale-opt"><input type="radio" name="q4" /><span>1</span></label>
+                <label class="scale-opt"><input type="radio" name="q4" /><span>2</span></label>
+                <label class="scale-opt"><input type="radio" name="q4" checked="checked" /><span>3</span></label>
+                <label class="scale-opt"><input type="radio" name="q4" /><span>4</span></label>
+                <label class="scale-opt"><input type="radio" name="q4" /><span>5</span></label>
+              </div>
+              <div class="scale-ends">
+                <span>простаиваю</span>
+                <span>не вывожу</span>
+              </div>
+            </fieldset>
+            <span class="saved-flag">сохранено</span>
+          </div>
+          <div class="field">
+            <fieldset>
+              <legend>
+                Что мешает больше всего
+                <span class="hint">У вариантов есть вес — из них строится график.</span>
+              </legend>
+              <div class="opts">
+                <label><input type="radio" name="q5" /> Ничего не мешает</label>
+                <label><input type="radio" name="q5" checked="checked" /> Ожидание ревью от других команд</label>
+                <label><input type="radio" name="q5" /> Непонятный приоритет</label>
+                <label><input type="radio" name="q5" /> Слишком много контекстов</label>
+              </div>
+            </fieldset>
+            <span class="saved-flag">сохранено</span>
+          </div>
+        </div>
+
+        <div class="section-head">
+          <h2>Развитие</h2>
+        </div>
+        <div class="card">
+          <div class="field">
+            <label for="q6">Куда хочется расти в следующие полгода</label>
+            <textarea id="q6"></textarea>
+          </div>
+          <div class="field">
+            <fieldset>
+              <legend>Чего не хватает для этого</legend>
+              <div class="opts">
+                <label><input type="checkbox" checked="checked" /> Времени</label>
+                <label><input type="checkbox" /> Обратной связи</label>
+                <label><input type="checkbox" checked="checked" /> Второго инженера в проекте</label>
+                <label><input type="checkbox" /> Обучения</label>
+              </div>
+            </fieldset>
+            <span class="saved-flag">сохранено</span>
+          </div>
+        </div>
+
+        <div class="private-head">
+          <span>Только для вас</span>
+          <span class="muted small">не попадает в саммари</span>
+        </div>
+        <div class="card private attached">
+          <div class="field">
+            <fieldset>
+              <legend>Риск ухода, как я его оцениваю</legend>
+              <div class="scale">
+                <label class="scale-opt"><input type="radio" name="q8" checked="checked" /><span>1</span></label>
+                <label class="scale-opt"><input type="radio" name="q8" /><span>2</span></label>
+                <label class="scale-opt"><input type="radio" name="q8" /><span>3</span></label>
+                <label class="scale-opt"><input type="radio" name="q8" /><span>4</span></label>
+                <label class="scale-opt"><input type="radio" name="q8" /><span>5</span></label>
+              </div>
+              <div class="scale-ends">
+                <span>никакого</span>
+                <span>уйдёт в этом квартале</span>
+              </div>
+            </fieldset>
+            <span class="saved-flag">сохранено</span>
+          </div>
+        </div>
+
+        <h2>Новая договорённость</h2>
+        <form class="card">
+          <div class="field">
+            <label for="a1">Что делаем</label>
+            <input type="text" id="a1" value="" />
+          </div>
+          <div class="grid2">
+            <div class="field">
+              <label for="a2">На кого</label>
+              <select id="a2">
+                <option>На подопечном</option>
+                <option>На мне</option>
+                <option>На обоих</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="a3">Срок</label>
+              <input type="date" id="a3" value="" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="a4">Видимость</label>
+            <select id="a4">
+              <option>Видно подопечному</option>
+              <option>Только мне</option>
+            </select>
+          </div>
+          <button class="primary" type="button">Добавить</button>
+        </form>
+
+        <div class="private-head">
+          <span>Приватные заметки о встрече</span>
+          <span class="muted small">только для вас</span>
+        </div>
+        <form class="card private attached">
+          <div class="field">
+            <label for="pn">Заметки</label>
+            <textarea id="pn">Стоит поговорить с платформой про сроки ревью — это уже второй раз блокирует её.</textarea>
+          </div>
+          <button type="button">Сохранить</button>
+        </form>
+
+        <div class="commit-bar">
+          <span class="grow small muted">
+            Заполнено 7 из 8. Вопрос без ответа в саммари не попадёт.
+          </span>
+          <button type="button">Сохранить черновик</button>
+          <button class="primary" type="button">Завершить встречу</button>
+        </div>
+      </div>
+    </div>
+  </main>

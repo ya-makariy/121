@@ -1,0 +1,132 @@
+<!--nav:metrics-->
+  <main>
+    <h1>Метрики</h1>
+    <p class="sub">
+      Из метрик строятся графики. Ключ метрики связывает измерение между шаблонами и версиями.
+    </p>
+
+    <div class="rows">
+      <div class="row">
+        <div class="grow">
+          <strong>Удовлетворённость работой</strong>
+          <span class="small muted"> · <code style="font-family: var(--mono)">job_satisfaction</code></span>
+          <div class="small muted">Числовая шкала · больше — лучше · 21 измерение у 6 человек</div>
+        </div>
+        <span class="badge ok">↑ лучше</span>
+        <a class="btn small-btn" href="#">Править</a>
+      </div>
+      <div class="row">
+        <div class="grow">
+          <strong>Ясность собственного развития</strong>
+          <span class="small muted"> · <code style="font-family: var(--mono)">growth_clarity</code></span>
+          <div class="small muted">Числовая шкала · больше — лучше · 21 измерение у 6 человек</div>
+        </div>
+        <span class="badge ok">↑ лучше</span>
+        <a class="btn small-btn" href="#">Править</a>
+      </div>
+      <div class="row">
+        <div class="grow">
+          <strong>Энергия</strong>
+          <span class="small muted"> · <code style="font-family: var(--mono)">energy</code></span>
+          <div class="small muted">Числовая шкала · больше — лучше · 21 измерение у 6 человек</div>
+        </div>
+        <span class="badge ok">↑ лучше</span>
+        <a class="btn small-btn" href="#">Править</a>
+      </div>
+      <div class="row">
+        <div class="grow">
+          <strong>Нагрузка</strong>
+          <span class="small muted"> · <code style="font-family: var(--mono)">workload</code></span>
+          <div class="small muted">Числовая шкала · больше — хуже · 21 измерение у 6 человек</div>
+        </div>
+        <span class="badge due_soon">↓ хуже</span>
+        <a class="btn small-btn" href="#">Править</a>
+      </div>
+      <div class="row">
+        <div class="grow">
+          <strong>Риск ухода</strong>
+          <span class="small muted"> · <code style="font-family: var(--mono)">attrition_risk</code></span>
+          <div class="small muted">Числовая шкала · больше — хуже · 21 измерение у 6 человек</div>
+        </div>
+        <span class="badge due_soon">↓ хуже</span>
+        <a class="btn small-btn" href="#">Править</a>
+      </div>
+      <div class="row">
+        <div class="grow">
+          <strong>Что мешает больше всего</strong>
+          <span class="small muted"> · <code style="font-family: var(--mono)">main_blocker</code></span>
+          <div class="small muted">Категории · 4 варианта с весами · 21 измерение у 6 человек</div>
+        </div>
+        <span class="badge neutral">категории</span>
+        <a class="btn small-btn" href="#">Править</a>
+      </div>
+      <div class="row">
+        <div class="grow">
+          <strong>Отношения в команде</strong>
+          <span class="small muted"> · <code style="font-family: var(--mono)">team_relationships</code></span>
+          <div class="small muted">Числовая шкала · не используется ни в одном шаблоне</div>
+        </div>
+        <span class="badge no_cadence">не используется</span>
+        <a class="btn small-btn" href="#">Править</a>
+      </div>
+    </div>
+
+    <h2>Добавить метрику</h2>
+    <form class="card">
+      <div class="grid2">
+        <div class="field">
+          <label for="ml">Подпись</label>
+          <input type="text" id="ml" value="" placeholder="Ясность целей" />
+        </div>
+        <div class="field">
+          <label for="mk">
+            Ключ
+            <span class="hint">
+              Латиница, цифры и подчёркивание. Ключ — это идентичность измерения:
+              после первого использования он не меняется.
+            </span>
+          </label>
+          <input type="text" id="mk" value="" placeholder="goal_clarity" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="md">Описание</label>
+        <input type="text" id="md" value="" />
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label for="mt">
+            Тип
+            <span class="hint">
+              Числовая — для шкал и чекбоксов. Категории — для полей с выбором,
+              у вариантов которых есть вес.
+            </span>
+          </label>
+          <select id="mt">
+            <option>Числовая шкала</option>
+            <option>Категории</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="mdir">
+            Направление
+            <span class="hint">
+              От этого зависит, что считать ухудшением: цвет изменения и порядок
+              в списке «кому уделить внимание».
+            </span>
+          </label>
+          <select id="mdir">
+            <option>Больше — лучше</option>
+            <option>Больше — хуже</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="mo">Порядок в списках</label>
+        <input type="number" id="mo" value="8" />
+      </div>
+      <div class="actions-bar">
+        <button class="primary" type="button">Добавить метрику</button>
+      </div>
+    </form>
+  </main>
