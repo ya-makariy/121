@@ -4,6 +4,7 @@ import { dict } from "../../i18n/index.ts";
 import type { Locale, MeetingRow, MetricRow, PersonRow, ActionItemRow } from "../../db/types.ts";
 import type { PersonCadence } from "../../db/queries/cadence.ts";
 import { formatDate } from "../../i18n/dates.ts";
+import { joinLink } from "../components/join-link.ts";
 
 export function personPage(o: {
   locale: Locale;
@@ -38,6 +39,7 @@ export function personPage(o: {
 
     <p class="actions-bar">
       <a class="btn primary" href="/people/${p.id}/meetings/new">${t.dashboard.startMeeting}</a>
+      ${joinLink(p.meeting_url, o.locale)}
     </p>
 
     <h2>${t.people.dynamics}</h2>

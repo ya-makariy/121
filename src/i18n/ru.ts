@@ -11,6 +11,7 @@ export const ru = {
     archive: "В архив", back: "Назад", saved: "Сохранено", of: "из",
     yes: "да", no: "нет", none: "—", today: "сегодня", optional: "необязательно",
     open: "Открыть", copy: "Скопировать", download: "Скачать",
+    join: "Открыть встречу", joinShort: "Созвон",
   },
 
   dashboard: {
@@ -36,6 +37,8 @@ export const ru = {
     cadenceDays: "Каденс, дней", cadenceHint: "Как часто хотите встречаться. Пусто — без напоминаний.",
     anchor: "Отсчёт каденса с", anchorHint: "Нужно только до первой встречи.",
     defaultTemplate: "Шаблон по умолчанию",
+    meetingUrl: "Ссылка на встречу",
+    meetingUrlHint: "Постоянная комната для ваших 1:1: Meet, Zoom, что угодно. Появится кнопкой на дашборде и в карточке.",
     notes: "Мои заметки о человеке",
     notesHint: "Приватно. Не попадает в саммари никогда.",
     empty: "Никого нет.",
@@ -253,6 +256,8 @@ export const ru = {
     SCALE_TOO_LONG: "Шкала длиннее 21 деления не читается — сузьте диапазон.",
     OPTIONS_ONLY_FOR_SELECT: "Варианты бывают только у полей с выбором.",
     OPTION_LABEL_REQUIRED: "У варианта должна быть подпись.",
+
+    URL_INVALID: "Ссылка «{url}» не подходит: нужен адрес http или https.",
 
     METRIC_LABEL_REQUIRED: "У метрики должна быть подпись.",
     METRIC_NOT_FOUND: "Метрика не найдена.",

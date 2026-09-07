@@ -296,3 +296,8 @@ label.inline input { width: auto; }
   .field-bar, .section-bar { flex-wrap: wrap; }
   .controls { margin-left: auto; }
 }
+
+/* The call button: an outward action, so it reads differently from navigation. */
+.btn.join { white-space: nowrap; }
+.btn.join:not(.primary) { color: var(--accent); border-color: var(--accent-soft); }
+.btn.join:not(.primary):hover { border-color: var(--accent); }

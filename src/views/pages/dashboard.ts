@@ -5,6 +5,7 @@ import type { Locale } from "../../db/types.ts";
 import type { PersonCadence } from "../../db/queries/cadence.ts";
 import type { OpenActionRow } from "../../db/queries/actions.ts";
 import { formatDate } from "../../i18n/dates.ts";
+import { joinLink } from "../components/join-link.ts";
 
 function cadenceLine(p: PersonCadence, t: ReturnType<typeof dict>): string {
   if (p.status === "no_cadence") {
@@ -58,6 +59,7 @@ export function dashboardPage(o: {
                       ? html`<span class="small muted"> · ${p.open_actions} ${t.actions.title.toLowerCase()}</span>`
                       : ""}
                   </span>
+                  ${joinLink(p.meeting_url, o.locale, { short: true })}
                   <a class="btn" href="/people/${p.id}/meetings/new">${t.dashboard.startMeeting}</a>
                 </div>
               `,

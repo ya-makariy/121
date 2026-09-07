@@ -44,6 +44,8 @@ export interface PersonRow {
   cadence_days: number | null;
   cadence_anchor_on: string | null;
   default_template_id: number | null;
+  /** Link to the recurring call, so the meeting can be opened from the tool. */
+  meeting_url: string | null;
   notes: string | null;
   archived_at: string | null;
   created_at: string;

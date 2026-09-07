@@ -7,6 +7,7 @@ import type {
 import type { OpenActionRow } from "../../db/queries/actions.ts";
 import { fieldInput, fieldReadout, type AnswerValue, EMPTY_ANSWER } from "../components/field-input.ts";
 import { formatDate } from "../../i18n/dates.ts";
+import { joinLink } from "../components/join-link.ts";
 
 export function newMeetingPage(o: {
   locale: Locale; person: PersonRow; templates: TemplateRow[]; today: string;
@@ -76,6 +77,7 @@ export function meetingPage(o: {
         </span>
       · <a href="/people/${o.person.id}">${o.person.full_name}</a>
     </p>
+    ${joinLink(o.person.meeting_url, o.locale, { primary: true })}
 
     <!-- Carry-over is derived on read, never copied as rows. -->
     <h2>${t.meeting.carryOver}</h2>

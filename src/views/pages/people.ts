@@ -2,6 +2,7 @@ import { html } from "../html.ts";
 import { layout } from "../layout.ts";
 import { dict } from "../../i18n/index.ts";
 import type { Locale, PersonRow, TemplateRow } from "../../db/types.ts";
+import { joinLink } from "../components/join-link.ts";
 
 export function peopleListPage(o: {
   locale: Locale; people: PersonRow[];
@@ -24,6 +25,7 @@ export function peopleListPage(o: {
                   ${p.cadence_days
                     ? html`<span class="small muted">${p.cadence_days} ${t.dashboard.days}</span>`
                     : html`<span class="small muted">${t.dashboard.noCadence}</span>`}
+                  ${joinLink(p.meeting_url, o.locale, { short: true })}
                   <a class="btn" href="/people/${p.id}/edit">${t.common.edit}</a>
                 </div>
               `,
@@ -37,16 +39,18 @@ export function peopleListPage(o: {
 export function personFormPage(o: {
   locale: Locale;
   person: PersonRow | null;
+  /** What to put in the inputs when a save failed: the submitted values, not the stored ones. */
+  draft?: PersonRow;
   templates: TemplateRow[];
   error?: string;
 }): string {
   const t = dict(o.locale);
-  const p = o.person;
-  const action = p ? `/people/${p.id}` : "/people";
+  const p = o.draft ?? o.person;
+  const action = o.person ? `/people/${o.person.id}` : "/people";
 
   const body = html`
-    <h1>${p ? t.people.editTitle : t.people.addTitle}</h1>
-    ${o.error ? html`<div class="notice">${o.error}</div>` : ""}
+    <h1>${o.person ? t.people.editTitle : t.people.addTitle}</h1>
+    ${o.error ? html`<div class="notice error">${o.error}</div>` : ""}
     <form method="post" action="${action}" class="card">
       <div class="field">
         <label for="full_name">${t.people.fullName}</label>
@@ -82,6 +86,14 @@ export function personFormPage(o: {
         </div>
       </div>
       <div class="field">
+        <label for="meeting_url">
+          ${t.people.meetingUrl}
+          <span class="hint">${t.people.meetingUrlHint}</span>
+        </label>
+        <input type="text" id="meeting_url" name="meeting_url" inputmode="url"
+               placeholder="meet.google.com/abc-defg-hij" value="${p?.meeting_url ?? ""}" />
+      </div>
+      <div class="field">
         <label for="default_template_id">${t.people.defaultTemplate}</label>
         <select id="default_template_id" name="default_template_id">
           <option value="">${t.common.none}</option>
@@ -103,12 +115,12 @@ export function personFormPage(o: {
       </div>
       <div class="actions-bar">
         <button class="primary" type="submit">${t.common.save}</button>
-        <a class="btn" href="${p ? `/people/${p.id}` : "/people"}">${t.common.cancel}</a>
+        <a class="btn" href="${o.person ? `/people/${o.person.id}` : "/people"}">${t.common.cancel}</a>
       </div>
     </form>
-    ${p
+    ${o.person
       ? html`
-          <form method="post" action="/people/${p.id}/archive" class="actions-bar">
+          <form method="post" action="/people/${o.person.id}/archive" class="actions-bar">
             <button class="danger" type="submit">${t.common.archive}</button>
           </form>
         `
@@ -117,9 +129,9 @@ export function personFormPage(o: {
 
   return layout({
     locale: o.locale,
-    title: p ? t.people.editTitle : t.people.addTitle,
+    title: o.person ? t.people.editTitle : t.people.addTitle,
     nav: "people",
-    path: p ? `/people/${p.id}/edit` : "/people/new",
+    path: o.person ? `/people/${o.person.id}/edit` : "/people/new",
     body,
   });
 }

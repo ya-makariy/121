@@ -13,6 +13,7 @@ export const en: Dict = {
     archive: "Archive", back: "Back", saved: "Saved", of: "of",
     yes: "yes", no: "no", none: "—", today: "today", optional: "optional",
     open: "Open", copy: "Copy", download: "Download",
+    join: "Open the call", joinShort: "Call",
   },
 
   dashboard: {
@@ -38,6 +39,8 @@ export const en: Dict = {
     cadenceDays: "Cadence, days", cadenceHint: "How often you want to meet. Empty means no reminders.",
     anchor: "Cadence starts from", anchorHint: "Only needed before the first meeting.",
     defaultTemplate: "Default template",
+    meetingUrl: "Meeting link",
+    meetingUrlHint: "The recurring room for your 1:1s: Meet, Zoom, whatever you use. It shows up as a button on the dashboard and on the person's page.",
     notes: "My notes on this person",
     notesHint: "Private. Never appears in a summary.",
     empty: "Nobody here.",
@@ -255,6 +258,8 @@ export const en: Dict = {
     SCALE_TOO_LONG: "A scale longer than 21 steps is unreadable — narrow the range.",
     OPTIONS_ONLY_FOR_SELECT: "Only select fields have options.",
     OPTION_LABEL_REQUIRED: "An option needs a label.",
+
+    URL_INVALID: "The link \"{url}\" will not do: an http or https address is needed.",
 
     METRIC_LABEL_REQUIRED: "A metric needs a label.",
     METRIC_NOT_FOUND: "Metric not found.",

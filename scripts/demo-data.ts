@@ -74,6 +74,7 @@ for (const person of CAST) {
     cadence_days: 14,
     cadence_anchor_on: null,
     default_template_id: template.id,
+    meeting_url: "https://example.com/demo-room",
     notes: "An invented person for checking the charts.",
   });
 

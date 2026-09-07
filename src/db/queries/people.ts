@@ -25,6 +25,7 @@ export interface PersonInput {
   cadence_days: number | null;
   cadence_anchor_on: string | null;
   default_template_id: number | null;
+  meeting_url: string | null;
   notes: string | null;
 }
 
@@ -34,13 +35,14 @@ export function createPerson(db: Database, input: PersonInput, ownerId = 1): Per
     .query<PersonRow, any[]>(
       `INSERT INTO person
          (owner_id, full_name, email, role_title, cadence_days, cadence_anchor_on,
-          default_template_id, notes, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          default_template_id, meeting_url, notes, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        RETURNING *`,
     )
     .get(
       ownerId, input.full_name, input.email, input.role_title, input.cadence_days,
-      input.cadence_anchor_on, input.default_template_id, input.notes, now, now,
+      input.cadence_anchor_on, input.default_template_id, input.meeting_url, input.notes,
+      now, now,
     )!;
 }
 
@@ -52,14 +54,15 @@ export function updatePerson(
       .query<PersonRow, any[]>(
         `UPDATE person SET
            full_name = ?, email = ?, role_title = ?, cadence_days = ?,
-           cadence_anchor_on = ?, default_template_id = ?, notes = ?, updated_at = ?
+           cadence_anchor_on = ?, default_template_id = ?, meeting_url = ?, notes = ?,
+           updated_at = ?
          WHERE id = ? AND owner_id = ?
          RETURNING *`,
       )
       .get(
         input.full_name, input.email, input.role_title, input.cadence_days,
-        input.cadence_anchor_on, input.default_template_id, input.notes, nowIso(),
-        id, ownerId,
+        input.cadence_anchor_on, input.default_template_id, input.meeting_url, input.notes,
+        nowIso(), id, ownerId,
       ) ?? null
   );
 }

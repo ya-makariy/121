@@ -10,6 +10,7 @@ export interface CadenceRow {
   anchor_on: string | null;
   next_scheduled_at: string | null;
   open_actions: number;
+  meeting_url: string | null;
 }
 
 export interface PersonCadence extends CadenceRow, CadenceState {}
@@ -22,7 +23,7 @@ export function cadenceOverview(db: Database, today: string, ownerId = 1): Perso
   const rows = db
     .query<CadenceRow, [string, number]>(
       `SELECT
-         p.id, p.full_name, p.role_title, p.cadence_days,
+         p.id, p.full_name, p.role_title, p.cadence_days, p.meeting_url,
          lm.last_on,
          COALESCE(p.cadence_anchor_on, date(p.created_at)) AS anchor_on,
          ns.next_at AS next_scheduled_at,
