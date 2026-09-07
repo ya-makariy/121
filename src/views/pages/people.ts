@@ -7,7 +7,7 @@ import type { PersonTeamRow, TeamWithMembers } from "../../db/queries/teams.ts";
 import { joinLink } from "../components/join-link.ts";
 
 export function peopleListPage(o: {
-  locale: Locale; people: PersonRow[];
+  locale: Locale; people: PersonRow[]; archived: PersonRow[];
 }): string {
   const t = dict(o.locale);
   const body = html`
@@ -34,6 +34,28 @@ export function peopleListPage(o: {
             )}
           </div>
         `}
+
+    ${o.archived.length > 0
+      ? html`
+          <h2>${t.people.archived}</h2>
+          <p class="sub small">${t.people.archivedHint}</p>
+          <div class="rows">
+            ${o.archived.map(
+              (p) => html`
+                <div class="row">
+                  <span class="grow">
+                    <a class="name muted" href="/people/${p.id}">${p.full_name}</a>
+                    ${p.role_title ? html`<span class="small muted"> · ${p.role_title}</span>` : ""}
+                  </span>
+                  <form method="post" action="/people/${p.id}/restore">
+                    <button class="link" type="submit">${t.people.restore}</button>
+                  </form>
+                </div>
+              `,
+            )}
+          </div>
+        `
+      : ""}
   `;
   return layout({ locale: o.locale, title: t.people.title, nav: "people", path: "/people", body });
 }
@@ -189,9 +211,14 @@ export function personFormPage(o: {
     </form>
     ${o.person
       ? html`
-          <form method="post" action="/people/${o.person.id}/archive" class="actions-bar">
-            <button class="danger" type="submit">${t.common.archive}</button>
-          </form>
+          <h2>${t.people.archived}</h2>
+          <div class="card">
+            <p class="small muted">${t.people.archivedHint}</p>
+            <form method="post" action="/people/${o.person.id}/archive" class="actions-bar"
+                  onsubmit="return confirm('${t.people.archiveConfirm}')">
+              <button class="danger" type="submit">${t.common.archive}</button>
+            </form>
+          </div>
         `
       : ""}
   `;

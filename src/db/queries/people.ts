@@ -10,6 +10,18 @@ export function listPeople(db: Database, ownerId = 1): PersonRow[] {
     .all(ownerId);
 }
 
+/**
+ * The archive, as its own list. Rule 5 forbids a hard delete so that longitudinal history
+ * survives; an archive nobody can see or undo is that same delete without the warning.
+ */
+export function listArchivedPeople(db: Database, ownerId = 1): PersonRow[] {
+  return db
+    .query<PersonRow, [number]>(
+      "SELECT * FROM person WHERE owner_id = ? AND archived_at IS NOT NULL ORDER BY full_name",
+    )
+    .all(ownerId);
+}
+
 export function getPerson(db: Database, id: number, ownerId = 1): PersonRow | null {
   return (
     db
@@ -72,4 +84,14 @@ export function archivePerson(db: Database, id: number, ownerId = 1): void {
   const now = nowIso();
   db.query("UPDATE person SET archived_at = ?, updated_at = ? WHERE id = ? AND owner_id = ?")
     .run(now, now, id, ownerId);
+}
+
+/**
+ * Undoes it. Nothing else has to be restored: archiving only ever wrote `archived_at`, so
+ * meetings, answers and chart points were never touched and come back with the person.
+ */
+export function restorePerson(db: Database, id: number, ownerId = 1): void {
+  const now = nowIso();
+  db.query("UPDATE person SET archived_at = NULL, updated_at = ? WHERE id = ? AND owner_id = ?")
+    .run(now, id, ownerId);
 }

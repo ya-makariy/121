@@ -1,7 +1,8 @@
 import { Hono } from "hono";
 import { db } from "../db/index.ts";
 import {
-  archivePerson, createPerson, getPerson, listPeople, updatePerson, type PersonInput,
+  archivePerson, createPerson, getPerson, listArchivedPeople, listPeople, restorePerson,
+  updatePerson, type PersonInput,
 } from "../db/queries/people.ts";
 import { listTemplates } from "../db/queries/templates.ts";
 import { listTeams, teamsForPerson } from "../db/queries/teams.ts";
@@ -106,7 +107,11 @@ function parseTeamAssignment(form: Record<string, unknown>): TeamAssignment {
 }
 
 peopleRoutes.get("/people", (c) =>
-  c.html(peopleListPage({ locale: loc(c), people: listPeople(db(), OWNER_ID) })));
+  c.html(peopleListPage({
+    locale: loc(c),
+    people: listPeople(db(), OWNER_ID),
+    archived: listArchivedPeople(db(), OWNER_ID),
+  })));
 
 peopleRoutes.get("/people/new", (c) =>
   c.html(personFormPage({
@@ -246,5 +251,12 @@ peopleRoutes.post("/people/:id", async (c) => {
 
 peopleRoutes.post("/people/:id/archive", (c) => {
   archivePerson(db(), Number.parseInt(c.req.param("id"), 10), OWNER_ID);
+  return c.redirect("/people", 303);
+});
+
+// The other half of archiving. Without it the archive is a delete with no warning, which
+// is exactly what CLAUDE.md rule 5 exists to prevent. Same shape as /metrics/:id/restore.
+peopleRoutes.post("/people/:id/restore", (c) => {
+  restorePerson(db(), Number.parseInt(c.req.param("id"), 10), OWNER_ID);
   return c.redirect("/people", 303);
 });
