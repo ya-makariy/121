@@ -5,10 +5,10 @@
 -- identity of the question and history and charts depend on their continuity.
 
 UPDATE template_section
-SET title = 'Итог',
-    description = 'Что записать словами по итогам встречи. Конкретные пункты — в договорённостях ниже.'
+SET title = 'Wrap-up',
+    description = 'What to put in words at the end of the meeting. Concrete items go into the agreements below.'
 WHERE section_key = 'agreements';
 
 UPDATE template_field
-SET label = 'Итог своими словами'
+SET label = 'Wrap-up in your own words'
 WHERE field_key = 'summary';

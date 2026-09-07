@@ -15,19 +15,16 @@ const ROOT = join(import.meta.dir, "..");
 const CYRILLIC = /[\u0400-\u04FF]/;
 
 /**
- * The localization layer and the seeded starter-template content. See CLAUDE.md rule 1.
+ * The localization layer is the only exception. See CLAUDE.md rule 1.
  *
  * Everything under src/i18n/ is allowed to hold non-Latin text: dictionaries, the
- * transliteration table, and month names in cases Intl does not provide.
+ * transliteration table, and month names in cases Intl does not provide. There is no
+ * per-file exception list: the starter template in the seed migrations is English too.
  */
 const ALLOWED_DIRS = ["src/i18n/"];
-const ALLOWED_FILES = new Set([
-  "src/db/migrations/0002_seed.sql",
-  "src/db/migrations/0003_rename_summary_section.sql",
-]);
 
 function isAllowed(rel: string): boolean {
-  return ALLOWED_DIRS.some((d) => rel.startsWith(d)) || ALLOWED_FILES.has(rel);
+  return ALLOWED_DIRS.some((d) => rel.startsWith(d));
 }
 
 const SCAN_DIRS = ["src", "scripts", "tests"];
@@ -62,24 +59,6 @@ describe("language discipline", () => {
       if (isAllowed(rel)) continue;
       readFileSync(file, "utf8").split("\n").forEach((line, i) => {
         if (CYRILLIC.test(line)) offenders.push(`${rel}:${i + 1}: ${line.trim().slice(0, 90)}`);
-      });
-    }
-
-    expect(offenders).toEqual([]);
-  });
-
-  test("even in seeded content, comments are English", () => {
-    // The seed carries Russian user content on purpose; its reasoning must still be
-    // readable by everyone working on the code.
-    const offenders: string[] = [];
-
-    for (const rel of ALLOWED_FILES) {
-      if (!rel.endsWith(".sql")) continue;
-      readFileSync(join(ROOT, rel), "utf8").split("\n").forEach((line, i) => {
-        const trimmed = line.trim();
-        if (trimmed.startsWith("--") && CYRILLIC.test(trimmed)) {
-          offenders.push(`${rel}:${i + 1}: ${trimmed.slice(0, 90)}`);
-        }
       });
     }
 

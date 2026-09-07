@@ -19,18 +19,20 @@ Domain errors carry a stable **error code**, not a sentence. The route or view t
 the code through the dictionary. That keeps the domain free of presentation concerns and
 free of Cyrillic at the same time.
 
-Non-Latin text is allowed in exactly two places, and `tests/language.test.ts` enforces it:
+Cyrillic is allowed in exactly one place, and `tests/language.test.ts` enforces it with no
+exception list:
 
 - **`src/i18n/`** — the localization layer as a whole: the dictionaries, the
   transliteration table used to build keys, and month names in the grammatical cases Intl
   does not provide. Locale-specific data belongs here and nowhere else, which is why
   `formatDate` lives in `src/i18n/dates.ts` while `lib/dates.ts` keeps only locale-free
   arithmetic.
-- **`src/db/migrations/0002_seed.sql`** and later seed migrations — the starter template's
-  content (metric labels, section titles, question wording). This is user content, not
-  code: it is authored in one language by design, the same way a manager's own templates
-  are (see "user content is single-language" in `PLAN.md`). Comments in those files are
-  still English.
+
+The seed migrations are not an exception. A template's content is user content, not code,
+and it is single-language by design (see "user content is single-language" in `PLAN.md`) —
+but the starter template is the first thing every new instance shows, so it is authored in
+English, and a manager who works in another language renames its sections and questions in
+the builder.
 
 Why this rule: the repository is public, the audience for the code is international, and
 mixing scripts inside identifiers and grep patterns is a steady source of small errors.
