@@ -75,7 +75,7 @@ function duplicateIds(markup: string): string[] {
 describe("fieldInput markup", () => {
   test("a group of controls is named by a legend, not by an unbound label", () => {
     for (const type of GROUPED) {
-      const out = fieldInput(makeField(type), EMPTY_ANSWER, 3, "en").value;
+      const out = fieldInput(makeField(type), EMPTY_ANSWER, 3, "en", "2026-09-08").value;
       expect(out).toContain("<fieldset>");
       expect(out).toContain("</fieldset>");
       expect(out).toMatch(/<legend>[\s\S]*How is the pace right now[\s\S]*<\/legend>/);
@@ -86,7 +86,7 @@ describe("fieldInput markup", () => {
 
   test("a single control is named by a label bound to its own id", () => {
     for (const type of SINGLE) {
-      const out = fieldInput(makeField(type), EMPTY_ANSWER, 3, "en").value;
+      const out = fieldInput(makeField(type), EMPTY_ANSWER, 3, "en", "2026-09-08").value;
       expect(out).not.toContain("<fieldset>");
       expect(out).toContain(`<label for="fc-q_${type}">`);
       expect(out).toContain(`id="fc-q_${type}"`);
@@ -96,7 +96,7 @@ describe("fieldInput markup", () => {
 
   test("no field type emits a for that points at no id", () => {
     for (const type of ALL_TYPES) {
-      const out = fieldInput(makeField(type), EMPTY_ANSWER, 3, "en").value;
+      const out = fieldInput(makeField(type), EMPTY_ANSWER, 3, "en", "2026-09-08").value;
       expect(danglingFor(out)).toEqual([]);
     }
   });
@@ -105,7 +105,7 @@ describe("fieldInput markup", () => {
     // Same row id on purpose: the control id must come from the key, which is unique per
     // template version, not from anything that could repeat.
     const page = ALL_TYPES
-      .map((type) => fieldInput(makeField(type), EMPTY_ANSWER, 3, "en").value)
+      .map((type) => fieldInput(makeField(type), EMPTY_ANSWER, 3, "en", "2026-09-08").value)
       .join("\n");
     expect(duplicateIds(page.replace(/\bid="f7(-state)?"/g, ""))).toEqual([]);
   });
@@ -117,8 +117,8 @@ describe("fieldInput markup", () => {
    */
   test("radio and option names are scoped per field, so groups do not merge", () => {
     for (const type of ["scale", "single_select"] as FieldType[]) {
-      const a = fieldInput(makeField(type, { id: 11, field_key: "q_a" }), EMPTY_ANSWER, 3, "en").value;
-      const b = fieldInput(makeField(type, { id: 12, field_key: "q_b" }), EMPTY_ANSWER, 3, "en").value;
+      const a = fieldInput(makeField(type, { id: 11, field_key: "q_a" }), EMPTY_ANSWER, 3, "en", "2026-09-08").value;
+      const b = fieldInput(makeField(type, { id: 12, field_key: "q_b" }), EMPTY_ANSWER, 3, "en", "2026-09-08").value;
       const nameOf = (out: string) => [...out.matchAll(/name="([^"]+)"/g)].map((m) => m[1]);
       const namesA = new Set(nameOf(a));
       const namesB = new Set(nameOf(b));
@@ -131,7 +131,7 @@ describe("fieldInput markup", () => {
 
   test("the fieldset stays inside div.field, so hx-include=closest .field is intact", () => {
     for (const type of ["single_select", "multi_select"] as FieldType[]) {
-      const out = fieldInput(makeField(type), EMPTY_ANSWER, 3, "en").value;
+      const out = fieldInput(makeField(type), EMPTY_ANSWER, 3, "en", "2026-09-08").value;
       expect(out).toContain(`hx-include="closest .field"`);
       // The only `.field` ancestor is the wrapping div; the fieldset carries no such
       // class and opens after it.
@@ -143,14 +143,14 @@ describe("fieldInput markup", () => {
   });
 
   test("the save indicator sits outside the fieldset, next to it inside the field", () => {
-    const out = fieldInput(makeField("scale"), EMPTY_ANSWER, 3, "en").value;
+    const out = fieldInput(makeField("scale"), EMPTY_ANSWER, 3, "en", "2026-09-08").value;
     expect(out.indexOf("</fieldset>")).toBeLessThan(out.indexOf("saved-flag"));
   });
 
   test("help text and the private badge ride along with the wording in both forms", () => {
     const grouped = fieldInput(
       makeField("scale", { help_text: "Right now, not on average", visibility: "private" }),
-      EMPTY_ANSWER, 3, "en",
+      EMPTY_ANSWER, 3, "en", "2026-09-08",
     ).value;
     expect(grouped).toMatch(
       /<legend>[\s\S]*badge private[\s\S]*class="hint">Right now, not on average[\s\S]*<\/legend>/,
@@ -158,7 +158,7 @@ describe("fieldInput markup", () => {
 
     const single = fieldInput(
       makeField("text", { help_text: "Right now, not on average", visibility: "private" }),
-      EMPTY_ANSWER, 3, "en",
+      EMPTY_ANSWER, 3, "en", "2026-09-08",
     ).value;
     expect(single).toMatch(
       /<label for="fc-q_text">[\s\S]*badge private[\s\S]*class="hint">Right now, not on average[\s\S]*<\/label>/,
@@ -180,7 +180,7 @@ describe("the two modes do not drift", () => {
   test("both modes render the same question wording for every field type", () => {
     for (const type of ALL_TYPES) {
       const field = makeField(type);
-      const editable = fieldInput(field, answers[type], 3, "en").value;
+      const editable = fieldInput(field, answers[type], 3, "en", "2026-09-08").value;
       const readonly = fieldReadout(field, answers[type], "en");
       expect(editable).toContain(field.label);
       expect(readonly).not.toBeNull();

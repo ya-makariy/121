@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 /**
@@ -68,6 +68,34 @@ describe("run targets", () => {
     // they must never be pinned to the throwaway database.
     for (const name of ["migrate", "backup", "export"]) {
       expect(pinnedDb(scripts[name]!)).toBeNull();
+    }
+  });
+});
+
+/**
+ * Static assets are mounted one route at a time rather than by serving the directory, and
+ * that is the right trade — nothing under public/ is exposed by accident. The cost is that
+ * a new script is a 404 with no error anywhere: the page renders, the tag is there, the
+ * file is there, and the enhancement is simply missing. So the two lists are compared.
+ */
+describe("every asset the pages ask for is actually served", () => {
+  const server = readFileSync(join(ROOT, "src", "server.ts"), "utf8");
+
+  test("each root-level file in public/ has a route", () => {
+    const missing = readdirSync(join(ROOT, "public"))
+      .filter((entry) => entry.endsWith(".js") || entry.endsWith(".css"))
+      .filter((entry) => !server.includes(`"/${entry}"`));
+    expect(missing).toEqual([]);
+  });
+
+  test("each script the layout emits is one of them", () => {
+    const layout = readFileSync(join(ROOT, "src", "views", "layout.ts"), "utf8");
+    const srcs = [...layout.matchAll(/<script src="([^"]+)"/g)].map((m) => m[1]!);
+    expect(srcs.length).toBeGreaterThan(0);
+    for (const src of srcs) {
+      // /vendor/* is mounted as a prefix; everything else is named outright.
+      const mounted = server.includes(`"${src}"`) || src.startsWith("/vendor/");
+      expect([src, mounted]).toEqual([src, true]);
     }
   });
 });

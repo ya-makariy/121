@@ -6,6 +6,7 @@ import { formatDate } from "../../i18n/dates.ts";
 import type { Locale, PersonRow, TemplateRow } from "../../db/types.ts";
 import type { PersonTeamRow, TeamWithMembers } from "../../db/queries/teams.ts";
 import { joinLink } from "../components/join-link.ts";
+import { dateField } from "../components/date-field.ts";
 
 export function peopleListPage(o: {
   locale: Locale; theme: Theme; people: PersonRow[]; archived: PersonRow[];
@@ -73,6 +74,8 @@ export function personFormPage(o: {
   memberships?: PersonTeamRow[];
   /** The team pre-selected in the picker, and whether the primary box is ticked. */
   teamDraft?: { teamId: number | null; isPrimary: boolean };
+  /** Today in the manager's timezone: the cadence anchor's calendar opens on it (rule 4). */
+  today: string;
   error?: string;
 }): string {
   const t = dict(o.locale);
@@ -172,8 +175,10 @@ export function personFormPage(o: {
             ${t.people.anchor}
             <span class="hint">${t.people.anchorHint}</span>
           </label>
-          <input type="date" id="cadence_anchor_on" name="cadence_anchor_on"
-                 value="${p?.cadence_anchor_on ?? ""}" />
+          ${dateField({
+            locale: o.locale, id: "cadence_anchor_on", name: "cadence_anchor_on",
+            value: p?.cadence_anchor_on, today: o.today,
+          })}
         </div>
       </div>
       <div class="field">

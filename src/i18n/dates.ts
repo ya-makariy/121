@@ -38,3 +38,28 @@ export function formatMonth(period: string, locale: Locale): string {
   return new Intl.DateTimeFormat("en-GB", { month: "short", year: "numeric" })
     .format(new Date(Date.UTC(Number.parseInt(year, 10), month - 1, 15)));
 }
+
+/**
+ * The calendar's own vocabulary.
+ *
+ * The picker's header names a month rather than dating one, so it takes the nominative
+ * ("сентябрь"), not the genitive formatDate uses. Both arrays live here for the same
+ * reason formatDate does: they are locale data, and rule 1 puts locale data in src/i18n/
+ * and nowhere else. public/date-picker.js receives them through data- attributes, so no
+ * user-facing text is hardcoded in JavaScript (rule 6).
+ */
+const RU_WEEKDAYS_SHORT = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+
+export function monthNames(locale: Locale): string[] {
+  if (locale === "ru") return [...RU_MONTHS_NOMINATIVE];
+  const fmt = new Intl.DateTimeFormat("en-GB", { month: "long", timeZone: "UTC" });
+  return Array.from({ length: 12 }, (_, m) => fmt.format(new Date(Date.UTC(2024, m, 15))));
+}
+
+/** Monday first: the week starts on Monday in both locales the app speaks. */
+export function weekdayNames(locale: Locale): string[] {
+  if (locale === "ru") return [...RU_WEEKDAYS_SHORT];
+  // 2024-01-01 was a Monday, so seven consecutive days from it are Mon..Sun in order.
+  const fmt = new Intl.DateTimeFormat("en-GB", { weekday: "short", timeZone: "UTC" });
+  return Array.from({ length: 7 }, (_, i) => fmt.format(new Date(Date.UTC(2024, 0, 1 + i))));
+}

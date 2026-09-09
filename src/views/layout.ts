@@ -86,6 +86,9 @@ export function layout(o: LayoutOptions): string {
 <title>${o.title} · ${t.appName}</title>
 <link rel="stylesheet" href="/app.css" />
 <script src="/vendor/htmx.min.js" defer></script>
+<!-- The calendar behind every date field. Enhancement only: the field is a text input and
+     works without it, so the script is deferred and never blocks the page. -->
+<script src="/date-picker.js" defer></script>
 </head>
 <body>
 ${page.value}

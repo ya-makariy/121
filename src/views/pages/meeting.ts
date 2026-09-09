@@ -9,6 +9,9 @@ import type { OpenActionRow } from "../../db/queries/actions.ts";
 import { fieldInput, fieldReadout, type AnswerValue, EMPTY_ANSWER } from "../components/field-input.ts";
 import { formatDate } from "../../i18n/dates.ts";
 import { joinLink } from "../components/join-link.ts";
+import { agreementsSection } from "../components/meeting-agreements.ts";
+import { dateField } from "../components/date-field.ts";
+import type { ActionItemRow } from "../../db/types.ts";
 
 export function newMeetingPage(o: {
   locale: Locale; theme: Theme; person: PersonRow; templates: TemplateRow[]; today: string;
@@ -25,7 +28,10 @@ export function newMeetingPage(o: {
       <div class="grid2">
         <div class="field">
           <label for="held_on">${t.meeting.heldOn}</label>
-          <input type="date" id="held_on" name="held_on" value="${o.today}" required />
+          ${dateField({
+            locale: o.locale, id: "held_on", name: "held_on",
+            value: o.today, today: o.today, required: true,
+          })}
         </div>
         <div class="field">
           <label for="template_id">${t.meeting.template}</label>
@@ -63,6 +69,8 @@ export function meetingPage(o: {
   /** Field ids with a row in meeting_answer. See queries/meetings.ts:answeredFieldIds. */
   answered: Set<number>;
   carryOver: OpenActionRow[];
+  /** What was agreed in THIS meeting — the running list, see components/meeting-agreements.ts. */
+  agreements: ActionItemRow[];
   shares: ShareLinkRow[];
   today: string;
 }): string {
@@ -133,7 +141,7 @@ export function meetingPage(o: {
       const isPrivateSection = railItems[i]!.isPrivate;
       const rendered = editable
         ? section.fields.map((f) =>
-            fieldInput(f, o.answers.get(f.id) ?? EMPTY_ANSWER, m.id, o.locale))
+            fieldInput(f, o.answers.get(f.id) ?? EMPTY_ANSWER, m.id, o.locale, o.today))
         : section.fields
             .map((f) => fieldReadout(f, o.answers.get(f.id) ?? EMPTY_ANSWER, o.locale))
             .filter((x) => x !== null);
@@ -163,35 +171,9 @@ export function meetingPage(o: {
       `;
     })}
 
-    <h2>${t.meeting.newAction}</h2>
-    <form method="post" action="/meetings/${m.id}/actions" class="card">
-      <div class="field">
-        <label for="title">${t.meeting.actionTitle}</label>
-        <input type="text" id="title" name="title" required />
-      </div>
-      <div class="grid2">
-        <div class="field">
-          <label for="assignee">${t.meeting.assignee}</label>
-          <select id="assignee" name="assignee">
-            <option value="person">${t.meeting.assigneePerson}</option>
-            <option value="manager">${t.meeting.assigneeManager}</option>
-            <option value="both">${t.meeting.assigneeBoth}</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="due_on">${t.meeting.dueOn}</label>
-          <input type="date" id="due_on" name="due_on" />
-        </div>
-      </div>
-      <div class="field">
-        <label for="visibility">${t.meeting.actionVisibility}</label>
-        <select id="visibility" name="visibility">
-          <option value="shared">${t.meeting.visibilityShared}</option>
-          <option value="private">${t.meeting.visibilityPrivate}</option>
-        </select>
-      </div>
-      <button class="primary" type="submit">${t.common.add}</button>
-    </form>
+    ${agreementsSection({
+      locale: o.locale, meetingId: m.id, actions: o.agreements, editable, today: o.today,
+    })}
 
     <h2>${t.meeting.privateNotes}</h2>
     <div class="private-head">

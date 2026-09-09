@@ -26,6 +26,7 @@ function render(db: Database, meetingId: number): string {
     answers: new Map(),
     answered: answeredFieldIds(db, meetingId),
     carryOver: [],
+    agreements: [],
     shares: [],
     today: "2026-09-07",
   });

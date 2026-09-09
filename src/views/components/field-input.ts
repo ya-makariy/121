@@ -1,6 +1,7 @@
 import { html, raw, type Raw } from "../html.ts";
 import type { FieldWithOptions, Locale } from "../../db/types.ts";
 import { dict } from "../../i18n/index.ts";
+import { dateField } from "./date-field.ts";
 import { formatDate } from "../../i18n/dates.ts";
 
 /**
@@ -75,6 +76,8 @@ export function optionName(fieldId: number): string {
 
 export function fieldInput(
   field: FieldWithOptions, value: AnswerValue, meetingId: number, locale: Locale,
+  /** Today in the manager's timezone — the calendar never asks the browser (rule 4). */
+  today: string,
 ): Raw {
   const t = dict(locale);
   const url = `/meetings/${meetingId}/answers/${field.id}`;
@@ -134,7 +137,11 @@ export function fieldInput(
       break;
 
     case "date":
-      control = html`<input id="${id}" type="date" name="${valueName(field.id)}" value="${value.date ?? ""}" ${hx} />`;
+      // The app's own field, not the browser's: day-month-year in every browser, and a
+      // calendar big enough to click. See views/components/date-field.ts.
+      control = dateField({
+        locale, id, name: valueName(field.id), value: value.date, today, attrs: hx,
+      });
       break;
 
     case "single_select":

@@ -18,6 +18,18 @@ export const en: Dict = {
     join: "Open the call", joinShort: "Call",
   },
 
+  /** The date field and its calendar. See views/components/date-field.ts. */
+  dates: {
+    format: "DD.MM.YYYY",
+    openCalendar: "Open the calendar",
+    prevMonth: "Previous month",
+    nextMonth: "Next month",
+    today: "Today",
+    clear: "Clear",
+    close: "Close",
+    chooseDate: "Pick a date",
+  },
+
   dashboard: {
     title: "Dashboard",
     cadence: "Cadence",
@@ -104,6 +116,10 @@ export const en: Dict = {
     carryOver: "From last time",
     carryOverEmpty: "No open agreements.",
     newAction: "New agreement",
+    agreedHere: "Agreed in this 1:1",
+    agreedHereEmpty: "Nothing yet. Add the first agreement below.",
+    agreedHereHint: "While the meeting is a draft any of these can be dropped. Completing the meeting enters them.",
+    removeAction: "Drop",
     actionTitle: "What we do",
     assignee: "Owner", assigneeManager: "On me", assigneePerson: "On them",
     assigneeBoth: "On both",

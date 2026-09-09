@@ -36,7 +36,7 @@ describe("the privacy label", () => {
     const page = meetingPage({
       locale: "en", theme: "auto", meeting, person: getPerson(db, personId, 1)!, sections,
       answers: new Map(), answered: answeredFieldIds(db, meetingId),
-      carryOver: [], shares: [], today: "2026-09-07",
+      carryOver: [], agreements: [], shares: [], today: "2026-09-07",
     });
 
     expect(page).toContain('class="private-head"');

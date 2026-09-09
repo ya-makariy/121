@@ -12,6 +12,7 @@ import { listActionsForPerson } from "../db/queries/actions.ts";
 import { metricsWithDataForPerson } from "../db/queries/metrics.ts";
 import { cadenceOverview } from "../db/queries/cadence.ts";
 import { peopleListPage, personFormPage } from "../views/pages/people.ts";
+import { parseDateInput } from "../lib/dates.ts";
 import { personPage } from "../views/pages/person.ts";
 import type { PersonRow } from "../db/types.ts";
 import { loc } from "../middleware/locale.ts";
@@ -77,7 +78,8 @@ function parsePersonInput(form: Record<string, unknown>): PersonInput {
     email: str("email"),
     role_title: str("role_title"),
     cadence_days: cadence === null ? null : Number.parseInt(cadence, 10),
-    cadence_anchor_on: str("cadence_anchor_on"),
+    // Day-month-year in, canonical YYYY-MM-DD stored (rule 4, lib/dates.ts).
+    cadence_anchor_on: parseDateInput(str("cadence_anchor_on") ?? ""),
     default_template_id: str("default_template_id") === null
       ? null
       : Number.parseInt(str("default_template_id")!, 10),
@@ -116,6 +118,7 @@ peopleRoutes.get("/people", (c) =>
 
 peopleRoutes.get("/people/new", (c) =>
   c.html(personFormPage({
+    today: today(user(c).timezone),
     locale: loc(c), theme: thm(c), person: null, templates: listTemplates(db(), OWNER_ID),
     teams: listTeams(db(), OWNER_ID),
   })));
@@ -126,6 +129,7 @@ peopleRoutes.post("/people", async (c) => {
   const showForm = (error: string) =>
     c.html(
       personFormPage({
+        today: today(user(c).timezone),
         locale: loc(c), theme: thm(c),
         // Rendered as a draft with id 0, so the form still posts to /people.
         person: null,
@@ -197,6 +201,7 @@ peopleRoutes.get("/people/:id/edit", (c) => {
   const person = getPerson(db(), id, OWNER_ID);
   if (!person) return c.notFound();
   return c.html(personFormPage({
+    today: today(user(c).timezone),
     locale: loc(c), theme: thm(c), person, templates: listTemplates(db(), OWNER_ID),
     teams: listTeams(db(), OWNER_ID), memberships: teamsForPerson(db(), id),
   }));
@@ -211,6 +216,7 @@ peopleRoutes.post("/people/:id", async (c) => {
     if (!person) return c.notFound();
     return c.html(
       personFormPage({
+        today: today(user(c).timezone),
         locale: loc(c), theme: thm(c), person, draft: draftPerson(form, person),
         templates: listTemplates(db(), OWNER_ID), teams: listTeams(db(), OWNER_ID),
         memberships: teamsForPerson(db(), id), teamDraft: team, error,

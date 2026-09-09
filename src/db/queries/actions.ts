@@ -31,6 +31,10 @@ export function openActions(
        WHERE ai.status IN ('open','in_progress')
          AND ai.owner_id = ?
          AND (? IS NULL OR ai.person_id = ?)
+         -- An agreement written down mid-meeting is not an obligation yet: the meeting is
+         -- still a draft and the line may still be dropped. It enters the open list when
+         -- the meeting is completed, which is the moment the two people agreed to it.
+         AND COALESCE(cm.status, 'completed') = 'completed'
        ORDER BY is_late DESC, (ai.due_on IS NULL), ai.due_on, age_days DESC, ai.id`,
     )
     .all(today, today, ownerId, personId, personId) as OpenActionRow[];
@@ -102,4 +106,44 @@ export function recordActionReview(
      ON CONFLICT (meeting_id, action_item_id) DO UPDATE SET status_at_review = excluded.status_at_review`,
   );
   for (const item of items) ins.run(meetingId, item.id, item.status);
+}
+
+/**
+ * The agreements written down during THIS meeting, newest last.
+ *
+ * Deliberately not openActions(): that one answers "what is outstanding", and until the
+ * meeting is completed these are not. This is the running list on the meeting page — what
+ * we have agreed so far, in the order we agreed it.
+ */
+export function actionsCreatedIn(db: Database, meetingId: number): ActionItemRow[] {
+  return db
+    .query<ActionItemRow, [number]>(
+      "SELECT * FROM action_item WHERE created_meeting_id = ? ORDER BY id",
+    )
+    .all(meetingId);
+}
+
+/**
+ * Drops an agreement that was written down in this meeting and never left it.
+ *
+ * This is not a hole in rule 5. What the rule protects is history, and an agreement raised
+ * two minutes ago in a meeting that is still a draft has none: it has never been carried
+ * over, never been reviewed, never been closed, and nothing points at it. The guards below
+ * say exactly that, in SQL rather than in the caller — it must have been created here, it
+ * must still be open, and no meeting may have reviewed it. Anything else is a real
+ * agreement with a past, and it is closed with a status, not deleted.
+ */
+export function deleteMeetingAction(
+  db: Database, id: number, meetingId: number, ownerId = 1,
+): boolean {
+  return db
+    .query(
+      `DELETE FROM action_item
+        WHERE id = ? AND owner_id = ? AND created_meeting_id = ?
+          AND status = 'open' AND closed_at IS NULL AND closed_meeting_id IS NULL
+          AND NOT EXISTS (
+            SELECT 1 FROM meeting_action_review r WHERE r.action_item_id = action_item.id
+          )`,
+    )
+    .run(id, ownerId, meetingId).changes > 0;
 }

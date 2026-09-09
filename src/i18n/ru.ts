@@ -17,6 +17,18 @@ export const ru = {
     join: "Открыть встречу", joinShort: "Созвон",
   },
 
+  /** The date field and its calendar. See views/components/date-field.ts. */
+  dates: {
+    format: "ДД.ММ.ГГГГ",
+    openCalendar: "Открыть календарь",
+    prevMonth: "Предыдущий месяц",
+    nextMonth: "Следующий месяц",
+    today: "Сегодня",
+    clear: "Очистить",
+    close: "Закрыть",
+    chooseDate: "Выберите дату",
+  },
+
   dashboard: {
     title: "Дашборд",
     cadence: "Каденс",
@@ -108,6 +120,10 @@ export const ru = {
     carryOver: "С прошлого раза",
     carryOverEmpty: "Незакрытых договорённостей нет.",
     newAction: "Новая договорённость",
+    agreedHere: "Договорились на этой встрече",
+    agreedHereEmpty: "Пока ничего. Добавьте первую договорённость ниже.",
+    agreedHereHint: "Пока встреча в черновике, любую можно убрать. Завершение встречи заводит их.",
+    removeAction: "Убрать",
     actionTitle: "Что делаем",
     assignee: "На кого", assigneeManager: "На мне", assigneePerson: "На подопечном",
     assigneeBoth: "На обоих",

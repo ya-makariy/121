@@ -1,6 +1,6 @@
 import type { Database } from "bun:sqlite";
 import type { AnswerRow, FieldWithOptions } from "../db/types.ts";
-import { isDateOnly, nowIso } from "../lib/dates.ts";
+import { nowIso, parseDateInput } from "../lib/dates.ts";
 import { AnswerValidationError } from "../lib/errors.ts";
 
 /**
@@ -74,8 +74,11 @@ export function normalizeAnswer(field: FieldWithOptions, raw: RawAnswer): Answer
     }
 
     case "date": {
-      const v = (raw.value ?? "").trim();
-      if (!isDateOnly(v)) {
+      // The field posts day-month-year (views/components/date-field.ts); the column keeps
+      // YYYY-MM-DD, as rule 4 requires. parseDateInput accepts either and is the only
+      // place that reading is undone.
+      const v = parseDateInput(raw.value ?? "");
+      if (v === null) {
         throw new AnswerValidationError("ANSWER_BAD_DATE", { label: field.label });
       }
       return { ...empty, date_value: v };

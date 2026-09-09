@@ -78,6 +78,12 @@ export function cadenceOverview(db: Database, today: string, ownerId = 1): Perso
          SELECT person_id, COUNT(*) AS cnt
          FROM action_item
          WHERE status IN ('open','in_progress')
+           -- The same gate queries/actions.ts:openActions applies, for the same reason and
+           -- so that the number on the row keeps agreeing with the list it summarises: an
+           -- agreement raised in a meeting still being held is not open yet.
+           AND COALESCE(
+                 (SELECT m.status FROM meeting m WHERE m.id = action_item.created_meeting_id),
+                 'completed') = 'completed'
          GROUP BY person_id
        ) oa ON oa.person_id = p.id
        WHERE p.archived_at IS NULL AND p.owner_id = ?`,

@@ -1,4 +1,4 @@
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { thm } from "../middleware/theme.ts";
 import { db } from "../db/index.ts";
 import { getPerson } from "../db/queries/people.ts";
@@ -7,7 +7,9 @@ import {
   answeredFieldIds, completeMeeting, createMeeting, getMeeting, listAnswerOptionKeys,
   listAnswers, reopenMeeting, updateMeetingFields,
 } from "../db/queries/meetings.ts";
-import { createAction, openActions, recordActionReview } from "../db/queries/actions.ts";
+import {
+  actionsCreatedIn, createAction, deleteMeetingAction, openActions, recordActionReview,
+} from "../db/queries/actions.ts";
 import { listShareLinks } from "../db/queries/shares.ts";
 import { meetingPage, newMeetingPage } from "../views/pages/meeting.ts";
 import { loc } from "../middleware/locale.ts";
@@ -15,17 +17,36 @@ import { OWNER_ID, user } from "../middleware/current-user.ts";
 import { today } from "../domain/cadence.ts";
 import { saveAnswer } from "../domain/answers.ts";
 import { optionName, valueName, type AnswerValue } from "../views/components/field-input.ts";
-import type { Assignee, Visibility } from "../db/types.ts";
+import type { Assignee, MeetingRow, Visibility } from "../db/types.ts";
 import { dict } from "../i18n/index.ts";
 import { escapeHtml } from "../views/html.ts";
 import { errorMessage } from "../i18n/index.ts";
 import { SnapshotError } from "../lib/errors.ts";
+import { agreementList } from "../views/components/meeting-agreements.ts";
+import { parseDateInput } from "../lib/dates.ts";
 
 export const meetingRoutes = new Hono();
 
 function str(form: Record<string, unknown>, key: string): string | null {
   const v = form[key];
   return typeof v === "string" && v.trim() !== "" ? v.trim() : null;
+}
+
+/**
+ * A date as the field sends it, back to the canonical YYYY-MM-DD (rule 4).
+ *
+ * The app renders day-month-year because a native date control renders whatever the
+ * browser feels like; parseDateInput is the one place that reading is undone, and it
+ * accepts the canonical form too, so nothing that already worked stopped working.
+ */
+function date(form: Record<string, unknown>, key: string): string | null {
+  const v = str(form, key);
+  return v === null ? null : parseDateInput(v);
+}
+
+/** True when this request came from htmx and wants the fragment, not a redirect. */
+function wantsPartial(c: Context): boolean {
+  return c.req.header("HX-Request") !== undefined;
 }
 
 meetingRoutes.get("/people/:id/meetings/new", (c) => {
@@ -47,7 +68,7 @@ meetingRoutes.post("/people/:id/meetings", async (c) => {
   if (!person) return c.notFound();
 
   const form = await c.req.parseBody();
-  const heldOn = str(form, "held_on") ?? today(user(c).timezone);
+  const heldOn = date(form, "held_on") ?? today(user(c).timezone);
   const templateIdRaw = str(form, "template_id");
 
   // The meeting binds to the CURRENT template version and freezes it: any later edit to
@@ -112,6 +133,9 @@ meetingRoutes.get("/meetings/:id", (c) => {
       answered: answeredFieldIds(db(), id),
       carryOver: openActions(db(), today(user(c).timezone), meeting.person_id, OWNER_ID)
         .filter((a) => a.created_meeting_id !== id),
+      // What was agreed here, in the order it was agreed. openActions above answers a
+      // different question and deliberately excludes these.
+      agreements: actionsCreatedIn(db(), id),
       shares: listShareLinks(db(), id),
       today: today(user(c).timezone),
     }),
@@ -174,6 +198,14 @@ meetingRoutes.post("/meetings/:id/private-notes", async (c) => {
   return c.redirect(`/meetings/${id}`, 303);
 });
 
+/**
+ * Writes down one agreement and answers with the running list.
+ *
+ * The answer is the list fragment, not a redirect: a 303 back to /meetings/:id reloaded a
+ * page that can be 1600px long and dropped you at the top of it, having shown you nothing
+ * of what you had just agreed. Without htmx the redirect is still there, so the form works
+ * with scripting off.
+ */
 meetingRoutes.post("/meetings/:id/actions", async (c) => {
   const id = Number.parseInt(c.req.param("id"), 10);
   const meeting = getMeeting(db(), id, OWNER_ID);
@@ -181,22 +213,40 @@ meetingRoutes.post("/meetings/:id/actions", async (c) => {
 
   const form = await c.req.parseBody();
   const title = str(form, "title");
-  if (title === null) return c.redirect(`/meetings/${id}`, 303);
+  if (title !== null) {
+    createAction(
+      db(),
+      {
+        person_id: meeting.person_id,
+        created_meeting_id: id,
+        title,
+        details: str(form, "details"),
+        assignee: (str(form, "assignee") ?? "person") as Assignee,
+        visibility: (str(form, "visibility") ?? "shared") as Visibility,
+        due_on: date(form, "due_on"),
+      },
+      OWNER_ID,
+    );
+  }
+  return respondWithAgreements(c, meeting);
+});
 
-  createAction(
-    db(),
-    {
-      person_id: meeting.person_id,
-      created_meeting_id: id,
-      title,
-      details: str(form, "details"),
-      assignee: (str(form, "assignee") ?? "person") as Assignee,
-      visibility: (str(form, "visibility") ?? "shared") as Visibility,
-      due_on: str(form, "due_on"),
-    },
-    OWNER_ID,
-  );
-  return c.redirect(`/meetings/${id}`, 303);
+/**
+ * Drops an agreement raised in this meeting, while the meeting is still open.
+ *
+ * The guards that make this safe are in the SQL (queries/actions.ts:deleteMeetingAction);
+ * the one added here is the meeting's own status, because a completed meeting's agreements
+ * are entered and are closed with a status rather than deleted.
+ */
+meetingRoutes.post("/meetings/:id/actions/:actionId/delete", (c) => {
+  const id = Number.parseInt(c.req.param("id"), 10);
+  const meeting = getMeeting(db(), id, OWNER_ID);
+  if (!meeting) return c.notFound();
+
+  if (meeting.status === "draft" || meeting.status === "scheduled") {
+    deleteMeetingAction(db(), Number.parseInt(c.req.param("actionId"), 10), id, OWNER_ID);
+  }
+  return respondWithAgreements(c, meeting);
 });
 
 meetingRoutes.post("/meetings/:id/complete", (c) => {
@@ -221,3 +271,16 @@ meetingRoutes.post("/meetings/:id/reopen", (c) => {
   reopenMeeting(db(), id, OWNER_ID);
   return c.redirect(`/meetings/${id}`, 303);
 });
+
+/** The list fragment for htmx, the old redirect for a browser without it. */
+function respondWithAgreements(c: Context, meeting: MeetingRow) {
+  if (!wantsPartial(c)) return c.redirect(`/meetings/${meeting.id}`, 303);
+  return c.html(
+    agreementList({
+      locale: loc(c),
+      meetingId: meeting.id,
+      actions: actionsCreatedIn(db(), meeting.id),
+      editable: meeting.status === "draft" || meeting.status === "scheduled",
+    }).value,
+  );
+}
