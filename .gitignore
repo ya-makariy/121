@@ -6,3 +6,4 @@ data/
 *.sqlite-wal
 *.sqlite-shm
 design/out/
+.claude/worktrees/
