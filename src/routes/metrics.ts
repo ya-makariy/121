@@ -8,7 +8,7 @@ import { errorMessage } from "../i18n/index.ts";
 import { OWNER_ID } from "../middleware/current-user.ts";
 import {
   createMetric, getMetric, MetricEditError, metricIsReferenced, metricsWithUsage,
-  nextDisplayOrder, removeMetric, restoreMetric, updateMetric,
+  moveMetric, removeMetric, reorderMetrics, restoreMetric, updateMetric,
 } from "../domain/metrics-editor.ts";
 import type { MetricKind } from "../db/types.ts";
 
@@ -31,7 +31,6 @@ function render(c: Context, error: string | null = null) {
       archived: all.filter((m) => m.archived_at !== null),
       editing,
       editingReferenced: editing !== null && metricIsReferenced(db(), editing.id),
-      nextOrder: nextDisplayOrder(db(), OWNER_ID),
       error,
     }),
   );
@@ -52,10 +51,32 @@ metricRoutes.post("/metrics", async (c) => {
         description: str(form, "description"),
         kind,
         direction: str(form, "direction") === "-1" ? -1 : 1,
-        displayOrder: Number.parseInt(str(form, "display_order") ?? "100", 10) || 100,
       },
       OWNER_ID,
     );
+  } catch (err) {
+    if (err instanceof MetricEditError) return render(c, errorMessage(loc(c), err));
+    throw err;
+  }
+  return c.redirect("/metrics", 303);
+});
+
+// Dragging a row sends the whole order as JSON; the arrows beside a row post a plain form
+// and work with JS off. Both are declared before the `/metrics/:id` handlers so that the
+// literal path segments win over the parameter.
+metricRoutes.post("/metrics/reorder", async (c) => {
+  const body = await c.req.json<{ keys?: string[] }>().catch(() => ({ keys: [] }));
+  const keys = Array.isArray(body.keys) ? body.keys.filter((k) => typeof k === "string") : [];
+  reorderMetrics(db(), keys, OWNER_ID);
+  return c.json({ ok: true });
+});
+
+metricRoutes.post("/metrics/:id/move", async (c) => {
+  const id = Number.parseInt(c.req.param("id"), 10);
+  const form = await c.req.parseBody();
+  const direction = str(form, "direction") === "up" ? "up" : "down";
+  try {
+    moveMetric(db(), id, direction, OWNER_ID);
   } catch (err) {
     if (err instanceof MetricEditError) return render(c, errorMessage(loc(c), err));
     throw err;
@@ -74,7 +95,6 @@ metricRoutes.post("/metrics/:id", async (c) => {
         label: str(form, "label") ?? "",
         description: str(form, "description"),
         direction: str(form, "direction") === "-1" ? -1 : 1,
-        displayOrder: Number.parseInt(str(form, "display_order") ?? "100", 10) || 100,
       },
       OWNER_ID,
     );

@@ -290,7 +290,7 @@ export const en: Dict = {
     directionUp: "Higher is better",
     directionDown: "Higher is worse",
     directionHint: "This decides what counts as getting worse: the colour of the change and the order in the attention list.",
-    displayOrder: "Order in lists",
+    orderHint: "This is the order of metrics in every list and dropdown. Reorder by dragging or with the arrows.",
     usedIn: "used in",
     fields: "fields",
     templates: "templates",

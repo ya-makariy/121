@@ -11,7 +11,6 @@ export function metricsPage(o: {
   archived: MetricUsage[];
   editing: MetricRow | null;
   editingReferenced: boolean;
-  nextOrder: number;
   error: string | null;
 }): string {
   const t = dict(o.locale);
@@ -75,11 +74,6 @@ export function metricsPage(o: {
           </select>
         </div>
       </div>
-      <div class="field">
-        <label>${t.metrics.displayOrder}</label>
-        <input type="number" name="display_order" min="1" max="99"
-               value="${editing?.display_order ?? o.nextOrder}" />
-      </div>
       <div class="actions-bar">
         <button class="primary" type="submit">${editing ? t.common.save : t.metrics.add}</button>
         ${editing ? html`<a class="btn" href="/metrics">${t.common.cancel}</a>` : ""}
@@ -107,13 +101,20 @@ export function metricsPage(o: {
     ${form}
 
     <h2>${t.metrics.title}</h2>
+    <p class="small muted">${t.metrics.orderHint}</p>
     ${o.metrics.length === 0
       ? html`<div class="empty">${t.metrics.empty}</div>`
       : html`
-          <div class="rows">
+          <!--
+            The order of this list is the order of every metric dropdown in the app
+            (metric.display_order). It is edited here and only here: by dragging a row,
+            or with the arrows, which are plain forms and work without the script.
+          -->
+          <div class="rows" data-reorder="metrics" data-url="/metrics/reorder">
             ${o.metrics.map(
               (m) => html`
-                <div class="row">
+                <div class="row" draggable="true" data-key="${m.key}">
+                  <span class="handle" title="${t.metrics.orderHint}">⠿</span>
                   <span class="badge ${m.direction === 1 ? "ok" : "due_soon"}">
                     ${m.direction === 1 ? "↑" : "↓"}
                   </span>
@@ -125,13 +126,24 @@ export function metricsPage(o: {
                     ${m.description ? html`<div class="small muted">${m.description}</div>` : ""}
                     <div>${usageLine(m)}</div>
                   </div>
-                  <a class="btn small-btn" href="/metrics?edit=${m.id}">${t.common.edit}</a>
-                  <form method="post" action="/metrics/${m.id}/remove"
-                        onsubmit="return confirm('${
-                          m.referenced ? t.metrics.archiveUsedConfirm : t.metrics.removeUnusedConfirm
-                        }')">
-                    <button class="link danger" type="submit">${t.metrics.remove}</button>
-                  </form>
+                  <!-- A div, not a span: it holds forms, and a form is flow content. -->
+                  <div class="controls">
+                    <form method="post" action="/metrics/${m.id}/move">
+                      <input type="hidden" name="direction" value="up" />
+                      <button class="link" type="submit" title="${t.editor.up}">↑</button>
+                    </form>
+                    <form method="post" action="/metrics/${m.id}/move">
+                      <input type="hidden" name="direction" value="down" />
+                      <button class="link" type="submit" title="${t.editor.down}">↓</button>
+                    </form>
+                    <a class="btn small-btn" href="/metrics?edit=${m.id}">${t.common.edit}</a>
+                    <form method="post" action="/metrics/${m.id}/remove"
+                          onsubmit="return confirm('${
+                            m.referenced ? t.metrics.archiveUsedConfirm : t.metrics.removeUnusedConfirm
+                          }')">
+                      <button class="link danger" type="submit">${t.metrics.remove}</button>
+                    </form>
+                  </div>
                 </div>
               `,
             )}
@@ -162,6 +174,7 @@ export function metricsPage(o: {
   `;
 
   return layout({
-    locale: o.locale, theme: o.theme, title: t.metrics.title, nav: "metrics", path: "/metrics", body,
+    locale: o.locale, theme: o.theme, title: t.metrics.title, nav: "metrics", path: "/metrics",
+    body: html`${body}<script src="/reorder.js"></script>`,
   });
 }
