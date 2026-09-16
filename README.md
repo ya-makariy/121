@@ -9,6 +9,13 @@ the report that leaves out the private part.
 Runs locally: Bun + SQLite, no build step, no external services, no CDN. Data about people
 is sensitive and should not end up in someone else's SaaS.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/compare-dark.png">
+  <img alt="The Compare page on demo data: team average with a min–max band, four individual lines, and the “who needs attention” list" src="docs/compare-light.png" width="1280">
+</picture>
+
+*The Compare page on `bun run demo` data. The screenshot follows your colour scheme: light and dark are two separately validated palettes.*
+
 ## Running
 
 ```sh
