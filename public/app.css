@@ -328,10 +328,18 @@ a { color: var(--accent); }
    that a drag carries it — see the comment in views/pages/template-editor.ts. The card
    keeps the surface and wears only the spine. */
 .section-card.private { border-left: 3px solid var(--private); }
+/* The label fills the card's padding box, so it sits *inside* the card's border: its
+   corners must follow the border's inner radius (outer radius minus the border width on
+   each side — 3px of spine on the left, 1px elsewhere), or a sliver of card shows around
+   them and the two rounded edges read as misaligned. The card already wears the spine,
+   so the label does not draw its own inset one on top of it. */
 .section-card > .private-head {
   margin: -14px -14px var(--s-4);
   border-width: 0 0 1px;
-  border-radius: var(--radius) var(--radius) 0 0;
+  border-top-left-radius: calc(var(--radius) - 3px) calc(var(--radius) - 1px);
+  border-top-right-radius: calc(var(--radius) - 1px);
+  border-bottom-left-radius: 0; border-bottom-right-radius: 0;
+  box-shadow: 0 2px 12px -8px var(--glow-private);
 }
 .rows { display: flex; flex-direction: column; gap: var(--s-3); }
 /* A row wraps at the width where its text stops being text, not at a breakpoint ----------
