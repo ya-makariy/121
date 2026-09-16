@@ -51,7 +51,8 @@ export interface MetricInput {
   description: string | null;
   kind: MetricKind;
   direction: 1 | -1;
-  displayOrder: number;
+  /** Position in lists. Omitted on create = appended; omitted on update = unchanged. */
+  displayOrder?: number;
 }
 
 export function createMetric(db: Database, input: MetricInput, ownerId = 1): MetricRow {
@@ -73,7 +74,7 @@ export function createMetric(db: Database, input: MetricInput, ownerId = 1): Met
     )
     .get(
       ownerId, key, label, input.description, input.kind, input.direction,
-      input.displayOrder, nowIso(),
+      input.displayOrder ?? nextDisplayOrder(db, ownerId), nowIso(),
     )!;
 }
 
@@ -112,7 +113,70 @@ export function updateMetric(
       `UPDATE metric SET key = ?, label = ?, description = ?, direction = ?, display_order = ?
        WHERE id = ? AND owner_id = ? RETURNING *`,
     )
-    .get(key, label, input.description, input.direction, input.displayOrder, metricId, ownerId)!;
+    .get(
+      key, label, input.description, input.direction,
+      input.displayOrder ?? existing.display_order, metricId, ownerId,
+    )!;
+}
+
+// ─────────────────────────────────────────────────────────── order
+
+/**
+ * The order of metrics in every dropdown and list is data (`display_order`, migration
+ * 0004), but the number itself is not something to type in: it is set by dragging a row
+ * or by the arrows beside it, and renumbered 1..n after every change so the two ways of
+ * moving things never disagree about what "one step" is.
+ */
+function normalizeDisplayOrder(db: Database, ownerId: number): void {
+  const rows = db
+    .query<{ id: number }, [number]>(
+      "SELECT id FROM metric WHERE owner_id = ? ORDER BY display_order, label, id",
+    )
+    .all(ownerId);
+  const upd = db.query("UPDATE metric SET display_order = ? WHERE id = ?");
+  rows.forEach((r, i) => upd.run(i + 1, r.id));
+}
+
+/** One step up or down among the active metrics; a no-op at either end. */
+export function moveMetric(
+  db: Database, metricId: number, direction: "up" | "down", ownerId = 1,
+): void {
+  normalizeDisplayOrder(db, ownerId);
+  const current = db
+    .query<{ display_order: number }, [number, number]>(
+      "SELECT display_order FROM metric WHERE id = ? AND owner_id = ?",
+    )
+    .get(metricId, ownerId);
+  if (!current) throw new MetricEditError("METRIC_NOT_FOUND");
+  // Archived metrics are skipped over: they are not on the screen being reordered.
+  const neighbour = db
+    .query<{ id: number; display_order: number }, [number, number]>(
+      direction === "up"
+        ? `SELECT id, display_order FROM metric
+           WHERE owner_id = ? AND archived_at IS NULL AND display_order < ?
+           ORDER BY display_order DESC LIMIT 1`
+        : `SELECT id, display_order FROM metric
+           WHERE owner_id = ? AND archived_at IS NULL AND display_order > ?
+           ORDER BY display_order LIMIT 1`,
+    )
+    .get(ownerId, current.display_order);
+  if (!neighbour) return;
+  const upd = db.query("UPDATE metric SET display_order = ? WHERE id = ?");
+  upd.run(neighbour.display_order, metricId);
+  upd.run(current.display_order, neighbour.id);
+}
+
+/**
+ * A whole ordering by key — this is what dragging sends. Keys not listed (archived
+ * metrics, or a metric added in another tab) keep their relative place after the listed
+ * ones; nothing is lost because a client sent a partial list.
+ */
+export function reorderMetrics(db: Database, keys: string[], ownerId = 1): void {
+  const upd = db.query("UPDATE metric SET display_order = ? WHERE owner_id = ? AND key = ?");
+  db.query("UPDATE metric SET display_order = display_order + ? WHERE owner_id = ?")
+    .run(keys.length, ownerId);
+  keys.forEach((key, i) => upd.run(i + 1, ownerId, key));
+  normalizeDisplayOrder(db, ownerId);
 }
 
 /**

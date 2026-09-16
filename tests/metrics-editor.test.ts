@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { testDb, makePerson, makeMeeting, completeMeeting, defaultVersionId } from "./helpers.ts";
 import {
   assertValidKey, createMetric, metricHasData, metricIsReferenced, metricsWithUsage,
-  removeMetric, restoreMetric, suggestKey, updateMetric,
+  moveMetric, removeMetric, reorderMetrics, restoreMetric, suggestKey, updateMetric,
 } from "../src/domain/metrics-editor.ts";
 import { addField, validateTemplate } from "../src/domain/template-editor.ts";
 import { currentVersion } from "../src/domain/template-version.ts";
@@ -206,5 +206,64 @@ describe("metrics editor", () => {
     expect(() => saveAnswer(db, meetingId, withOptions, {
       optionKeys: [withOptions.options[0]!.option_key],
     })).toThrow(/ANSWER_OPTION_NEEDS_SCORE/);
+  });
+
+  // ---- order --------------------------------------------------------------------------
+  // display_order is data (migration 0004) but never a number the user types: the list on
+  // /metrics is reordered by dragging or with the arrows, and both ways renumber 1..n.
+
+  const activeKeys = (db: ReturnType<typeof testDb>) =>
+    metricsWithUsage(db).map((m) => m.key);
+
+  test("the arrows swap a metric with its neighbour and stop at the ends", () => {
+    const db = testDb();
+    const before = activeKeys(db);
+    const first = getMetricByKey(db, before[0]!)!;
+    const second = getMetricByKey(db, before[1]!)!;
+
+    moveMetric(db, second.id, "up");
+    expect(activeKeys(db).slice(0, 2)).toEqual([second.key, first.key]);
+
+    moveMetric(db, second.id, "up"); // already first: nothing happens
+    expect(activeKeys(db).slice(0, 2)).toEqual([second.key, first.key]);
+
+    moveMetric(db, second.id, "down");
+    expect(activeKeys(db)).toEqual(before);
+
+    // Positions are consecutive afterwards, whatever the seed used (it used 90 for one).
+    const orders = metricsWithUsage(db).map((m) => m.display_order);
+    expect(orders).toEqual(orders.map((_, i) => i + 1));
+  });
+
+  test("dragging sends the whole order; keys left out keep their place after it", () => {
+    const db = testDb();
+    const keys = activeKeys(db);
+    const reversed = [...keys].reverse();
+    reorderMetrics(db, reversed);
+    expect(activeKeys(db)).toEqual(reversed);
+
+    // A partial list (a metric created in another tab, say) puts the listed ones first
+    // and the rest after, in their previous relative order — nothing disappears.
+    const [a, b, ...rest] = reversed;
+    reorderMetrics(db, [b!, a!]);
+    expect(activeKeys(db)).toEqual([b!, a!, ...rest]);
+  });
+
+  test("an archived metric is skipped by the arrows but keeps a place in the order", () => {
+    const db = testDb();
+    const keys = activeKeys(db);
+    const middle = getMetricByKey(db, keys[1]!)!;
+    // Reference it so removal archives instead of deleting.
+    addField(db, TEMPLATE_ID, loadVersionStructure(db, currentVersion(db, TEMPLATE_ID).id)[0]!.section_key, {
+      label: "Q", helpText: null, type: "scale", visibility: "shared", isRequired: false,
+      metricId: middle.id, scaleMin: 1, scaleMax: 5, scaleMinLabel: null, scaleMaxLabel: null,
+    });
+    expect(removeMetric(db, middle.id)).toBe("archived");
+
+    const first = getMetricByKey(db, keys[0]!)!;
+    moveMetric(db, first.id, "down");
+    // The first metric lands after the one that followed the archived gap, not in the gap.
+    expect(activeKeys(db).slice(0, 2)).toEqual([keys[2]!, keys[0]!]);
+    expect(metricsWithUsage(db, 1, true).map((m) => m.key)).toContain(middle.key);
   });
 });

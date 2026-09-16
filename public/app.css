@@ -661,7 +661,7 @@ pre.md {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 14px; margin-bottom: 14px;
 }
-.section-card.dragging, .field-row.dragging { opacity: .45; }
+.section-card.dragging, .field-row.dragging, .row.dragging { opacity: .45; }
 
 .section-bar, .field-bar {
   display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap;
