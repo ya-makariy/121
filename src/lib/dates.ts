@@ -60,6 +60,16 @@ export function daysBetween(from: string, to: string): number {
  */
 const TYPED_DATE_RE = /^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})$/;
 
+/**
+ * The same acceptance as parseDateInput, as an HTML `pattern` for the date field: a typed
+ * day-month-year with any of the three separators, or the canonical form. The browser
+ * refuses to submit anything else, so "text in a date field" is caught before the server
+ * silently stores no date. Whether the date *exists* (31.02.) is still the server's call.
+ */
+// Browsers compile `pattern` with the `v` flag, where `/` and `-` inside a class must be
+// escaped; a pattern that fails to compile is silently ignored, so this is checked by a test.
+export const DATE_INPUT_PATTERN = "\\s*(\\d{1,2}[.\\/\\-]\\d{1,2}[.\\/\\-]\\d{4}|\\d{4}-\\d{2}-\\d{2})\\s*";
+
 /** True for a date that exists: 31.02.2026 parses and is still not a day. */
 function isRealDate(iso: string): boolean {
   const [y, m, d] = iso.split("-").map((x) => Number.parseInt(x, 10)) as [number, number, number];

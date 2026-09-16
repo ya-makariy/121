@@ -95,7 +95,8 @@ export function comparePage(o: {
         data-load-failed="${t.charts.loadFailed}"
         data-src="/api/charts/compare/metric/${metric.key}?x=1${teamQuery}"></canvas></div>
       <p class="chart-note" id="compare-note"></p>
-      <fieldset class="people-toggles" id="people-toggles">
+      <fieldset class="people-toggles" id="people-toggles"
+                data-all="${t.compare.selectAll}" data-none="${t.compare.selectNone}">
         <legend class="small muted">${t.compare.showPeople}</legend>
       </fieldset>
     </div>

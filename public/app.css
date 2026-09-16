@@ -426,6 +426,16 @@ textarea { min-height: 92px; resize: vertical; }
 input:focus, select:focus, textarea:focus {
   border-color: var(--accent);
 }
+/* A field the browser refused: the border turns, and the reason sits under it in the
+   page's own type — see public/form-validation.js for why the browser's bubble is not
+   used. The date picker is marked as a whole, so the ring includes its calendar button. */
+input.invalid, select.invalid, textarea.invalid, .datepick.invalid .datepick-input {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px var(--danger-soft);
+}
+.field-error {
+  color: var(--danger); font-size: var(--fs-sm); margin: var(--s-1) 0 0;
+}
 .field { margin-bottom: var(--s-5); }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 @media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
@@ -660,6 +670,10 @@ pre.md {
   font-weight: 400; font-size: var(--fs-sm); margin: 0; cursor: pointer;
 }
 .people-toggles input { width: auto; }
+.people-toggles .toggle-all {
+  margin-left: auto; font-size: var(--fs-sm); font-weight: 600; color: var(--muted);
+}
+.people-toggles .toggle-all:hover { color: var(--text); }
 .swatch {
   width: 10px; height: 10px; border-radius: 2px; display: inline-block; flex: none;
 }

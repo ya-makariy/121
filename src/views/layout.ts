@@ -24,6 +24,11 @@ export interface LayoutOptions {
   body: Raw;
 }
 
+/** Escapes a dictionary string for an attribute in the raw document shell below. */
+function attr(v: string): string {
+  return v.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+}
+
 export function layout(o: LayoutOptions): string {
   const t = dict(o.locale);
   const other: Locale = o.locale === "ru" ? "en" : "ru";
@@ -89,8 +94,13 @@ export function layout(o: LayoutOptions): string {
 <!-- The calendar behind every date field. Enhancement only: the field is a text input and
      works without it, so the script is deferred and never blocks the page. -->
 <script src="/date-picker.js" defer></script>
+<!-- Validation messages drawn by the page instead of the browser's bubble. The constraints
+     are native and keep working without it; only the wording, read from the data-
+     attributes on <body>, is ours. -->
+<script src="/form-validation.js" defer></script>
 </head>
-<body>
+<body data-v-required="${attr(t.validation.required)}" data-v-date="${attr(t.validation.date)}"
+      data-v-format="${attr(t.validation.format)}" data-v-range="${attr(t.validation.range)}">
 ${page.value}
 </body>
 </html>`;

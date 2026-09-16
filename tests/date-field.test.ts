@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { formatDateInput, parseDateInput } from "../src/lib/dates.ts";
+import { DATE_INPUT_PATTERN, formatDateInput, parseDateInput } from "../src/lib/dates.ts";
 import { monthNames, weekdayNames } from "../src/i18n/dates.ts";
 import { dateField } from "../src/views/components/date-field.ts";
 
@@ -92,6 +92,23 @@ describe("the rendered field", () => {
       locale: "ru", id: "a", name: "a", value: "31.02.2026", today: "2026-09-08",
     }).value;
     expect(out).toContain('value="31.02.2026"');
+  });
+
+  test("the field refuses, in the browser, what the server would not read as a date", () => {
+    const out = dateField({
+      locale: "en", id: "a", name: "a", value: null, today: "2026-09-08",
+    }).value;
+    expect(out).toContain(`pattern="${DATE_INPUT_PATTERN}"`);
+    // The browser compiles `pattern` with the `v` flag and anchors it to the whole value.
+    const re = new RegExp(`^(?:${DATE_INPUT_PATTERN})$`, "v");
+    for (const ok of ["08.09.2026", "8.9.2026", "8/9/2026", "08-09-2026", "2026-09-08", " 08.09.2026 "]) {
+      expect(re.test(ok)).toBe(true);
+      expect(parseDateInput(ok)).not.toBeNull();
+    }
+    for (const bad of ["", "text", "8.9.26", "2026/09/08", "08.09", "\u044b\u0444\u0432"]) {
+      expect(re.test(bad)).toBe(false);
+      expect(parseDateInput(bad)).toBeNull();
+    }
   });
 
   test("every word the picker says is rendered by the server", () => {

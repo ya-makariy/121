@@ -1,7 +1,7 @@
 import { html, raw, type Raw } from "../html.ts";
 import { dict } from "../../i18n/index.ts";
 import { monthNames, weekdayNames } from "../../i18n/dates.ts";
-import { formatDateInput, parseDateInput } from "../../lib/dates.ts";
+import { DATE_INPUT_PATTERN, formatDateInput, parseDateInput } from "../../lib/dates.ts";
 import type { Locale } from "../../db/types.ts";
 
 /**
@@ -55,6 +55,7 @@ export function dateField(o: {
       <input type="text" id="${o.id}" name="${o.name}" class="datepick-input"
              value="${shown}" placeholder="${t.dates.format}"
              inputmode="numeric" autocomplete="off" spellcheck="false"
+             pattern="${DATE_INPUT_PATTERN}"
              ${o.required ? raw("required") : ""} ${o.attrs ?? ""} />
       <button type="button" class="datepick-open" tabindex="-1"
               aria-label="${t.dates.openCalendar}" title="${t.dates.openCalendar}">
