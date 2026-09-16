@@ -1,100 +1,112 @@
 # 121
 
-Self-hosted инструмент для регулярных 1:1 встреч: люди и команды, встречи по кастомному
-плану, динамика метрик во времени, сравнение людей между собой и саммари для подопечного
-без приватной части.
+*Читать по-русски: [README.ru.md](README.ru.md)*
 
-Работает локально: Bun + SQLite, без шага сборки, без внешних сервисов, без CDN.
-Данные о людях чувствительные — они не должны уезжать в чужой SaaS.
+A self-hosted tool for running regular 1:1 meetings: people and teams, meetings driven by a
+custom agenda, metric trends over time, side-by-side comparison of people, and a summary for
+the report that leaves out the private part.
 
-## Запуск
+Runs locally: Bun + SQLite, no build step, no external services, no CDN. Data about people
+is sensitive and should not end up in someone else's SaaS.
+
+## Running
 
 ```sh
 bun install
-cp .env.example .env      # необязательно: значения по умолчанию рабочие
-bun run start             # http://127.0.0.1:3121 — ваши настоящие 1:1
+cp .env.example .env      # optional: the defaults work
+bun run start             # http://127.0.0.1:3121 — your real 1:1s
 ```
 
-Миграции применяются сами при старте. Боевая база — `data/121.sqlite`; каталог `data/`
-целиком в `.gitignore`.
+Migrations apply themselves on start. The real database is `data/121.sqlite`; the whole
+`data/` directory is in `.gitignore`.
 
-Две базы, а не одна: демо-данные и настоящие записи о людях не должны перемешиваться
-даже по случайности, поэтому у режима разработки своя.
+There are two databases, not one: demo data and real records about people must never mix,
+not even by accident, so development gets its own.
 
-| Команда | База | Для чего |
+| Command | Database | Purpose |
 | --- | --- | --- |
-| `bun run start` | `data/121.sqlite` | Настоящая работа. Без watch. |
-| `bun run dev` | `data/dev.sqlite` | Разработка: watch-перезапуск. |
-| `bun run demo` | `data/dev.sqlite` | 4 выдуманных человека, 20 завершённых встреч — посмотреть графики и сравнение на заполненных данных. |
+| `bun run start` | `data/121.sqlite` | Real work. No watch. |
+| `bun run dev` | `data/dev.sqlite` | Development: restart on change. |
+| `bun run demo` | `data/dev.sqlite` | 4 invented people and 20 completed meetings, to look at charts and comparison on populated data. |
 
-`start` не задаёт `DB_PATH` сам, поэтому базу можно перенести куда угодно через `.env`.
-`dev` и `demo`, наоборот, прибиты к `data/dev.sqlite` жёстко: присвоение в командной
-строке сильнее `.env`, и это то, что не даёт `bun run demo` однажды дописать выдуманных
-людей к настоящим. Проверяется тестом `tests/run-targets.test.ts`, а не договорённостью.
+`start` does not set `DB_PATH` itself, so the database can be moved anywhere via `.env`.
+`dev` and `demo`, on the contrary, are pinned to `data/dev.sqlite`: an inline assignment
+beats `.env`, and that is what keeps `bun run demo` from one day appending invented people
+to real ones. This is enforced by `tests/run-targets.test.ts`, not by convention.
 
-Если нужен watch по боевой базе — это `bun --watch src/server.ts` напрямую, осознанно.
+If you need watch mode against the real database, run `bun --watch src/server.ts` directly
+and deliberately.
 
-## Что уже работает
+## What works today
 
-- **Люди** — CRUD, роль, каденс встреч, приватные заметки руководителя, ссылка на
-  постоянную комнату созвона: кнопка «Открыть встречу» на дашборде, в списке, в карточке
-  и в шапке встречи.
-- **Встречи по шаблону** — секции и типизированные поля (шкала, текст, строка, чекбокс,
-  дата, выбор одного/нескольких), автосохранение по полю.
-- **Конструктор шаблонов** — секции и вопросы, порядок перетаскиванием или стрелками,
-  привязка к метрике, флаг видимости, проверка шаблона, версии с диффом. Правка шаблона,
-  по которому уже прошли встречи, создаёт новую версию: прошлые встречи не меняются.
-- **Метрики** — создание и правка, счётчик использования. Ключ метрики фиксируется, как
-  только на неё начали ссылаться: от него зависит непрерывность истории.
-- **Договорённости** — с ответственным, сроком и видимостью; незакрытые сами всплывают
-  в повестке следующей встречи.
-- **Каденс** — дашборд «просрочено / скоро / в порядке», без крона и уведомлений.
-- **Графики** — динамика метрики по человеку; сравнение людей на одном полотне
-  (среднее по команде, полоса разброса, индивидуальные линии) и список
-  «кому уделить внимание».
-- **Саммари для подопечного** — неизменяемый снапшот из полей, помеченных `shared`,
-  ссылка с токеном и выгрузка в Markdown.
-- **Экспорт и бэкап** — полная выгрузка в JSON и Markdown, копия базы через `VACUUM INTO`.
-- **Языки** — русский и английский с переключателем.
+- **People** — CRUD, role, meeting cadence, the manager's private notes, a link to the
+  standing call room: an "Open meeting" button on the dashboard, in the list, on the person
+  card and in the meeting header. Archived people can be restored.
+- **Teams** — create, rename, archive; a person is assigned to a team from their page with
+  a "primary team" flag. Leaving a team is a date, not a deletion, so past team aggregates
+  keep the person.
+- **Meetings from a template** — sections and typed fields (scale, text, short text,
+  checkbox, date, single and multiple choice), autosave per field, a section rail with
+  progress, a sticky completion panel. An ad-hoc check-in can be excluded from the cadence
+  count.
+- **Template builder** — sections and questions, reordering by drag or arrows, binding to a
+  metric, visibility flag, template validation, versions with a diff. Editing a template
+  that already has meetings creates a new version: past meetings do not change.
+- **Metrics** — create and edit, usage counter. A metric's key is fixed as soon as anything
+  references it: the continuity of history depends on it.
+- **Action items** — with an assignee, due date and visibility; open ones surface on their
+  own in the next meeting's agenda.
+- **Cadence** — a dashboard grouped by urgency (overdue / due soon / ok), no cron and no
+  notifications.
+- **Charts** — a metric's trend per person; comparison of people on one canvas (team
+  average, spread band, individual lines) and a "who needs attention" list.
+- **Summary for the report** — an immutable snapshot of the fields marked `shared`, a
+  tokenized link and a Markdown download.
+- **Export and backup** — full export to JSON and Markdown, a database copy via
+  `VACUUM INTO`.
+- **Settings** — interface language (Russian and English), timezone for cadence
+  arithmetic, theme.
+- **Light and dark theme** — follows the system by default, switchable in the header and in
+  settings; the chart palette is validated separately against each surface.
 
-Полный план, обоснования решений и что осталось — в [PLAN.md](PLAN.md).
-Правила, которые нельзя нарушать при доработке — в [CLAUDE.md](CLAUDE.md).
-Задачи на развитие — в [BACKLOG.md](BACKLOG.md).
-Визуальная спецификация и канвас редизайна — в [design/](design/README.md).
+The full plan, the reasoning behind each decision and the v2 outlook are in
+[PLAN.md](PLAN.md). The rules that must not be broken when extending the tool are in
+[CLAUDE.md](CLAUDE.md).
+The visual specification and the redesign canvas are in [design/](design/README.md).
 
-## Приватность
+## Privacy
 
-У каждого поля шаблона есть флаг `shared` / `private`. Приватное не покидает инстанс:
-ни в саммари, ни в Markdown, ни в данных графиков. Это проверяется тестом
-`tests/snapshot-privacy.test.ts`, который заполняет приватным сентинелом каждый тип поля
-и ищет его во всех поверхностях шаринга.
+Every template field carries a `shared` / `private` flag. Private content never leaves the
+instance: not in the summary, not in the Markdown, not in chart data. This is enforced by
+`tests/snapshot-privacy.test.ts`, which fills every field type with a private sentinel and
+searches for it across every sharing surface.
 
-Экспорт — наоборот, включает приватное: это бэкап, а не саммари. Поэтому это отдельные
-функции с отдельными роутами.
+Export is the opposite: it includes private content, because it is a backup, not a summary.
+That is why export and sharing are separate functions with separate routes.
 
-## Ограничения v1
+## v1 limitations
 
-Авторизации нет: приложение слушает `127.0.0.1`, любой пришедший считается хозяином.
-Поэтому share-ссылку подопечный не откроет — саммари отправляется файлом. Авторизация,
-облачная установка и доступ с разных устройств — v2; модель данных к этому готова
-(см. раздел «v2» в PLAN.md).
+There is no authentication: the app listens on `127.0.0.1`, and whoever connects is treated
+as the owner. So the report cannot open a share link; the summary is sent as a file.
+Authentication, cloud installation and access from several devices are v2; the data model
+is ready for it (see the "v2" section in PLAN.md).
 
-## Разработка
+## Development
 
 ```sh
-bun test          # 137 тестов
-bunx tsc --noEmit # типы
-bun run backup    # копия базы в data/backups/
+bun test          # 163 tests
+bunx tsc --noEmit # types
+bun run backup    # database copy into data/backups/
 ```
 
-Миграции — нумерованные `.sql` в `src/db/migrations/`, применяются вперёд по
-`PRAGMA user_version`. Контрольные суммы применённых миграций сверяются при старте:
-править уже применённый файл нельзя, нужна новая миграция.
+Migrations are numbered `.sql` files in `src/db/migrations/`, applied forward by
+`PRAGMA user_version`. Checksums of applied migrations are verified on start: an already
+applied file cannot be edited, a new migration is required.
 
-Код, идентификаторы и комментарии — английские; кириллица допускается только в слое
-локализации (`src/i18n/`). Стартовый шаблон в сиде тоже английский: это пользовательский
-контент, но его видит каждый, кто поставил инструмент, и он переименовывается в
-конструкторе. Это проверяется тестом, а не договорённостью:
-`bun test tests/language.test.ts`. Пользовательский текст не пишется в коде — он живёт в
-словарях `src/i18n/ru.ts` и `src/i18n/en.ts` и достаётся по ключу, а доменные ошибки несут
-код, который переводит слой отображения.
+Code, identifiers and comments are English; Cyrillic is allowed only in the localization
+layer (`src/i18n/`). The starter template in the seed is English too: it is user content,
+but everyone who installs the tool sees it, and it can be renamed in the builder. This is
+enforced by a test, not by convention: `bun test tests/language.test.ts`. User-facing text is
+never written in code; it lives in the dictionaries `src/i18n/ru.ts` and `src/i18n/en.ts`
+and is looked up by key, and domain errors carry a code that the presentation layer
+translates.
