@@ -206,6 +206,10 @@
     });
   }
 
+  function allEnabled() {
+    return payload.people.every(function (p) { return enabled[p.id]; });
+  }
+
   function renderToggles() {
     if (!toggles) return;
     var legend = toggles.querySelector("legend");
@@ -219,6 +223,7 @@
       box.checked = !!enabled[p.id];
       box.addEventListener("change", function () {
         enabled[p.id] = box.checked;
+        renderToggles(); // the all/none button's wording follows the set
         draw();
       });
       var swatch = document.createElement("span");
@@ -229,6 +234,23 @@
       label.appendChild(document.createTextNode(p.name));
       toggles.appendChild(label);
     });
+
+    // One button for the whole set, at the end of the row: it offers whichever of
+    // "everyone" / "no one" is not the current state, so with eight people the lines
+    // never take eight clicks.
+    if (payload.people.length > 1) {
+      var all = document.createElement("button");
+      all.type = "button";
+      all.className = "link toggle-all";
+      all.textContent = allEnabled() ? (toggles.dataset.none || "") : (toggles.dataset.all || "");
+      all.addEventListener("click", function () {
+        var on = !allEnabled();
+        payload.people.forEach(function (p) { enabled[p.id] = on; });
+        renderToggles();
+        draw();
+      });
+      toggles.appendChild(all);
+    }
   }
 
   // The surface can change under an open page (the system switches at sunset). The tokens

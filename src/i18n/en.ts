@@ -30,6 +30,14 @@ export const en: Dict = {
     chooseDate: "Pick a date",
   },
 
+  /** Messages under a field the browser refused to submit. See public/form-validation.js. */
+  validation: {
+    required: "This field is required.",
+    date: "Enter a date as DD.MM.YYYY, or pick one in the calendar.",
+    format: "This value does not match the expected format.",
+    range: "This value is out of range.",
+  },
+
   dashboard: {
     title: "Dashboard",
     cadence: "Cadence",
@@ -186,6 +194,8 @@ export const en: Dict = {
     noChange: "no change",
     onePoint: "one data point",
     showPeople: "Show people on the chart",
+    selectAll: "Show everyone",
+    selectNone: "Hide everyone",
     empty: "Nothing to compare yet. Run and complete at least one meeting with metrics.",
     needTwo: "Comparison starts to mean something with two people who have completed meetings.",
     points: "points",
