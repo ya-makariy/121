@@ -1,75 +1,76 @@
-# design/ — визуальная спецификация
+# design/ — visual specification
 
-Здесь лежит то, из чего собран канвас редизайна, и то, на что ссылаются задачи `D*`
-в [BACKLOG.md](../BACKLOG.md).
+*Читать по-русски: [README.ru.md](README.ru.md)*
 
-**Канвас:** <https://claude.ai/code/artifact/6d4087f0-7e2b-4560-b808-be70d4921476>
+This is what the redesign canvas is built from. The `D*` design tasks that referred to it
+have all been implemented (see the status section in [PLAN.md](../PLAN.md)); the artboards
+remain the visual reference for the current `public/app.css`.
 
-16 артбордов на одном полотне: путь встречи, люди, аналитика, шаблоны и лист токенов.
-Над каждым рядом заметка о том, что изменено и почему. Артборды нарисованы не по
-скриншотам, а из настоящего `public/app.css` и настоящей разметки страниц, снятой с
-работающего сервера — поэтому то, что выглядит правильно на артборде, будет выглядеть
-правильно в приложении.
+**Canvas:** <https://claude.ai/code/artifact/6d4087f0-7e2b-4560-b808-be70d4921476>
 
-## Что где
+16 artboards on one canvas: the meeting flow, people, analytics, templates and a token
+sheet. Above each row there is a note on what changed and why. The artboards are drawn not
+from screenshots but from the real `public/app.css` and the real page markup captured from a
+running server, so what looks right on an artboard will look right in the app.
 
-| Файл | Что это |
+## What is where
+
+| File | What it is |
 | --- | --- |
-| `refine.css` | **Предложение.** Слой добавлений к `public/app.css`: токены, компоненты, правки. Задача `D1` начинает перенос этого файла в `public/app.css`. |
-| `artboards/*.html` | Фрагменты `<body>` — по одному на экран. Только разметка; стили берутся из `app.css` + `refine.css`. |
-| `canvas.json` | Раскладка полотна: позиции, подписи, заметки. |
-| `build.mjs` | Собирает артборды в `out/*.dc.html`, вклеивая стили. |
-| `out/` | Производное, в `.gitignore`. |
+| `refine.css` | **A proposal.** A layer of additions to `public/app.css`: tokens, components, fixes. Task `D1` moved its tokens into `public/app.css`; what is left here is the proposal as drawn. |
+| `artboards/*.html` | `<body>` fragments, one per screen. Markup only; styles come from `app.css` + `refine.css`. |
+| `canvas.json` | Canvas layout: positions, captions, notes. |
+| `build.mjs` | Assembles the artboards into `out/*.dc.html`, inlining the styles. |
+| `out/` | Derived output, in `.gitignore`. |
 
-## Пересборка
+## Rebuilding
 
 ```sh
 node design/build.mjs
 ```
 
-Читает `public/app.css` **из репозитория**, поэтому правки в стилях сразу видны на
-артбордах: правишь `app.css`, пересобираешь, открываешь `out/<Name>.dc.html` в браузере —
-это обычная HTML-страница.
+It reads `public/app.css` **from the repository**, so style changes show up on the
+artboards immediately: edit `app.css`, rebuild, open `out/<Name>.dc.html` in a browser. It is
+an ordinary HTML page.
 
-Обновить сам канвас (опубликованную страницу) отсюда нельзя: для этого нужен агент со
-скиллом `/design`, который засеет `out/*.dc.html` вместе с `canvas.json` и опубликует по
-той же ссылке.
+The canvas itself (the published page) cannot be updated from here: that takes an agent
+with the `/design` skill, which seeds `out/*.dc.html` together with `canvas.json` and
+publishes to the same link.
 
-## Артборд → страница → код
+## Artboard → page → code
 
-| Артборд | Страница | Вьюха | Роут |
+| Artboard | Page | View | Route |
 | --- | --- | --- | --- |
-| `Main` | Дашборд | `views/pages/dashboard.ts` | `GET /` |
-| `People` | Люди | `views/pages/people.ts` → `peopleListPage` | `GET /people` |
-| `Person` | Карточка человека | `views/pages/person.ts` | `GET /people/:id` |
-| `PersonNew` | Новый человек | `views/pages/people.ts` → `personFormPage` | `GET /people/new` |
-| `PersonEdit` | Правка человека | `views/pages/people.ts` → `personFormPage` | `GET /people/:id/edit` |
-| `Meeting` | Встреча, заполнение | `views/pages/meeting.ts` | `GET /meetings/:id` (черновик) |
-| `MeetingDone` | Встреча, завершена | `views/pages/meeting.ts` | `GET /meetings/:id` (`completed`) |
-| `Share` | Саммари для подопечного | `views/pages/share.ts` | `GET /s/:token` |
-| `Compare` | Сравнение | `views/pages/compare.ts` | `GET /compare` |
-| `Actions` | Договорённости | `views/pages/misc.ts` → `actionsPage` | `GET /actions` |
-| `Templates` | Шаблоны | `views/pages/misc.ts` → `templatesPage` | `GET /templates` |
-| `TemplateEditor` | Конструктор шаблона | `views/pages/template-editor.ts` | `GET /templates/:id` |
-| `TemplateVersions` | Версии шаблона | `views/pages/template-versions.ts` | `GET /templates/:id/versions` |
-| `Metrics` | Метрики | `views/pages/metrics.ts` | `GET /metrics` |
-| `Settings` | Настройки | `views/pages/misc.ts` → `settingsPage` | `GET /settings` |
-| `Foundation` | Лист токенов | — | — |
+| `Main` | Dashboard | `views/pages/dashboard.ts` | `GET /` |
+| `People` | People | `views/pages/people.ts` → `peopleListPage` | `GET /people` |
+| `Person` | Person card | `views/pages/person.ts` | `GET /people/:id` |
+| `PersonNew` | New person | `views/pages/people.ts` → `personFormPage` | `GET /people/new` |
+| `PersonEdit` | Edit person | `views/pages/people.ts` → `personFormPage` | `GET /people/:id/edit` |
+| `Meeting` | Meeting, in progress | `views/pages/meeting.ts` | `GET /meetings/:id` (draft) |
+| `MeetingDone` | Meeting, completed | `views/pages/meeting.ts` | `GET /meetings/:id` (`completed`) |
+| `Share` | Summary for the report | `views/pages/share.ts` | `GET /s/:token` |
+| `Compare` | Comparison | `views/pages/compare.ts` | `GET /compare` |
+| `Actions` | Action items | `views/pages/misc.ts` → `actionsPage` | `GET /actions` |
+| `Templates` | Templates | `views/pages/misc.ts` → `templatesPage` | `GET /templates` |
+| `TemplateEditor` | Template builder | `views/pages/template-editor.ts` | `GET /templates/:id` |
+| `TemplateVersions` | Template versions | `views/pages/template-versions.ts` | `GET /templates/:id/versions` |
+| `Metrics` | Metrics | `views/pages/metrics.ts` | `GET /metrics` |
+| `Settings` | Settings | `views/pages/misc.ts` → `settingsPage` | `GET /settings` |
+| `Foundation` | Token sheet | — | — |
 
-`Foundation` не соответствует странице приложения: это справочник токенов, типографики,
-бейджей, контролов и палитры серий. Отдельные артборды `Meeting` и `MeetingDone` — это
-два режима одной вьюхи, редактируемый и read-only, которые
-`views/components/field-input.ts` рендерит одной функцией (правило 6).
+`Foundation` does not correspond to an app page: it is a reference of tokens, typography,
+badges, controls and the series palette. The separate `Meeting` and `MeetingDone` artboards
+are two modes of one view, editable and read-only, which `views/components/field-input.ts`
+renders with a single function (rule 6).
 
-## Содержимое артбордов
+## Artboard content
 
-`design/` не попадает под проверку `tests/language.test.ts`: она сканирует `src/`,
-`scripts/` и `tests/`. Кириллица в артбордах — это макетный пользовательский текст, а не
-код, поэтому здесь она уместна; комментарии в `refine.css` и `build.mjs` всё равно
-английские, как везде (правило 1).
+`design/` is outside the scope of `tests/language.test.ts`, which scans `src/`, `scripts/`
+and `tests/`. Cyrillic in the artboards is mock user text, not code, so it belongs there;
+comments in `refine.css` and `build.mjs` are English anyway, as everywhere (rule 1).
 
-Все имена, роли, адреса и ссылки — выдуманные плейсхолдеры (`example.com`), правило 9.
-Ни одна строка не взята из локальной базы. Числа внутри артбордов согласованы между
-собой: счётчики полей на `Templates`, `TemplateVersions` и в рельсе `Meeting` сходятся,
-версия v2 — черновик без встреч (правило 5), а точки на графике `Compare` — это ровно
-то нормирование 1–5 → 0–100%, которое рисует `Person`.
+All names, roles, addresses and links are invented placeholders (`example.com`), rule 9. Not
+a single line is taken from the local database. The numbers inside the artboards agree with
+each other: the field counters on `Templates`, `TemplateVersions` and in the `Meeting` rail
+match, version v2 is a draft with no meetings (rule 5), and the points on the `Compare` chart
+are exactly the 1–5 → 0–100% normalization that `Person` draws.
