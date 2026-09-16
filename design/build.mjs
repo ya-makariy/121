@@ -5,9 +5,9 @@
  *
  * Run: node design/build.mjs
  *
- * The artboards are the visual spec for the tasks in BACKLOG.md. They render the app's
- * real class names against the app's real stylesheet, so a change that looks right here
- * is a change that will look right in the app.
+ * The artboards are the visual spec of the redesign (the D* tasks, now shipped). They
+ * render the app's real class names against the app's real stylesheet, so a change that
+ * looks right here is a change that will look right in the app.
  */
 import { readFileSync, writeFileSync, readdirSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";

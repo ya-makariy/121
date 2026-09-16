@@ -10,18 +10,28 @@
 | 3. Сквозной срез до реальной 1:1 | готово |
 | 3a. Сравнение людей и «кому уделить внимание» | готово |
 | 4. Конструктор шаблонов и метрик | готово |
-| 5. Команды в UI, каденс, договорённости | каденс и договорённости готовы; команд в UI нет |
+| 5. Команды в UI, каденс, договорённости | готово |
 | 7. Английский код, кириллица только в локализации | готово |
 | 8. Ссылка на встречу у человека | готово |
 | 6. Экспорт, бэкап, переключатель языка | готово |
+| 9. Бэклог после канваса: F1–F5 и D1–D10 | готово |
 
-Проверено: 80 тестов, `tsc --noEmit` чистый, сквозной сценарий пройден вживую
-(человек → встреча → заполнение → завершение → график → снапшот → Markdown),
+Проверено: 163 теста в 21 файле, `tsc --noEmit` чистый, сквозной сценарий пройден
+вживую (человек → встреча → заполнение → завершение → график → снапшот → Markdown),
 приватный сентинел не найден ни в одной поверхности шаринга, правка замороженной
 версии шаблона форкает её и не меняет прошлые встречи.
 
-Осталось до полного скоупа v1: управление командами в интерфейсе — сейчас команда
-создаётся только скриптом демо-данных, хотя схема, фильтр по команде и агрегаты готовы.
+Скоуп v1 закрыт. Этап 9 — это бэклог, составленный после сборки дизайн-канваса
+(`design/`) и закрытый целиком, после чего файл `BACKLOG.md` удалён. Из него в
+приложении появились: команды в интерфейсе (`/teams`, выбор команды и флаг «основная» на
+странице человека, выход из команды датой `left_on`); часовой пояс и тема в `/settings`
+(пояс пишется в `app_user.timezone`, тема — cookie `auto`/`light`/`dark`); архив людей с
+восстановлением; переключатель `counts_for_cadence` на странице встречи; стартовый шаблон и
+подписи метрик на английском (кириллица осталась только в `src/i18n/`); слой токенов в
+`app.css`, дашборд по группам срочности, рельс секций и прогресс на странице встречи,
+ярлык приватности, колонка видимости в конструкторе, единый `:focus-visible`, мобильная
+раскладка и тёмная тема с отдельно провалидированной палитрой серий (правило 8 в
+`CLAUDE.md`). Дальше — раздел «v2» в конце документа.
 
 ## Context
 
@@ -114,8 +124,10 @@
 
 ## Схема данных
 
-Одна миграция `src/db/migrations/0001_init.sql`. Значения полей — **нормализованными
-типизированными колонками, никогда JSON.** JSON разрешён ровно в четырёх местах:
+Схема целиком — в `src/db/migrations/0001_init.sql`; дальше идут только аддитивные
+миграции: `0002` сид, `0003` переименование секции итога, `0004` `metric.display_order`,
+`0005` `person.meeting_url`. Значения полей — **нормализованными типизированными
+колонками, никогда JSON.** JSON разрешён ровно в четырёх местах:
 `share_link.snapshot_json` (по определению неизменяемый документ),
 `template_field.config_json` (UI-крутилки без семантики запросов), `app_setting.value`,
 вывод экспорта. Всё, что когда-либо будет фильтроваться, джойниться, агрегироваться или
@@ -542,7 +554,9 @@ HTML share-страница, `.md` экспорт снапшота, payload гр
   в рейтинге: иначе изменение оценки перекрашивало бы график.
 - **Палитра — восемь слотов в фиксированном порядке**, проверенных валидатором на белом
   фоне: худшая соседняя пара CVD ΔE 9.1, обычное зрение ΔE 19.6. Три слота не дотягивают
-  до контраста 3:1 к фону, поэтому у линий есть и легенда, и подписи у концов.
+  до контраста 3:1 к фону, поэтому у линий есть и легенда, и подписи у концов. С тёмной
+  темой (D10) палитр стало две: тёмная ветка держит тон каждого слота и заново
+  провалидирована на своей поверхности — подробности в правиле 8 `CLAUDE.md`.
 - **Полоса разброса рецессивная серая**, а не цвет серии: это контекст, а не сущность.
 - **Порядок метрик в списках задан данными** (`metric.display_order`, миграция 0004):
   первым экраном сравнения не должна открываться приватная оценка риска ухода.
@@ -620,43 +634,52 @@ HTML share-страница, `.md` экспорт снапшота, payload гр
 
 ```
 121/
-  package.json           # type: module; scripts: dev, start, migrate, export, backup, test
-  .env.example           # PORT, DB_PATH, BASE_URL, DEFAULT_LOCALE, TZ
-  data/                  # gitignored: 121.sqlite, backups/
+  package.json           # type: module; scripts: dev, demo, start, migrate, backup, export, test
+  .env.example           # PORT, HOST, DB_PATH, BASE_URL, DEFAULT_LOCALE, TZ
+  data/                  # gitignored: 121.sqlite (реальная), dev.sqlite (dev/demo), backups/
   public/
-    app.css
+    app.css              # токены (:root + тёмная ветка), палитра серий, раскладка
+    compare-chart.js  metric-chart.js  date-picker.js  field-form.js
+    meeting-rail.js  reorder.js        # строки берут из data-атрибутов
     vendor/htmx.min.js  vendor/chart.umd.min.js
+  scripts/
+    demo-data.ts  backup.ts  export.ts
   src/
     server.ts            # migrate -> pragmas -> routes -> serve (127.0.0.1)
-    config.ts
+    config.ts            # единственное место чтения окружения
     db/
       index.ts           # openDb() + прагмы
-      migrate.ts         # раннер по user_version
-      migrations/0001_init.sql, 0002_seed.sql
-      queries/           # people, teams, templates, meetings, answers, metrics,
-                         # actions, shares, cadence, exportq — prepared statements
+      migrate.ts         # раннер по user_version, sha256 применённых файлов
+      migrations/0001_init.sql … 0005_person_meeting_url.sql
+      queries/           # people, teams, templates, meetings, metrics, actions,
+                         # shares, cadence, app-user — prepared statements
       types.ts           # рукописные интерфейсы строк, без ORM и кодогенерации
     domain/              # чистая логика, без импортов Hono, юнит-тестируемая
-      template-version.ts  # fork(), freezeIfNeeded(), diff(), mintFieldKey()
+      template-version.ts  # forkVersion(), freezeIfNeeded(), ensureDraft(), diffVersions(), mint*Key()
+      template-editor.ts   # операции над секциями/полями/опциями по ключу, validateTemplate()
+      metrics-editor.ts    # метрики: ключ фиксируется после первой ссылки
+      teams.ts             # команды, членство, вторая основная команда -> код ошибки
       answers.ts           # валидация и правила записи по типу
       snapshot.ts          # buildSharedSnapshot() -> SharePayload
       markdown.ts          # SharePayload -> md
-      cadence.ts           # todayInTz(), classify()
-      export.ts  backup.ts  tokens.ts
+      cadence.ts           # today(tz), classifyCadence(), список поясов из Intl
+      export.ts  backup.ts
     routes/
       index.ts           # share-роутер монтируется ВНЕ auth
-      dashboard.ts  people.ts  teams.ts  templates.ts  meetings.ts  actions.ts
+      dashboard.ts  people.ts  teams.ts  templates.ts  metrics.ts  meetings.ts
+      actions.ts  compare.ts
       charts.ts          # JSON уже в форме {labels, datasets} для Chart.js
       shares.ts          # POST create/revoke; GET /s/:token; GET /s/:token.md
-      settings.ts        # локаль, экспорт, бэкап
+      settings.ts        # локаль, тема, часовой пояс, экспорт, бэкап
     views/
       html.ts            # html`` с экранированием — ЕДИНСТВЕННОЕ место экранирования
       layout.ts  components/  pages/
-    i18n/index.ts  ru.ts  en.ts
-    middleware/locale.ts  current-user.ts  errors.ts
-    lib/dates.ts  ids.ts  validate.ts
-  tests/
+    i18n/index.ts  ru.ts  en.ts  dates.ts  translit.ts
+    middleware/locale.ts  theme.ts  current-user.ts  errors.ts
+    lib/dates.ts  ids.ts  errors.ts  url.ts  theme.ts
+  tests/                 # 21 файл, среди них:
     snapshot-privacy.test.ts  template-fork.test.ts  cadence.test.ts  metrics.test.ts
+    language.test.ts  no-sql-now.test.ts  teams.test.ts  theme.test.ts  migrate.test.ts
 ```
 
 Ограничения «без сборки»: никакого JSX — `views/html.ts` отдаёт tagged template, который
