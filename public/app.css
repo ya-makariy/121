@@ -13,6 +13,21 @@
    on <html>. `auto` asserts nothing and leaves `prefers-color-scheme` in charge, so
    following the system stays the behaviour nobody has to opt into.
    ================================================================ */
+
+/* The one typeface, vendored like htmx and Chart.js (rule 6: no runtime CDN). Geist is a
+   single variable file, 70KB, under the SIL Open Font License (public/vendor/geist/OFL.txt),
+   and it carries the Cyrillic the Russian dictionary needs — checked, not assumed: a
+   Latin-only face would have handed every Russian word to the system font and the page
+   would have been set in two typefaces without saying so. swap, so text is never invisible
+   while the file arrives; the fallback stack below is metrically close enough that the
+   swap is a flicker, not a relayout. */
+@font-face {
+  font-family: "Geist";
+  src: url("/vendor/geist/Geist-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
 :root {
   /* Native controls — select, checkbox, scrollbar, caret — follow this, and it is the
      reason the dark branch is not just a repaint of our own boxes. */
@@ -23,8 +38,8 @@
   --border: #e3ddd4;
   --text: #23201c;
   --muted: #6f675d;
-  --accent: #2c5f8a;
-  --accent-soft: #eaf1f7;
+  --accent: #2a5fc4;
+  --accent-soft: #e9effb;
   --danger: #b02a2a;
   --danger-soft: #fbecec;
   --warn: #9a6a12;
@@ -37,8 +52,11 @@
   --notice-border: #efd9ab;
   --notice-text: #6b4a0c;
   --danger-border: #eec6c6;
-  --radius: 8px;
-  --radius-sm: 6px;
+  /* Two radii and a rule: containers (cards, lists, panels, the calendar) take --radius,
+     controls (buttons, inputs, scale steps, tags) take --radius-sm, badges are pills. */
+  --radius: 12px;
+  --radius-sm: 8px;
+  --sans: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
 
   /* Spacing scale: seven steps for the seven roles the layout actually has. */
@@ -47,7 +65,7 @@
 
   /* Type scale: the whole ramp the app uses, from the smallest badge to h1. */
   --fs-xs: 12px; --fs-sm: 13px; --fs-md: 14px;
-  --fs-base: 15px; --fs-lg: 17px; --fs-xl: 25px;
+  --fs-base: 15px; --fs-lg: 18px; --fs-xl: 28px; --fs-2xl: 36px;
 
   /* The categorical palette from the data-visualization guidance: eight slots in a fixed
      order, validated against the light surface. A slot belongs to a person, never to
@@ -62,20 +80,39 @@
   --series-7: #4a3aa7;
   --series-8: #e34948;
 
+  /* ---------- the second accent, and what is built from it ----------
+     Every gradient in the app runs from --accent into --accent-2: blue into teal. The pair
+     is chosen so that neither end is a colour the app already uses to mean something —
+     not the lilac of privacy, not the red, amber and green of the cadence badges — so a
+     gradient reads as "the accent, lit" and never as one of those states. White clears
+     4.5:1 on both ends on the light surface (5.9:1 and 4.9:1), and the dark on-accent ink
+     clears it on both dark ends (8.2:1 and 9.7:1), so a label is readable anywhere along
+     the ramp.
+
+     --wash is the strength of the colour field under the header (body::before): a
+     percentage handed to color-mix(), stronger on the dark surface because the same alpha
+     that is a tint on paper is invisible on charcoal. */
+  --accent-2: #0e7f74;
+  --wash: 16%;
+
+  /* Gradients are built from the semantic names, so they are theme-blind by construction:
+     one description, repainted by whichever surface is in force. That is why they need no
+     --dark-* twin. The soft one is the accent pair mixed into the surface, for things that
+     are highlighted rather than pressed: the active nav item, the current rail entry, the
+     figures panel on the dashboard. */
+  --grad-accent: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+  --grad-accent-soft: linear-gradient(135deg,
+    color-mix(in srgb, var(--accent) 13%, var(--surface)) 0%,
+    color-mix(in srgb, var(--accent-2) 10%, var(--surface)) 100%);
+
   /* ---------- depth ----------
      One shadow colour per surface, kept as bare channels so that each shadow picks its own
      alpha: `rgb(var(--shadow-rgb) / .2)`. On the light surface it is the text colour, so a
      shadow reads as the same warm ink the page is set in rather than as a grey smudge; on
      the dark surface it is black, because nothing else darkens what is already dark.
-
-     Every raised thing in this file — a card at rest, the calendar, the completion panel —
-     is drawn with this and with nothing else. There are no glows and no gradients: the
-     accent is ink and fill, never a light source. The one hue that used to run into the
-     primary button's gradient was a violet, and violet is the colour privacy wears
-     (`--private`); a button that ended in the privacy colour taught the eye to read it as
-     decoration. Where a ring or a halo is still wanted — the focus ring, a badge's edge —
-     it is mixed from the element's own colour with color-mix(), so it needs no token and
-     cannot disagree with the ink it surrounds. */
+     Neutral things — a card at rest, the calendar, the completion panel — are lifted with
+     it. The primary button is the one exception: it casts its own colour, because it is
+     the one thing on the page that is meant to look lit. */
   --shadow-rgb: 35 32 28;
 
   /* ---------- the dark surface ----------
@@ -107,7 +144,7 @@
   --dark-text: #ece6dc;
   --dark-muted: #a49a8b;
   --dark-accent: #7fb3e8;
-  --dark-accent-soft: #1f2b38;
+  --dark-accent-soft: #1e2a3a;
   --dark-danger: #f0908b;
   --dark-danger-soft: #33201e;
   --dark-warn: #e2b45d;
@@ -128,6 +165,8 @@
   --dark-series-6: #3ca837;
   --dark-series-7: #8780f3;
   --dark-series-8: #f45956;
+  --dark-accent-2: #5fd0bd;
+  --dark-wash: 26%;
   --dark-shadow-rgb: 0 0 0;
 }
 
@@ -157,6 +196,7 @@
     --series-3: var(--dark-series-3); --series-4: var(--dark-series-4);
     --series-5: var(--dark-series-5); --series-6: var(--dark-series-6);
     --series-7: var(--dark-series-7); --series-8: var(--dark-series-8);
+    --accent-2: var(--dark-accent-2); --wash: var(--dark-wash);
     --shadow-rgb: var(--dark-shadow-rgb);
   }
 }
@@ -177,6 +217,7 @@
   --series-3: var(--dark-series-3); --series-4: var(--dark-series-4);
   --series-5: var(--dark-series-5); --series-6: var(--dark-series-6);
   --series-7: var(--dark-series-7); --series-8: var(--dark-series-8);
+  --accent-2: var(--dark-accent-2); --wash: var(--dark-wash);
   --shadow-rgb: var(--dark-shadow-rgb);
 }
 
@@ -186,7 +227,20 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font: var(--fs-base)/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font: var(--fs-base)/1.55 var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+/* The colour field. Two soft radial spots of the accent pair at the top corners of the
+   viewport, fixed, so every page opens onto the same light and the header sits in it (the
+   header is translucent for exactly this reason). It fades into --bg well before the first
+   card, so nothing that has to be read is ever read against it. A fixed pseudo-element
+   with no pointer events is the cheapest way to paint it: one layer, never repainted on
+   scroll. */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(60% 50% at 10% -12%, color-mix(in srgb, var(--accent) var(--wash), transparent), transparent 70%),
+    radial-gradient(50% 45% at 92% -8%, color-mix(in srgb, var(--accent-2) var(--wash), transparent), transparent 70%);
 }
 
 main { max-width: 940px; margin: 0 auto; padding: var(--s-6) 20px 80px; }
@@ -208,25 +262,38 @@ body.public main { max-width: 720px; }
 .top {
   position: relative;
   display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
-  padding: var(--s-2) 20px; min-height: 52px;
-  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: var(--s-3) 20px; min-height: 56px;
+  /* Frosted rather than opaque, so the colour field shows through it and the header
+     belongs to the page instead of sitting on top of it. The border is mixed the same
+     way, so it does not draw a hard grey line across the wash. */
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.2);
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
 }
 /* On a wide screen the wrapper is not a box: brand, nav and the language switch are the
    header's own three flex items, exactly as before this file knew about .bar. */
 .top > .bar { display: contents; }
 /* The switches are second in the markup and last on the wide line. */
 .switches { order: 1; display: flex; align-items: center; gap: var(--s-2); }
+/* The wordmark is the one piece of gradient text in the app: three characters, large and
+   bold enough that the ramp reads as a colour and not as a blur. */
 .top .brand {
-  font-weight: 700; font-size: var(--fs-lg); letter-spacing: .02em;
-  color: var(--text); text-decoration: none;
+  font-weight: 800; font-size: 20px; letter-spacing: -.04em; line-height: 1;
+  background: var(--grad-accent); -webkit-background-clip: text; background-clip: text;
+  color: transparent; text-decoration: none;
 }
 .top nav { display: flex; gap: var(--s-1); flex: 1; flex-wrap: wrap; }
 .top nav a {
   padding: 5px 10px; border-radius: var(--radius-sm);
-  color: var(--muted); text-decoration: none; font-size: var(--fs-md);
+  color: var(--muted); text-decoration: none; font-size: var(--fs-md); font-weight: 500;
+  transition: background-color .15s ease, color .15s ease;
 }
-.top nav a:hover { background: var(--bg); color: var(--text); }
-.top nav a.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.top nav a:hover { background: color-mix(in srgb, var(--text) 5%, transparent); color: var(--text); }
+.top nav a.active {
+  background: var(--grad-accent-soft); color: var(--accent); font-weight: 600;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
+}
 /* One rule for both chrome switches: the theme glyph and the locale code are the same
    kind of control, so they must not drift into looking like two. The glyph needs a
    slightly wider box than a two-letter code to stay square. */
@@ -258,9 +325,9 @@ body.public main { max-width: 720px; }
 }
 
 /* ---------- typography ---------- */
-h1 { font-size: var(--fs-xl); margin: 0 0 var(--s-1); letter-spacing: -.01em; }
-h2 { font-size: var(--fs-lg); margin: 28px 0 10px; }
-h3 { font-size: var(--fs-base); margin: 0 0 var(--s-3); }
+h1 { font-size: var(--fs-xl); margin: 0 0 var(--s-1); letter-spacing: -.025em; line-height: 1.15; font-weight: 700; }
+h2 { font-size: var(--fs-lg); margin: var(--s-7) 0 10px; letter-spacing: -.015em; font-weight: 650; }
+h3 { font-size: var(--fs-base); margin: 0 0 var(--s-3); font-weight: 650; }
 .sub { color: var(--muted); font-size: var(--fs-md); margin: 0 0 20px; }
 .muted { color: var(--muted); }
 .small { font-size: var(--fs-sm); }
@@ -270,7 +337,7 @@ a { color: var(--accent); }
 .card {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius); padding: var(--s-5); margin-bottom: var(--s-4);
-  box-shadow: 0 1px 2px rgb(var(--shadow-rgb) / .05);
+  box-shadow: 0 1px 2px rgb(var(--shadow-rgb) / .04), 0 12px 32px -24px rgb(var(--shadow-rgb) / .25);
 }
 .card.private { border-left: 3px solid var(--private); background: var(--private-soft); }
 
@@ -284,7 +351,7 @@ a { color: var(--accent); }
 .private-head {
   display: flex; align-items: center; gap: var(--s-3);
   padding: var(--s-2) var(--s-4); margin-bottom: -1px;
-  background: var(--private-soft);
+  background: linear-gradient(120deg, var(--private-soft), var(--surface) 92%);
   box-shadow: inset 2px 0 0 var(--private);
   color: var(--private);
   border: 1px solid var(--border); border-bottom: none;
@@ -377,7 +444,7 @@ textarea { min-height: 92px; resize: vertical; }
    one declaration, so it cannot drift into two different rings again.
    The offset earns its place. A primary button is filled with --accent as well, and
    without the 1px gap of page background the ring would disappear into it; on --surface
-   and --bg the accent carries 6.7:1 and 6.5:1.
+   and --bg the accent carries 5.9:1 and 5.7:1.
    The scale is the one indirection. `.scale-opt input` is visually hidden with opacity: 0,
    and an outline on a transparent element is transparent too, so there the ring is drawn
    on the visible span beside the input. Same declaration, not a second description.
@@ -412,7 +479,7 @@ input.invalid, select.invalid, textarea.invalid, .datepick.invalid .datepick-inp
 @media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
 
 button, .btn {
-  display: inline-block; padding: var(--s-3) 14px; font: inherit; font-weight: 600;
+  display: inline-block; padding: var(--s-3) 14px; font: inherit; font-weight: 600; letter-spacing: -.005em;
   border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface);
   color: var(--text); cursor: pointer; text-decoration: none;
   transition: border-color .15s ease, background-color .15s ease;
@@ -421,17 +488,20 @@ button:hover, .btn:hover { border-color: var(--muted); }
 /* A press moves the button one pixel: the state is already legible from the click, so
    this is feedback, not decoration, and it needs no transition. */
 button:active, .btn:active { transform: translateY(1px); }
-/* The primary action is the accent as a flat fill — the one solid block of colour on a
-   page, which is what makes it the one thing to press. The hover mixes a little of the
-   text colour in, so it darkens on the light surface and lightens on the dark one; a
-   brightness filter would have pushed one of the two the wrong way. --on-accent clears
-   4.5:1 on the fill and on its hover on both surfaces. */
+/* The primary action is the gradient, lit: a highlight along its top edge and a shadow in
+   its own colour under it, so it is the one thing on the page that looks like it can be
+   pressed. --on-accent clears 4.5:1 against both ends of the ramp on both surfaces (see
+   the token comment). The hover lifts it a little further; the press puts it back down. */
 button.primary, .btn.primary {
-  background: var(--accent); border-color: var(--accent); color: var(--on-accent);
+  background: var(--grad-accent); border-color: transparent; color: var(--on-accent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18),
+              0 8px 20px -10px color-mix(in srgb, var(--accent) 65%, transparent);
+  transition: box-shadow .15s ease, filter .15s ease, transform .1s ease;
 }
 button.primary:hover, .btn.primary:hover {
-  background: color-mix(in srgb, var(--accent) 88%, var(--text));
-  border-color: color-mix(in srgb, var(--accent) 88%, var(--text));
+  filter: brightness(1.06) saturate(1.05);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22),
+              0 12px 28px -12px color-mix(in srgb, var(--accent) 75%, transparent);
 }
 button.danger { color: var(--danger); }
 button.link {
@@ -448,10 +518,12 @@ button.link {
   border: 1px solid var(--border); border-radius: var(--radius-sm);
   background: var(--surface); font-weight: 600; cursor: pointer;
 }
+.scale-opt:hover span { border-color: var(--accent); }
 .scale-opt input:checked + span {
-  background: var(--accent); border-color: var(--accent); color: var(--on-accent);
+  background: var(--grad-accent); border-color: transparent; color: var(--on-accent);
+  box-shadow: 0 6px 16px -10px color-mix(in srgb, var(--accent) 70%, transparent);
 }
-.scale-opt span { transition: background-color .15s ease, border-color .15s ease; }
+.scale-opt span { transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease; }
 /* The focus ring for this control lives with the app-wide :focus-visible rule above. */
 .scale-ends {
   display: flex; justify-content: space-between; font-size: var(--fs-xs);
@@ -485,7 +557,8 @@ button.link {
 
 /* ---------- empty states ---------- */
 .empty {
-  border: 1px dashed var(--border); border-radius: var(--radius);
+  border: 1px dashed color-mix(in srgb, var(--accent) 28%, var(--border)); border-radius: var(--radius);
+  background: var(--grad-accent-soft);
   padding: 28px 20px; text-align: center; color: var(--muted);
 }
 
@@ -522,7 +595,10 @@ button.link {
   font-size: var(--fs-sm); color: var(--muted); text-decoration: none;
 }
 .rail a:hover { background: var(--bg); color: var(--text); }
-.rail a.current { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.rail a.current {
+  background: var(--grad-accent-soft); color: var(--accent); font-weight: 600;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
+}
 .rail a .of { font-variant-numeric: tabular-nums; font-size: var(--fs-xs); flex: none; }
 .rail a.private-item { color: var(--private); }
 /* Jumping to a section should not tuck its heading against the top of the viewport. */
@@ -537,7 +613,7 @@ button.link {
   overflow: hidden;
 }
 .progress .track i {
-  display: block; height: 100%; background: var(--accent);
+  display: block; height: 100%; background: var(--grad-accent); border-radius: 2px;
   transition: width .25s ease;
 }
 
@@ -547,9 +623,12 @@ button.link {
   position: sticky; bottom: 0; display: flex; align-items: center;
   gap: var(--s-4); flex-wrap: wrap;
   margin-top: var(--s-6); padding: var(--s-4) var(--s-5);
-  background: var(--surface); border: 1px solid var(--border);
+  /* Frosted like the header: it floats over the questions and shows them through itself,
+     and casts its shadow upward, onto what it covers. */
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
-  /* It floats over the questions, so it says so: a shadow cast upward, onto what it covers. */
   box-shadow: 0 -8px 24px -16px rgb(var(--shadow-rgb) / .3);
 }
 /* Same floor as .row, for the same reason: the progress recap used to be squeezed into a
@@ -597,7 +676,7 @@ pre.md {
   display: flex; align-items: baseline; gap: var(--s-3);
   margin: 0 0 var(--s-3);
 }
-.group-head h3 { margin: 0; font-size: var(--fs-md); }
+.group-head h3 { margin: 0; font-size: var(--fs-base); }
 .group-head .count {
   font-size: var(--fs-xs); font-weight: 600; color: var(--muted);
   font-variant-numeric: tabular-nums;
@@ -611,13 +690,18 @@ pre.md {
    same column. The date sits in the subtitle under the title, where every other page
    keeps its one line of context. */
 .headline {
-  display: flex; flex-wrap: wrap; gap: var(--s-3) var(--s-7);
-  align-items: end; margin: 0 0 var(--s-7);
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--s-5) var(--s-6); margin: var(--s-5) 0 var(--s-7);
+  padding: var(--s-5) var(--s-6);
+  background: var(--grad-accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  border-radius: var(--radius);
   font-size: var(--fs-sm); color: var(--muted);
 }
 .headline strong {
-  display: block; color: var(--text); font-size: var(--fs-xl); font-weight: 700;
-  line-height: 1.1; letter-spacing: -.01em; font-variant-numeric: tabular-nums;
+  display: block; color: var(--text); font-size: var(--fs-2xl); font-weight: 700;
+  line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums;
+  margin-bottom: var(--s-1);
 }
 
 
@@ -675,7 +759,8 @@ pre.md {
 .field-row .req { color: var(--danger); font-weight: 700; }
 
 .metric-tag {
-  background: var(--accent-soft); color: var(--accent);
+  background: var(--grad-accent-soft); color: var(--accent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
   padding: 1px var(--s-2); border-radius: var(--radius-sm); font-size: var(--fs-xs); font-weight: 600;
 }
 
@@ -826,7 +911,10 @@ label.inline input { width: auto; }
   color: var(--accent); font-weight: 700;
   border-color: color-mix(in srgb, var(--accent) 35%, transparent);
 }
-.datepick-day.chosen { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.datepick-day.chosen {
+  background: var(--grad-accent); color: var(--on-accent); border-color: transparent;
+  box-shadow: 0 6px 16px -10px color-mix(in srgb, var(--accent) 70%, transparent);
+}
 .datepick-foot {
   display: flex; justify-content: space-between; gap: var(--s-3);
   margin-top: var(--s-3); padding-top: var(--s-3); border-top: 1px solid var(--border);
