@@ -62,31 +62,21 @@
   --series-7: #4a3aa7;
   --series-8: #e34948;
 
-  /* ---------- the lit layer ----------
-     A second accent and five glows: everything in the app that carries a colour now also
-     carries a light source. `--accent-2` is the hue every accent gradient runs into, and
-     each `--glow-*` is its family's colour at the alpha that reads as a halo rather than
-     as a blur — measured on the surface it is drawn on, which is why the dark ones are
-     roughly twice the alpha of the light ones. A glow on a light card has to stay a hint
-     or it turns to grey smudge; on the dark card the same alpha would not be visible at
-     all, and neon is the one effect that genuinely belongs to a dark surface.
+  /* ---------- depth ----------
+     One shadow colour per surface, kept as bare channels so that each shadow picks its own
+     alpha: `rgb(var(--shadow-rgb) / .2)`. On the light surface it is the text colour, so a
+     shadow reads as the same warm ink the page is set in rather than as a grey smudge; on
+     the dark surface it is black, because nothing else darkens what is already dark.
 
-     They are shadows and fills, never ink: no text colour is defined here, so contrast is
-     unchanged everywhere and the guarantees measured for the dark surface still hold. */
-  --accent-2: #6d4bd1;
-  --glow-accent: rgba(44, 95, 138, .26);
-  --glow-ok: rgba(47, 107, 61, .22);
-  --glow-warn: rgba(154, 106, 18, .22);
-  --glow-danger: rgba(176, 42, 42, .22);
-  --glow-private: rgba(107, 76, 138, .22);
-
-  /* Gradients are built from the semantic names, so they are theme-blind by construction:
-     one description, repainted by whichever surface is in force. That is why they need no
-     --dark-* twin, and why a slot can never be lit on one surface and flat on the other. */
-  --grad-accent: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
-  --grad-accent-soft: linear-gradient(140deg, var(--accent-soft) 0%, var(--surface) 78%);
-  --grad-line: linear-gradient(90deg, transparent, var(--glow-accent) 18%,
-                                var(--accent) 50%, var(--glow-accent) 82%, transparent);
+     Every raised thing in this file — a card at rest, the calendar, the completion panel —
+     is drawn with this and with nothing else. There are no glows and no gradients: the
+     accent is ink and fill, never a light source. The one hue that used to run into the
+     primary button's gradient was a violet, and violet is the colour privacy wears
+     (`--private`); a button that ended in the privacy colour taught the eye to read it as
+     decoration. Where a ring or a halo is still wanted — the focus ring, a badge's edge —
+     it is mixed from the element's own colour with color-mix(), so it needs no token and
+     cannot disagree with the ink it surrounds. */
+  --shadow-rgb: 35 32 28;
 
   /* ---------- the dark surface ----------
      The dark values live here beside the light ones and are applied further down by the
@@ -138,12 +128,7 @@
   --dark-series-6: #3ca837;
   --dark-series-7: #8780f3;
   --dark-series-8: #f45956;
-  --dark-accent-2: #a98bff;
-  --dark-glow-accent: rgba(127, 179, 232, .45);
-  --dark-glow-ok: rgba(127, 201, 148, .38);
-  --dark-glow-warn: rgba(226, 180, 93, .38);
-  --dark-glow-danger: rgba(240, 144, 139, .38);
-  --dark-glow-private: rgba(187, 155, 224, .40);
+  --dark-shadow-rgb: 0 0 0;
 }
 
 /* ---------- applying the dark surface ----------
@@ -172,10 +157,7 @@
     --series-3: var(--dark-series-3); --series-4: var(--dark-series-4);
     --series-5: var(--dark-series-5); --series-6: var(--dark-series-6);
     --series-7: var(--dark-series-7); --series-8: var(--dark-series-8);
-    --accent-2: var(--dark-accent-2);
-    --glow-accent: var(--dark-glow-accent); --glow-ok: var(--dark-glow-ok);
-    --glow-warn: var(--dark-glow-warn); --glow-danger: var(--dark-glow-danger);
-    --glow-private: var(--dark-glow-private);
+    --shadow-rgb: var(--dark-shadow-rgb);
   }
 }
 
@@ -195,10 +177,7 @@
   --series-3: var(--dark-series-3); --series-4: var(--dark-series-4);
   --series-5: var(--dark-series-5); --series-6: var(--dark-series-6);
   --series-7: var(--dark-series-7); --series-8: var(--dark-series-8);
-  --accent-2: var(--dark-accent-2);
-  --glow-accent: var(--dark-glow-accent); --glow-ok: var(--dark-glow-ok);
-  --glow-warn: var(--dark-glow-warn); --glow-danger: var(--dark-glow-danger);
-  --glow-private: var(--dark-glow-private);
+  --shadow-rgb: var(--dark-shadow-rgb);
 }
 
 * { box-sizing: border-box; }
@@ -232,14 +211,6 @@ body.public main { max-width: 720px; }
   padding: var(--s-2) 20px; min-height: 52px;
   background: var(--surface); border-bottom: 1px solid var(--border);
 }
-/* The one place in the chrome that carries the accent: a hairline that lights up in the
-   middle and fades at both ends, so the header has an edge without a second border. It is
-   drawn over the border rather than instead of it — with the effect switched off the
-   header is exactly the box it was. */
-.top::after {
-  content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
-  background: var(--grad-line); opacity: .85; pointer-events: none;
-}
 /* On a wide screen the wrapper is not a box: brand, nav and the language switch are the
    header's own three flex items, exactly as before this file knew about .bar. */
 .top > .bar { display: contents; }
@@ -255,10 +226,7 @@ body.public main { max-width: 720px; }
   color: var(--muted); text-decoration: none; font-size: var(--fs-md);
 }
 .top nav a:hover { background: var(--bg); color: var(--text); }
-.top nav a.active {
-  background: var(--grad-accent-soft); color: var(--accent); font-weight: 600;
-  box-shadow: inset 0 0 0 1px var(--glow-accent);
-}
+.top nav a.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 /* One rule for both chrome switches: the theme glyph and the locale code are the same
    kind of control, so they must not drift into looking like two. The glyph needs a
    slightly wider box than a two-letter code to stay square. */
@@ -302,7 +270,7 @@ a { color: var(--accent); }
 .card {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius); padding: var(--s-5); margin-bottom: var(--s-4);
-  box-shadow: 0 1px 2px -1px var(--glow-accent);
+  box-shadow: 0 1px 2px rgb(var(--shadow-rgb) / .05);
 }
 .card.private { border-left: 3px solid var(--private); background: var(--private-soft); }
 
@@ -316,8 +284,8 @@ a { color: var(--accent); }
 .private-head {
   display: flex; align-items: center; gap: var(--s-3);
   padding: var(--s-2) var(--s-4); margin-bottom: -1px;
-  background: linear-gradient(120deg, var(--private-soft), var(--surface) 92%);
-  box-shadow: inset 2px 0 0 var(--private), 0 2px 12px -8px var(--glow-private);
+  background: var(--private-soft);
+  box-shadow: inset 2px 0 0 var(--private);
   color: var(--private);
   border: 1px solid var(--border); border-bottom: none;
   border-radius: var(--radius) var(--radius) 0 0;
@@ -339,9 +307,21 @@ a { color: var(--accent); }
   border-top-left-radius: calc(var(--radius) - 3px) calc(var(--radius) - 1px);
   border-top-right-radius: calc(var(--radius) - 1px);
   border-bottom-left-radius: 0; border-bottom-right-radius: 0;
-  box-shadow: 0 2px 12px -8px var(--glow-private);
+  box-shadow: none;
 }
-.rows { display: flex; flex-direction: column; gap: var(--s-3); }
+/* ---------- lists ----------
+   A list is one box with hairlines between its rows, not a stack of small cards. Twelve
+   people as twelve bordered boxes with air between them read as twelve things to consider
+   one at a time; the same twelve as rows of one list read as a list, which is what they
+   are, and the eye runs down the names instead of stopping at every frame. The container
+   wears the border and the corners; a row draws only the line above itself and takes the
+   container's corner when it is first or last. The corners are handed down rather than
+   clipped with overflow:hidden, because that would also clip the focus ring of a button
+   sitting at a row's edge. */
+.rows {
+  display: flex; flex-direction: column;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+}
 /* A row wraps at the width where its text stops being text, not at a breakpoint ----------
    min-width: 0 let the label column shrink without limit, so on a phone a name and its
    cadence line came out one word per line while the buttons beside it kept their full
@@ -352,11 +332,15 @@ a { color: var(--accent); }
    Above the floor nothing wraps, so the desktop row is unchanged to the pixel. */
 .row {
   display: flex; align-items: center; gap: var(--s-4); flex-wrap: wrap; row-gap: var(--s-3);
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: var(--s-4) 14px;
+  padding: var(--s-4) 14px;
+  border-top: 1px solid var(--border);
+  transition: background-color .15s ease;
 }
-.row { transition: border-color .15s ease, box-shadow .15s ease; }
-.row:hover { border-color: var(--muted); box-shadow: 0 4px 16px -12px var(--glow-accent); }
+.row:first-child { border-top: 0; border-radius: var(--radius) var(--radius) 0 0; }
+.row:last-child { border-radius: 0 0 var(--radius) var(--radius); }
+/* The hover tint is mixed from the text colour, so it darkens the light surface and
+   lightens the dark one by the same small step; --bg would go the wrong way on one of them. */
+.row:hover { background: color-mix(in srgb, var(--text) 4%, var(--surface)); }
 .row .grow { flex: 1; min-width: 12em; overflow-wrap: break-word; }
 .row .name { font-weight: 600; }
 .row a.name { text-decoration: none; color: var(--text); }
@@ -367,31 +351,17 @@ a { color: var(--accent); }
   display: inline-block; padding: 2px var(--s-3); border-radius: 999px;
   font-size: var(--fs-xs); font-weight: 600; white-space: nowrap;
 }
-/* The fill and the ink are untouched — those were measured. What is added is a ring and a
-   halo in the badge's own colour, so a row of badges reads as a row of small lit chips
-   rather than as flat stickers, and each family is still told apart by hue and wording. */
-.badge.overdue {
-  background: var(--danger-soft); color: var(--danger);
-  box-shadow: 0 0 0 1px var(--glow-danger), 0 2px 10px -5px var(--glow-danger);
-}
-.badge.due_soon {
-  background: var(--warn-soft); color: var(--warn);
-  box-shadow: 0 0 0 1px var(--glow-warn), 0 2px 10px -5px var(--glow-warn);
-}
-.badge.ok {
-  background: var(--ok-soft); color: var(--ok);
-  box-shadow: 0 0 0 1px var(--glow-ok), 0 2px 10px -5px var(--glow-ok);
-}
+/* The fill and the ink were measured and are untouched. The edge is one rule for every
+   family: a hairline mixed from the badge's own ink, so a soft fill still has a boundary
+   against the surface and no family needs a colour of its own for it. */
+.badge { box-shadow: 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent); }
+.badge.overdue { background: var(--danger-soft); color: var(--danger); }
+.badge.due_soon { background: var(--warn-soft); color: var(--warn); }
+.badge.ok { background: var(--ok-soft); color: var(--ok); }
 .badge.no_cadence { background: var(--bg); color: var(--muted); }
-.badge.private {
-  background: var(--private-soft); color: var(--private);
-  box-shadow: 0 0 0 1px var(--glow-private), 0 2px 10px -5px var(--glow-private);
-}
-.badge.shared {
-  background: var(--accent-soft); color: var(--accent);
-  box-shadow: 0 0 0 1px var(--glow-accent), 0 2px 10px -5px var(--glow-accent);
-}
-.badge.neutral { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+.badge.private { background: var(--private-soft); color: var(--private); }
+.badge.shared { background: var(--accent-soft); color: var(--accent); }
+.badge.neutral { background: var(--bg); color: var(--muted); }
 
 /* ---------- forms ---------- */
 label { display: block; font-weight: 600; font-size: var(--fs-md); margin-bottom: var(--s-1); }
@@ -417,8 +387,9 @@ textarea { min-height: 92px; resize: vertical; }
   outline: 2px solid var(--accent);
   outline-offset: 1px;
   /* The halo is decoration on top of the ring, never instead of it: the 2px outline is
-     what carries the contrast, and it is unchanged. */
-  box-shadow: 0 0 0 4px var(--glow-accent);
+     what carries the contrast. The halo is the accent at a quarter strength, mixed on the
+     spot so it follows the surface without a token of its own. */
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent);
 }
 /* The hidden input must not claim a ring nobody could see. */
 .scale-opt input:focus-visible { outline: none; }
@@ -444,20 +415,23 @@ button, .btn {
   display: inline-block; padding: var(--s-3) 14px; font: inherit; font-weight: 600;
   border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface);
   color: var(--text); cursor: pointer; text-decoration: none;
-  transition: border-color .15s ease, box-shadow .15s ease, filter .15s ease;
+  transition: border-color .15s ease, background-color .15s ease;
 }
 button:hover, .btn:hover { border-color: var(--muted); }
-/* The one gradient the eye is meant to notice: the primary action runs from the accent
-   into its companion hue and sits on a halo of its own colour. --on-accent is unchanged
-   and clears 4.5:1 against both ends of the ramp on both surfaces, so the label is as
-   readable as it was on the flat fill. */
+/* A press moves the button one pixel: the state is already legible from the click, so
+   this is feedback, not decoration, and it needs no transition. */
+button:active, .btn:active { transform: translateY(1px); }
+/* The primary action is the accent as a flat fill — the one solid block of colour on a
+   page, which is what makes it the one thing to press. The hover mixes a little of the
+   text colour in, so it darkens on the light surface and lightens on the dark one; a
+   brightness filter would have pushed one of the two the wrong way. --on-accent clears
+   4.5:1 on the fill and on its hover on both surfaces. */
 button.primary, .btn.primary {
-  background: var(--grad-accent); border-color: transparent; color: var(--on-accent);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16), 0 6px 18px -10px var(--glow-accent);
+  background: var(--accent); border-color: var(--accent); color: var(--on-accent);
 }
 button.primary:hover, .btn.primary:hover {
-  filter: brightness(1.06) saturate(1.04);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2), 0 10px 24px -10px var(--glow-accent);
+  background: color-mix(in srgb, var(--accent) 88%, var(--text));
+  border-color: color-mix(in srgb, var(--accent) 88%, var(--text));
 }
 button.danger { color: var(--danger); }
 button.link {
@@ -475,10 +449,9 @@ button.link {
   background: var(--surface); font-weight: 600; cursor: pointer;
 }
 .scale-opt input:checked + span {
-  background: var(--grad-accent); border-color: transparent; color: var(--on-accent);
-  box-shadow: 0 4px 14px -8px var(--glow-accent);
+  background: var(--accent); border-color: var(--accent); color: var(--on-accent);
 }
-.scale-opt span { transition: background .15s ease, box-shadow .15s ease; }
+.scale-opt span { transition: background-color .15s ease, border-color .15s ease; }
 /* The focus ring for this control lives with the app-wide :focus-visible rule above. */
 .scale-ends {
   display: flex; justify-content: space-between; font-size: var(--fs-xs);
@@ -549,10 +522,7 @@ button.link {
   font-size: var(--fs-sm); color: var(--muted); text-decoration: none;
 }
 .rail a:hover { background: var(--bg); color: var(--text); }
-.rail a.current {
-  background: var(--grad-accent-soft); color: var(--accent); font-weight: 600;
-  box-shadow: inset 0 0 0 1px var(--glow-accent);
-}
+.rail a.current { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 .rail a .of { font-variant-numeric: tabular-nums; font-size: var(--fs-xs); flex: none; }
 .rail a.private-item { color: var(--private); }
 /* Jumping to a section should not tuck its heading against the top of the viewport. */
@@ -567,8 +537,7 @@ button.link {
   overflow: hidden;
 }
 .progress .track i {
-  display: block; height: 100%; background: var(--grad-accent);
-  box-shadow: 0 0 10px var(--glow-accent);
+  display: block; height: 100%; background: var(--accent);
   transition: width .25s ease;
 }
 
@@ -580,15 +549,8 @@ button.link {
   margin-top: var(--s-6); padding: var(--s-4) var(--s-5);
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius);
-  /* It floats over the questions, so it says so: a lifted shadow plus the accent hairline
-     the header wears, here along the top edge. */
-  box-shadow: 0 -6px 24px -18px var(--glow-accent), 0 10px 30px -22px var(--glow-accent);
-}
-/* position:sticky already makes the panel a containing block, so the hairline needs no
-   extra positioning rule of its own. */
-.commit-bar::before {
-  content: ""; position: absolute; left: 12px; right: 12px; top: -1px; height: 1px;
-  background: var(--grad-line); opacity: .8; pointer-events: none;
+  /* It floats over the questions, so it says so: a shadow cast upward, onto what it covers. */
+  box-shadow: 0 -8px 24px -16px rgb(var(--shadow-rgb) / .3);
 }
 /* Same floor as .row, for the same reason: the progress recap used to be squeezed into a
    column one word wide next to the completion button. */
@@ -643,13 +605,21 @@ pre.md {
 .group.attention .group-head h3 { color: var(--danger); }
 .group.soon .group-head h3 { color: var(--warn); }
 
-/* A one-line answer to "what do I do today", above the lists. */
+/* The answer to "what do I do today", above the lists: three figures the size of the page
+   title with their nouns under them. The numbers are the point of the dashboard, so they
+   are the largest thing on it after the title, and they are tabular so 4 and 14 take the
+   same column. The date sits in the subtitle under the title, where every other page
+   keeps its one line of context. */
 .headline {
-  display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-5);
-  align-items: baseline; margin: 0 0 var(--s-6);
-  font-size: var(--fs-md); color: var(--muted);
+  display: flex; flex-wrap: wrap; gap: var(--s-3) var(--s-7);
+  align-items: end; margin: 0 0 var(--s-7);
+  font-size: var(--fs-sm); color: var(--muted);
 }
-.headline strong { color: var(--text); font-variant-numeric: tabular-nums; }
+.headline strong {
+  display: block; color: var(--text); font-size: var(--fs-xl); font-weight: 700;
+  line-height: 1.1; letter-spacing: -.01em; font-variant-numeric: tabular-nums;
+}
+
 
 /* ---------- comparing people ---------- */
 .standing-value {
@@ -705,15 +675,14 @@ pre.md {
 .field-row .req { color: var(--danger); font-weight: 700; }
 
 .metric-tag {
-  background: var(--grad-accent-soft); color: var(--accent);
-  box-shadow: 0 0 0 1px var(--glow-accent);
-  padding: 1px var(--s-2); border-radius: 4px; font-size: var(--fs-xs); font-weight: 600;
+  background: var(--accent-soft); color: var(--accent);
+  padding: 1px var(--s-2); border-radius: var(--radius-sm); font-size: var(--fs-xs); font-weight: 600;
 }
 
 .preview-line { display: block; margin-top: var(--s-1); font-size: var(--fs-sm); color: var(--muted); }
 .chip {
   display: inline-block; background: var(--surface); border: 1px solid var(--border);
-  border-radius: 4px; padding: 1px var(--s-2); margin-right: var(--s-1); font-size: var(--fs-xs);
+  border-radius: var(--radius-sm); padding: 1px var(--s-2); margin-right: var(--s-1); font-size: var(--fs-xs);
 }
 
 .btn.small-btn { padding: 3px 9px; font-size: var(--fs-sm); }
@@ -739,8 +708,9 @@ label.inline input { width: auto; }
 .notice.error {
   background: var(--danger-soft); border-color: var(--danger-border); color: var(--danger);
 }
-.row.problem.error { border-left: 3px solid var(--danger); }
-.row.problem.warning { border-left: 3px solid var(--warn); }
+/* A row draws no border of its own any more, so the spine is an inset shadow. */
+.row.problem.error { box-shadow: inset 3px 0 0 var(--danger); }
+.row.problem.warning { box-shadow: inset 3px 0 0 var(--warn); }
 
 .empty.small { padding: 14px; font-size: var(--fs-sm); }
 
@@ -777,9 +747,7 @@ label.inline input { width: auto; }
 /* The call button: an outward action, so it reads differently from navigation. */
 .btn.join { white-space: nowrap; }
 .btn.join:not(.primary) { color: var(--accent); border-color: var(--accent-soft); }
-.btn.join:not(.primary):hover {
-  border-color: var(--accent); box-shadow: 0 0 0 3px var(--glow-accent);
-}
+.btn.join:not(.primary):hover { border-color: var(--accent); }
 
 /* ---------- grouped controls ----------
    A scale and an option set are groups of radios or checkboxes. A single <label for>
@@ -820,10 +788,10 @@ label.inline input { width: auto; }
   width: 320px; max-width: min(320px, calc(100vw - var(--s-6)));
   padding: var(--s-4);
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-  /* Lifted off the page, and lit by the accent rather than by a heavier grey: the panel
-     overlaps the form under it and must read as being in front of it. */
-  box-shadow: 0 0 0 1px var(--glow-accent), 0 18px 40px -20px var(--glow-accent),
-              0 12px 32px -20px rgba(0, 0, 0, .5);
+  /* Lifted off the page: the panel overlaps the form under it and must read as being in
+     front of it. Two shadows, a wide soft one and a tight one at the edge, both in the
+     surface's own shadow colour. */
+  box-shadow: 0 16px 40px -16px rgb(var(--shadow-rgb) / .35), 0 2px 8px -4px rgb(var(--shadow-rgb) / .2);
 }
 .datepick-head {
   display: flex; align-items: center; justify-content: space-between; gap: var(--s-3);
@@ -854,11 +822,11 @@ label.inline input { width: auto; }
 /* The days either side of the month stay in the grid — a calendar with holes in the first
    and last week is harder to read than one with two quiet weeks. */
 .datepick-day.other { color: var(--muted); opacity: .5; }
-.datepick-day.today { color: var(--accent); font-weight: 700; border-color: var(--glow-accent); }
-.datepick-day.chosen {
-  background: var(--grad-accent); color: var(--on-accent); border-color: transparent;
-  box-shadow: 0 4px 14px -8px var(--glow-accent);
+.datepick-day.today {
+  color: var(--accent); font-weight: 700;
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
 }
+.datepick-day.chosen { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 .datepick-foot {
   display: flex; justify-content: space-between; gap: var(--s-3);
   margin-top: var(--s-3); padding-top: var(--s-3); border-top: 1px solid var(--border);
