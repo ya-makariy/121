@@ -12,7 +12,7 @@ import { listActionsForPerson } from "../db/queries/actions.ts";
 import { metricsWithDataForPerson } from "../db/queries/metrics.ts";
 import { cadenceOverview } from "../db/queries/cadence.ts";
 import { peopleListPage, personFormPage } from "../views/pages/people.ts";
-import { parseDateInput } from "../lib/dates.ts";
+import { parseBirthdayInput, parseDateInput } from "../lib/dates.ts";
 import { personPage } from "../views/pages/person.ts";
 import type { PersonRow } from "../db/types.ts";
 import { loc } from "../middleware/locale.ts";
@@ -20,7 +20,7 @@ import { OWNER_ID, user } from "../middleware/current-user.ts";
 import { today } from "../domain/cadence.ts";
 import { dict, errorMessage } from "../i18n/index.ts";
 import { safeExternalUrl } from "../lib/url.ts";
-import { UrlError } from "../lib/errors.ts";
+import { PersonEditError, UrlError } from "../lib/errors.ts";
 import { addTeamMember, assertAssignable, TeamEditError } from "../domain/teams.ts";
 
 export const peopleRoutes = new Hono();
@@ -52,10 +52,17 @@ function draftPerson(form: Record<string, unknown>, existing: PersonRow | null):
   };
 }
 
+/** The birthday as typed, for the same reason: a refused value is redisplayed, not blanked. */
+function draftBirthday(form: Record<string, unknown>): string {
+  const v = form["birthday"];
+  return typeof v === "string" ? v.trim() : "";
+}
+
 const BLANK_PERSON: PersonRow = {
   id: 0, full_name: "", email: null, role_title: null, timezone: null, started_on: null,
   cadence_days: null, cadence_anchor_on: null, default_template_id: null,
-  meeting_url: null, notes: null, archived_at: null, created_at: "", updated_at: "",
+  meeting_url: null, birth_month: null, birth_day: null, birth_year: null,
+  notes: null, archived_at: null, created_at: "", updated_at: "",
 };
 
 function parsePersonInput(form: Record<string, unknown>): PersonInput {
@@ -73,6 +80,14 @@ function parsePersonInput(form: Record<string, unknown>): PersonInput {
     throw new UrlError("URL_INVALID", { url: rawUrl });
   }
 
+  // Same for the birthday: "12.11" and "12.11.1990" are both fine, anything else is refused
+  // rather than stored as no birthday at all.
+  const rawBirthday = str("birthday");
+  const birthday = rawBirthday === null ? null : parseBirthdayInput(rawBirthday);
+  if (rawBirthday !== null && birthday === null) {
+    throw new PersonEditError("BIRTHDAY_INVALID", { value: rawBirthday });
+  }
+
   return {
     full_name: str("full_name") ?? "",
     email: str("email"),
@@ -84,6 +99,7 @@ function parsePersonInput(form: Record<string, unknown>): PersonInput {
       ? null
       : Number.parseInt(str("default_template_id")!, 10),
     meeting_url: meetingUrl,
+    birthday,
     notes: str("notes"),
   };
 }
@@ -134,6 +150,7 @@ peopleRoutes.post("/people", async (c) => {
         // Rendered as a draft with id 0, so the form still posts to /people.
         person: null,
         draft: draftPerson(form, null),
+        birthdayDraft: draftBirthday(form),
         templates: listTemplates(db(), OWNER_ID),
         teams: listTeams(db(), OWNER_ID),
         teamDraft: team,
@@ -146,7 +163,9 @@ peopleRoutes.post("/people", async (c) => {
   try {
     input = parsePersonInput(form);
   } catch (err) {
-    if (err instanceof UrlError) return showForm(errorMessage(loc(c), err));
+    if (err instanceof UrlError || err instanceof PersonEditError) {
+      return showForm(errorMessage(loc(c), err));
+    }
     throw err;
   }
   if (input.full_name === "") return showForm(dict(loc(c)).people.nameRequired);
@@ -189,6 +208,7 @@ peopleRoutes.get("/people/:id", (c) => {
       locale: loc(c), theme: thm(c),
       person,
       cadence,
+      today: t,
       meetings: listMeetingsForPerson(db(), id),
       actions: listActionsForPerson(db(), id),
       metrics: metricsWithDataForPerson(db(), id),
@@ -218,6 +238,7 @@ peopleRoutes.post("/people/:id", async (c) => {
       personFormPage({
         today: today(user(c).timezone),
         locale: loc(c), theme: thm(c), person, draft: draftPerson(form, person),
+        birthdayDraft: draftBirthday(form),
         templates: listTemplates(db(), OWNER_ID), teams: listTeams(db(), OWNER_ID),
         memberships: teamsForPerson(db(), id), teamDraft: team, error,
       }),
@@ -229,7 +250,9 @@ peopleRoutes.post("/people/:id", async (c) => {
   try {
     input = parsePersonInput(form);
   } catch (err) {
-    if (err instanceof UrlError) return showForm(errorMessage(loc(c), err));
+    if (err instanceof UrlError || err instanceof PersonEditError) {
+      return showForm(errorMessage(loc(c), err));
+    }
     throw err;
   }
   if (input.full_name === "") return showForm(dict(loc(c)).people.nameRequired);

@@ -1,7 +1,8 @@
 import type { Database } from "bun:sqlite";
-import type { Locale } from "../db/types.ts";
-import { nowIso } from "../lib/dates.ts";
+import type { Locale, PersonRow } from "../db/types.ts";
+import { formatBirthdayInput, nowIso } from "../lib/dates.ts";
 import { dict } from "../i18n/index.ts";
+import { birthdayOf } from "../db/queries/people.ts";
 
 /**
  * EXPORT IS A BACKUP, NOT A SUMMARY. It includes private content: the manager's notes,
@@ -53,13 +54,15 @@ export function exportFullMarkdown(db: Database, locale: Locale = "ru"): string 
   const out: string[] = [`# ${t.exportDoc.title}`, "", `> ${t.exportDoc.warning}`, ""];
 
   const people = db
-    .query<{ id: number; full_name: string; role_title: string | null; notes: string | null }, []>(
-      "SELECT id, full_name, role_title, notes FROM person ORDER BY full_name",
+    .query<Pick<PersonRow, "id" | "full_name" | "role_title" | "notes" | "birth_month" | "birth_day" | "birth_year">, []>(
+      "SELECT id, full_name, role_title, notes, birth_month, birth_day, birth_year FROM person ORDER BY full_name",
     )
     .all();
 
   for (const p of people) {
     out.push(`## ${p.full_name}${p.role_title ? ` — ${p.role_title}` : ""}`, "");
+    const birthday = birthdayOf(p);
+    if (birthday) out.push(`_${t.exportDoc.birthday}:_ ${formatBirthdayInput(birthday)}`, "");
     if (p.notes) out.push(`_${t.exportDoc.privateNotes}:_ ${p.notes}`, "");
 
     const meetings = db

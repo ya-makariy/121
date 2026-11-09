@@ -7,6 +7,8 @@ import type { Locale, PersonRow, TemplateRow } from "../../db/types.ts";
 import type { PersonTeamRow, TeamWithMembers } from "../../db/queries/teams.ts";
 import { joinLink } from "../components/join-link.ts";
 import { dateField } from "../components/date-field.ts";
+import { BIRTHDAY_INPUT_PATTERN, formatBirthdayInput } from "../../lib/dates.ts";
+import { birthdayOf } from "../../db/queries/people.ts";
 
 export function peopleListPage(o: {
   locale: Locale; theme: Theme; people: PersonRow[]; archived: PersonRow[];
@@ -67,6 +69,8 @@ export function personFormPage(o: {
   person: PersonRow | null;
   /** What to put in the inputs when a save failed: the submitted values, not the stored ones. */
   draft?: PersonRow;
+  /** The birthday as typed, when a save failed: a refused value is shown, not blanked. */
+  birthdayDraft?: string;
   templates: TemplateRow[];
   /** Teams available to join: the live ones. */
   teams: TeamWithMembers[];
@@ -81,6 +85,7 @@ export function personFormPage(o: {
   const t = dict(o.locale);
   const p = o.draft ?? o.person;
   const action = o.person ? `/people/${o.person.id}` : "/people";
+  const birthdayShown = o.birthdayDraft ?? formatBirthdayInput(p ? birthdayOf(p) : null);
 
   const current = (o.memberships ?? []).filter((m) => m.left_on === null);
   const past = (o.memberships ?? []).filter((m) => m.left_on !== null);
@@ -180,6 +185,15 @@ export function personFormPage(o: {
             value: p?.cadence_anchor_on, today: o.today,
           })}
         </div>
+      </div>
+      <div class="field">
+        <label for="birthday">
+          ${t.people.birthday}
+          <span class="hint">${t.people.birthdayHint}</span>
+        </label>
+        <input type="text" id="birthday" name="birthday" inputmode="numeric"
+               autocomplete="off" spellcheck="false" pattern="${BIRTHDAY_INPUT_PATTERN}"
+               placeholder="${t.people.birthdayFormat}" value="${birthdayShown}" />
       </div>
       <div class="field">
         <label for="meeting_url">

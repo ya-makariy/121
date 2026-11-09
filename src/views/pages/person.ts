@@ -1,11 +1,13 @@
 import { html } from "../html.ts";
 import type { Theme } from "../../lib/theme.ts";
 import { layout } from "../layout.ts";
-import { dict } from "../../i18n/index.ts";
+import { dict, format } from "../../i18n/index.ts";
 import type { Locale, MeetingRow, MetricRow, PersonRow, ActionItemRow } from "../../db/types.ts";
 import type { PersonCadence } from "../../db/queries/cadence.ts";
-import { formatDate } from "../../i18n/dates.ts";
+import { formatDate, formatDayMonth } from "../../i18n/dates.ts";
 import { joinLink } from "../components/join-link.ts";
+import { birthdayOf } from "../../db/queries/people.ts";
+import { classifyBirthday } from "../../domain/birthdays.ts";
 
 export function personPage(o: {
   locale: Locale; theme: Theme;
@@ -14,9 +16,21 @@ export function personPage(o: {
   meetings: MeetingRow[];
   actions: ActionItemRow[];
   metrics: MetricRow[];
+  /** Today in the owner's timezone: the age shown is the age they turn next (rule 4). */
+  today: string;
 }): string {
   const t = dict(o.locale);
   const p = o.person;
+
+  // "12 November 1990 · turns 36" when the year is known, "12 November" when it is not.
+  const birthday = birthdayOf(p);
+  const birthdayLine = birthday === null
+    ? ""
+    : birthday.year === null
+      ? formatDayMonth(birthday.month, birthday.day, o.locale)
+      : `${formatDayMonth(birthday.month, birthday.day, o.locale)} ${birthday.year} · ${
+          format(t.people.turns, { age: classifyBirthday(birthday, o.today).turning! })
+        }`;
 
   const statusLabel = (m: MeetingRow) =>
     m.status === "completed" ? t.meeting.completed
@@ -37,6 +51,9 @@ export function personPage(o: {
         : html`<span class="badge no_cadence">${t.dashboard.noCadence}</span>`}
       · <a href="/people/${p.id}/edit">${t.common.edit}</a>
     </p>
+    ${birthday !== null
+      ? html`<p class="sub"><span aria-hidden="true">\u{1F382}</span> ${t.people.birthday}: ${birthdayLine}</p>`
+      : ""}
 
     <p class="actions-bar">
       <a class="btn primary" href="/people/${p.id}/meetings/new">${t.dashboard.startMeeting}</a>

@@ -46,6 +46,10 @@ export interface PersonRow {
   default_template_id: number | null;
   /** Link to the recurring call, so the meeting can be opened from the tool. */
   meeting_url: string | null;
+  /** Birthday as month and day; both set or both null. The year is optional on its own. */
+  birth_month: number | null;
+  birth_day: number | null;
+  birth_year: number | null;
   notes: string | null;
   archived_at: string | null;
   created_at: string;

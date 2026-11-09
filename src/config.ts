@@ -32,6 +32,8 @@ export const config = {
   timezone: str("TZ", "Europe/Moscow"),
   /** How many days before the due date still counts as "due soon". */
   dueSoonDays: int("DUE_SOON_DAYS", 3),
+  /** How many days ahead the dashboard mentions a birthday. */
+  birthdayWindowDays: int("BIRTHDAY_WINDOW_DAYS", 7),
   /** Minimum people in an aggregate bucket, so it cannot de-anonymize anyone. */
   minPeoplePerBucket: int("MIN_PEOPLE_PER_BUCKET", 3),
 } as const;

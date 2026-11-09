@@ -75,13 +75,13 @@ describe("meeting link storage", () => {
     const db = testDb();
     const person = createPerson(db, {
       full_name: "Someone", email: null, role_title: null, cadence_days: 14,
-      cadence_anchor_on: null, default_template_id: null, meeting_url: ROOM, notes: null,
+      cadence_anchor_on: null, default_template_id: null, meeting_url: ROOM, birthday: null, notes: null,
     });
     expect(person.meeting_url).toBe(ROOM);
 
     const updated = updatePerson(db, person.id, {
       full_name: "Someone", email: null, role_title: null, cadence_days: 14,
-      cadence_anchor_on: null, default_template_id: null, meeting_url: null, notes: null,
+      cadence_anchor_on: null, default_template_id: null, meeting_url: null, birthday: null, notes: null,
     })!;
     expect(updated.meeting_url).toBeNull();
     expect(getPerson(db, person.id)!.meeting_url).toBeNull();
@@ -91,7 +91,7 @@ describe("meeting link storage", () => {
     const db = testDb();
     const person = createPerson(db, {
       full_name: "Someone", email: null, role_title: null, cadence_days: 14,
-      cadence_anchor_on: null, default_template_id: null, meeting_url: ROOM, notes: null,
+      cadence_anchor_on: null, default_template_id: null, meeting_url: ROOM, birthday: null, notes: null,
     });
     const row = cadenceOverview(db, "2026-09-07").find((r) => r.id === person.id)!;
     expect(row.meeting_url).toBe(ROOM);

@@ -32,6 +32,9 @@ export class TeamEditError extends CodedError {}
 /** A link that is not something safe to render. */
 export class UrlError extends CodedError {}
 
+/** A person's profile field that cannot be stored as typed. */
+export class PersonEditError extends CodedError {}
+
 /** An answer that does not fit its field. */
 export class AnswerValidationError extends CodedError {}
 

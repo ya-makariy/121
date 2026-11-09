@@ -42,24 +42,28 @@ const team = db
 const CAST = [
   {
     name: "Demo One", role: "Senior engineer",
+    birthday: { month: 5, day: 3, year: 1988 },
     dates: ["2026-05-12", "2026-06-09", "2026-07-07", "2026-08-11", "2026-09-01"],
     job: [4, 4, 5, 4, 5], workload: [3, 3, 2, 3, 3], growth: [4, 4, 5, 5, 5],
     energy: [4, 4, 5, 4, 5], risk: ["low", "low", "low", "low", "low"],
   },
   {
     name: "Demo Two", role: "Engineer",
+    birthday: null,
     dates: ["2026-05-14", "2026-06-11", "2026-07-09", "2026-08-13", "2026-09-03"],
     job: [4, 4, 3, 3, 2], workload: [3, 4, 4, 4, 5], growth: [4, 3, 3, 2, 2],
     energy: [4, 3, 3, 2, 2], risk: ["low", "low", "medium", "medium", "high"],
   },
   {
     name: "Demo Three", role: "Junior engineer",
+    birthday: { month: 11, day: 12, year: null },
     dates: ["2026-05-19", "2026-06-16", "2026-07-14", "2026-08-18", "2026-09-04"],
     job: [2, 2, 3, 4, 4], workload: [4, 4, 3, 3, 3], growth: [2, 3, 3, 4, 5],
     energy: [2, 3, 3, 4, 4], risk: ["medium", "medium", "low", "low", "low"],
   },
   {
     name: "Demo Four", role: "Team lead",
+    birthday: { month: 2, day: 29, year: 1992 },
     dates: ["2026-05-21", "2026-06-18", "2026-07-16", "2026-08-20", "2026-09-05"],
     job: [4, 3, 3, 3, 3], workload: [4, 5, 5, 5, 5], growth: [4, 4, 3, 3, 3],
     energy: [3, 3, 2, 2, 2], risk: ["low", "low", "medium", "medium", "medium"],
@@ -76,6 +80,7 @@ for (const person of CAST) {
     cadence_anchor_on: null,
     default_template_id: template.id,
     meeting_url: "https://example.com/demo-room",
+    birthday: person.birthday,
     notes: "An invented person for checking the charts.",
   });
 
