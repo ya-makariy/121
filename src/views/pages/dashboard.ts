@@ -80,7 +80,7 @@ export function dashboardPage(o: {
 
   const body = html`
     <h1>${t.dashboard.title}</h1>
-    <p class="sub">${t.tagline}</p>
+    <p class="sub">${format(t.dashboard.todayIs, { date: formatDate(o.today, o.locale) })}</p>
 
     ${c.total === 0
       ? html`
@@ -94,7 +94,6 @@ export function dashboardPage(o: {
             <span><strong>${c.total}</strong> ${pluralForm(o.locale, c.total, t.dashboard.peopleForms)}</span>
             <span><strong>${c.waiting}</strong> ${pluralForm(o.locale, c.waiting, t.dashboard.waitingForms)}</span>
             <span><strong>${o.actions.length}</strong> ${pluralForm(o.locale, o.actions.length, t.dashboard.openActionForms)}</span>
-            <span>${format(t.dashboard.todayIs, { date: formatDate(o.today, o.locale) })}</span>
           </p>
 
           ${c.groups.map(

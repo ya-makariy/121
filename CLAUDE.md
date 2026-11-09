@@ -101,8 +101,9 @@ cadence dashboard starts lying by a day.
 
 ## 6. No build step
 
-Bun + Hono + server-rendered HTML + HTMX. No bundler, no JSX, no runtime CDN — htmx and
-Chart.js are vendored into `public/vendor/`.
+Bun + Hono + server-rendered HTML + HTMX. No bundler, no JSX, no runtime CDN — htmx,
+Chart.js and the Geist typeface (SIL OFL, licence beside the file) are vendored into
+`public/vendor/`.
 
 - `views/html.ts` is the **only** place escaping is implemented. The `html` tagged template
   escapes every interpolated value unless it is wrapped in `raw()`.

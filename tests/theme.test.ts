@@ -60,7 +60,7 @@ describe("theme: the stylesheet", () => {
 
   test("every dark value is applied, and applied only through those two blocks", () => {
     const defined = declaredIn(blockOf(":root {")).filter((t) => t.startsWith("--dark-"));
-    expect(defined.length).toBe(33);
+    expect(defined.length).toBe(30);
 
     const applied = declaredIn(blockOf(':root[data-theme="dark"]'));
     for (const token of defined) {

@@ -13,6 +13,21 @@
    on <html>. `auto` asserts nothing and leaves `prefers-color-scheme` in charge, so
    following the system stays the behaviour nobody has to opt into.
    ================================================================ */
+
+/* The one typeface, vendored like htmx and Chart.js (rule 6: no runtime CDN). Geist is a
+   single variable file, 70KB, under the SIL Open Font License (public/vendor/geist/OFL.txt),
+   and it carries the Cyrillic the Russian dictionary needs — checked, not assumed: a
+   Latin-only face would have handed every Russian word to the system font and the page
+   would have been set in two typefaces without saying so. swap, so text is never invisible
+   while the file arrives; the fallback stack below is metrically close enough that the
+   swap is a flicker, not a relayout. */
+@font-face {
+  font-family: "Geist";
+  src: url("/vendor/geist/Geist-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
 :root {
   /* Native controls — select, checkbox, scrollbar, caret — follow this, and it is the
      reason the dark branch is not just a repaint of our own boxes. */
@@ -23,8 +38,8 @@
   --border: #e3ddd4;
   --text: #23201c;
   --muted: #6f675d;
-  --accent: #2c5f8a;
-  --accent-soft: #eaf1f7;
+  --accent: #2a5fc4;
+  --accent-soft: #e9effb;
   --danger: #b02a2a;
   --danger-soft: #fbecec;
   --warn: #9a6a12;
@@ -37,8 +52,11 @@
   --notice-border: #efd9ab;
   --notice-text: #6b4a0c;
   --danger-border: #eec6c6;
-  --radius: 8px;
-  --radius-sm: 6px;
+  /* Two radii and a rule: containers (cards, lists, panels, the calendar) take --radius,
+     controls (buttons, inputs, scale steps, tags) take --radius-sm, badges are pills. */
+  --radius: 12px;
+  --radius-sm: 8px;
+  --sans: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
 
   /* Spacing scale: seven steps for the seven roles the layout actually has. */
@@ -47,7 +65,7 @@
 
   /* Type scale: the whole ramp the app uses, from the smallest badge to h1. */
   --fs-xs: 12px; --fs-sm: 13px; --fs-md: 14px;
-  --fs-base: 15px; --fs-lg: 17px; --fs-xl: 25px;
+  --fs-base: 15px; --fs-lg: 18px; --fs-xl: 28px; --fs-2xl: 36px;
 
   /* The categorical palette from the data-visualization guidance: eight slots in a fixed
      order, validated against the light surface. A slot belongs to a person, never to
@@ -62,31 +80,40 @@
   --series-7: #4a3aa7;
   --series-8: #e34948;
 
-  /* ---------- the lit layer ----------
-     A second accent and five glows: everything in the app that carries a colour now also
-     carries a light source. `--accent-2` is the hue every accent gradient runs into, and
-     each `--glow-*` is its family's colour at the alpha that reads as a halo rather than
-     as a blur — measured on the surface it is drawn on, which is why the dark ones are
-     roughly twice the alpha of the light ones. A glow on a light card has to stay a hint
-     or it turns to grey smudge; on the dark card the same alpha would not be visible at
-     all, and neon is the one effect that genuinely belongs to a dark surface.
+  /* ---------- the second accent, and what is built from it ----------
+     Every gradient in the app runs from --accent into --accent-2: blue into teal. The pair
+     is chosen so that neither end is a colour the app already uses to mean something —
+     not the lilac of privacy, not the red, amber and green of the cadence badges — so a
+     gradient reads as "the accent, lit" and never as one of those states. White clears
+     4.5:1 on both ends on the light surface (5.9:1 and 4.9:1), and the dark on-accent ink
+     clears it on both dark ends (8.2:1 and 9.7:1), so a label is readable anywhere along
+     the ramp.
 
-     They are shadows and fills, never ink: no text colour is defined here, so contrast is
-     unchanged everywhere and the guarantees measured for the dark surface still hold. */
-  --accent-2: #6d4bd1;
-  --glow-accent: rgba(44, 95, 138, .26);
-  --glow-ok: rgba(47, 107, 61, .22);
-  --glow-warn: rgba(154, 106, 18, .22);
-  --glow-danger: rgba(176, 42, 42, .22);
-  --glow-private: rgba(107, 76, 138, .22);
+     --wash is the strength of the colour field under the header (body::before): a
+     percentage handed to color-mix(), stronger on the dark surface because the same alpha
+     that is a tint on paper is invisible on charcoal. */
+  --accent-2: #0e7f74;
+  --wash: 16%;
 
   /* Gradients are built from the semantic names, so they are theme-blind by construction:
      one description, repainted by whichever surface is in force. That is why they need no
-     --dark-* twin, and why a slot can never be lit on one surface and flat on the other. */
+     --dark-* twin. The soft one is the accent pair mixed into the surface, for things that
+     are highlighted rather than pressed: the active nav item, the current rail entry, the
+     figures panel on the dashboard. */
   --grad-accent: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
-  --grad-accent-soft: linear-gradient(140deg, var(--accent-soft) 0%, var(--surface) 78%);
-  --grad-line: linear-gradient(90deg, transparent, var(--glow-accent) 18%,
-                                var(--accent) 50%, var(--glow-accent) 82%, transparent);
+  --grad-accent-soft: linear-gradient(135deg,
+    color-mix(in srgb, var(--accent) 13%, var(--surface)) 0%,
+    color-mix(in srgb, var(--accent-2) 10%, var(--surface)) 100%);
+
+  /* ---------- depth ----------
+     One shadow colour per surface, kept as bare channels so that each shadow picks its own
+     alpha: `rgb(var(--shadow-rgb) / .2)`. On the light surface it is the text colour, so a
+     shadow reads as the same warm ink the page is set in rather than as a grey smudge; on
+     the dark surface it is black, because nothing else darkens what is already dark.
+     Neutral things — a card at rest, the calendar, the completion panel — are lifted with
+     it. The primary button is the one exception: it casts its own colour, because it is
+     the one thing on the page that is meant to look lit. */
+  --shadow-rgb: 35 32 28;
 
   /* ---------- the dark surface ----------
      The dark values live here beside the light ones and are applied further down by the
@@ -117,7 +144,7 @@
   --dark-text: #ece6dc;
   --dark-muted: #a49a8b;
   --dark-accent: #7fb3e8;
-  --dark-accent-soft: #1f2b38;
+  --dark-accent-soft: #1e2a3a;
   --dark-danger: #f0908b;
   --dark-danger-soft: #33201e;
   --dark-warn: #e2b45d;
@@ -138,12 +165,9 @@
   --dark-series-6: #3ca837;
   --dark-series-7: #8780f3;
   --dark-series-8: #f45956;
-  --dark-accent-2: #a98bff;
-  --dark-glow-accent: rgba(127, 179, 232, .45);
-  --dark-glow-ok: rgba(127, 201, 148, .38);
-  --dark-glow-warn: rgba(226, 180, 93, .38);
-  --dark-glow-danger: rgba(240, 144, 139, .38);
-  --dark-glow-private: rgba(187, 155, 224, .40);
+  --dark-accent-2: #5fd0bd;
+  --dark-wash: 26%;
+  --dark-shadow-rgb: 0 0 0;
 }
 
 /* ---------- applying the dark surface ----------
@@ -172,10 +196,8 @@
     --series-3: var(--dark-series-3); --series-4: var(--dark-series-4);
     --series-5: var(--dark-series-5); --series-6: var(--dark-series-6);
     --series-7: var(--dark-series-7); --series-8: var(--dark-series-8);
-    --accent-2: var(--dark-accent-2);
-    --glow-accent: var(--dark-glow-accent); --glow-ok: var(--dark-glow-ok);
-    --glow-warn: var(--dark-glow-warn); --glow-danger: var(--dark-glow-danger);
-    --glow-private: var(--dark-glow-private);
+    --accent-2: var(--dark-accent-2); --wash: var(--dark-wash);
+    --shadow-rgb: var(--dark-shadow-rgb);
   }
 }
 
@@ -195,10 +217,8 @@
   --series-3: var(--dark-series-3); --series-4: var(--dark-series-4);
   --series-5: var(--dark-series-5); --series-6: var(--dark-series-6);
   --series-7: var(--dark-series-7); --series-8: var(--dark-series-8);
-  --accent-2: var(--dark-accent-2);
-  --glow-accent: var(--dark-glow-accent); --glow-ok: var(--dark-glow-ok);
-  --glow-warn: var(--dark-glow-warn); --glow-danger: var(--dark-glow-danger);
-  --glow-private: var(--dark-glow-private);
+  --accent-2: var(--dark-accent-2); --wash: var(--dark-wash);
+  --shadow-rgb: var(--dark-shadow-rgb);
 }
 
 * { box-sizing: border-box; }
@@ -207,7 +227,20 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font: var(--fs-base)/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font: var(--fs-base)/1.55 var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+/* The colour field. Two soft radial spots of the accent pair at the top corners of the
+   viewport, fixed, so every page opens onto the same light and the header sits in it (the
+   header is translucent for exactly this reason). It fades into --bg well before the first
+   card, so nothing that has to be read is ever read against it. A fixed pseudo-element
+   with no pointer events is the cheapest way to paint it: one layer, never repainted on
+   scroll. */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(60% 50% at 10% -12%, color-mix(in srgb, var(--accent) var(--wash), transparent), transparent 70%),
+    radial-gradient(50% 45% at 92% -8%, color-mix(in srgb, var(--accent-2) var(--wash), transparent), transparent 70%);
 }
 
 main { max-width: 940px; margin: 0 auto; padding: var(--s-6) 20px 80px; }
@@ -229,35 +262,37 @@ body.public main { max-width: 720px; }
 .top {
   position: relative;
   display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
-  padding: var(--s-2) 20px; min-height: 52px;
-  background: var(--surface); border-bottom: 1px solid var(--border);
-}
-/* The one place in the chrome that carries the accent: a hairline that lights up in the
-   middle and fades at both ends, so the header has an edge without a second border. It is
-   drawn over the border rather than instead of it — with the effect switched off the
-   header is exactly the box it was. */
-.top::after {
-  content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
-  background: var(--grad-line); opacity: .85; pointer-events: none;
+  padding: var(--s-3) 20px; min-height: 56px;
+  /* Frosted rather than opaque, so the colour field shows through it and the header
+     belongs to the page instead of sitting on top of it. The border is mixed the same
+     way, so it does not draw a hard grey line across the wash. */
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.2);
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
 }
 /* On a wide screen the wrapper is not a box: brand, nav and the language switch are the
    header's own three flex items, exactly as before this file knew about .bar. */
 .top > .bar { display: contents; }
 /* The switches are second in the markup and last on the wide line. */
 .switches { order: 1; display: flex; align-items: center; gap: var(--s-2); }
+/* The wordmark is the one piece of gradient text in the app: three characters, large and
+   bold enough that the ramp reads as a colour and not as a blur. */
 .top .brand {
-  font-weight: 700; font-size: var(--fs-lg); letter-spacing: .02em;
-  color: var(--text); text-decoration: none;
+  font-weight: 800; font-size: 20px; letter-spacing: -.04em; line-height: 1;
+  background: var(--grad-accent); -webkit-background-clip: text; background-clip: text;
+  color: transparent; text-decoration: none;
 }
 .top nav { display: flex; gap: var(--s-1); flex: 1; flex-wrap: wrap; }
 .top nav a {
   padding: 5px 10px; border-radius: var(--radius-sm);
-  color: var(--muted); text-decoration: none; font-size: var(--fs-md);
+  color: var(--muted); text-decoration: none; font-size: var(--fs-md); font-weight: 500;
+  transition: background-color .15s ease, color .15s ease;
 }
-.top nav a:hover { background: var(--bg); color: var(--text); }
+.top nav a:hover { background: color-mix(in srgb, var(--text) 5%, transparent); color: var(--text); }
 .top nav a.active {
   background: var(--grad-accent-soft); color: var(--accent); font-weight: 600;
-  box-shadow: inset 0 0 0 1px var(--glow-accent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
 }
 /* One rule for both chrome switches: the theme glyph and the locale code are the same
    kind of control, so they must not drift into looking like two. The glyph needs a
@@ -290,9 +325,9 @@ body.public main { max-width: 720px; }
 }
 
 /* ---------- typography ---------- */
-h1 { font-size: var(--fs-xl); margin: 0 0 var(--s-1); letter-spacing: -.01em; }
-h2 { font-size: var(--fs-lg); margin: 28px 0 10px; }
-h3 { font-size: var(--fs-base); margin: 0 0 var(--s-3); }
+h1 { font-size: var(--fs-xl); margin: 0 0 var(--s-1); letter-spacing: -.025em; line-height: 1.15; font-weight: 700; }
+h2 { font-size: var(--fs-lg); margin: var(--s-7) 0 10px; letter-spacing: -.015em; font-weight: 650; }
+h3 { font-size: var(--fs-base); margin: 0 0 var(--s-3); font-weight: 650; }
 .sub { color: var(--muted); font-size: var(--fs-md); margin: 0 0 20px; }
 .muted { color: var(--muted); }
 .small { font-size: var(--fs-sm); }
@@ -302,7 +337,7 @@ a { color: var(--accent); }
 .card {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius); padding: var(--s-5); margin-bottom: var(--s-4);
-  box-shadow: 0 1px 2px -1px var(--glow-accent);
+  box-shadow: 0 1px 2px rgb(var(--shadow-rgb) / .04), 0 12px 32px -24px rgb(var(--shadow-rgb) / .25);
 }
 .card.private { border-left: 3px solid var(--private); background: var(--private-soft); }
 
@@ -317,7 +352,7 @@ a { color: var(--accent); }
   display: flex; align-items: center; gap: var(--s-3);
   padding: var(--s-2) var(--s-4); margin-bottom: -1px;
   background: linear-gradient(120deg, var(--private-soft), var(--surface) 92%);
-  box-shadow: inset 2px 0 0 var(--private), 0 2px 12px -8px var(--glow-private);
+  box-shadow: inset 2px 0 0 var(--private);
   color: var(--private);
   border: 1px solid var(--border); border-bottom: none;
   border-radius: var(--radius) var(--radius) 0 0;
@@ -339,9 +374,21 @@ a { color: var(--accent); }
   border-top-left-radius: calc(var(--radius) - 3px) calc(var(--radius) - 1px);
   border-top-right-radius: calc(var(--radius) - 1px);
   border-bottom-left-radius: 0; border-bottom-right-radius: 0;
-  box-shadow: 0 2px 12px -8px var(--glow-private);
+  box-shadow: none;
 }
-.rows { display: flex; flex-direction: column; gap: var(--s-3); }
+/* ---------- lists ----------
+   A list is one box with hairlines between its rows, not a stack of small cards. Twelve
+   people as twelve bordered boxes with air between them read as twelve things to consider
+   one at a time; the same twelve as rows of one list read as a list, which is what they
+   are, and the eye runs down the names instead of stopping at every frame. The container
+   wears the border and the corners; a row draws only the line above itself and takes the
+   container's corner when it is first or last. The corners are handed down rather than
+   clipped with overflow:hidden, because that would also clip the focus ring of a button
+   sitting at a row's edge. */
+.rows {
+  display: flex; flex-direction: column;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+}
 /* A row wraps at the width where its text stops being text, not at a breakpoint ----------
    min-width: 0 let the label column shrink without limit, so on a phone a name and its
    cadence line came out one word per line while the buttons beside it kept their full
@@ -352,11 +399,15 @@ a { color: var(--accent); }
    Above the floor nothing wraps, so the desktop row is unchanged to the pixel. */
 .row {
   display: flex; align-items: center; gap: var(--s-4); flex-wrap: wrap; row-gap: var(--s-3);
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: var(--s-4) 14px;
+  padding: var(--s-4) 14px;
+  border-top: 1px solid var(--border);
+  transition: background-color .15s ease;
 }
-.row { transition: border-color .15s ease, box-shadow .15s ease; }
-.row:hover { border-color: var(--muted); box-shadow: 0 4px 16px -12px var(--glow-accent); }
+.row:first-child { border-top: 0; border-radius: var(--radius) var(--radius) 0 0; }
+.row:last-child { border-radius: 0 0 var(--radius) var(--radius); }
+/* The hover tint is mixed from the text colour, so it darkens the light surface and
+   lightens the dark one by the same small step; --bg would go the wrong way on one of them. */
+.row:hover { background: color-mix(in srgb, var(--text) 4%, var(--surface)); }
 .row .grow { flex: 1; min-width: 12em; overflow-wrap: break-word; }
 .row .name { font-weight: 600; }
 .row a.name { text-decoration: none; color: var(--text); }
@@ -367,31 +418,17 @@ a { color: var(--accent); }
   display: inline-block; padding: 2px var(--s-3); border-radius: 999px;
   font-size: var(--fs-xs); font-weight: 600; white-space: nowrap;
 }
-/* The fill and the ink are untouched — those were measured. What is added is a ring and a
-   halo in the badge's own colour, so a row of badges reads as a row of small lit chips
-   rather than as flat stickers, and each family is still told apart by hue and wording. */
-.badge.overdue {
-  background: var(--danger-soft); color: var(--danger);
-  box-shadow: 0 0 0 1px var(--glow-danger), 0 2px 10px -5px var(--glow-danger);
-}
-.badge.due_soon {
-  background: var(--warn-soft); color: var(--warn);
-  box-shadow: 0 0 0 1px var(--glow-warn), 0 2px 10px -5px var(--glow-warn);
-}
-.badge.ok {
-  background: var(--ok-soft); color: var(--ok);
-  box-shadow: 0 0 0 1px var(--glow-ok), 0 2px 10px -5px var(--glow-ok);
-}
+/* The fill and the ink were measured and are untouched. The edge is one rule for every
+   family: a hairline mixed from the badge's own ink, so a soft fill still has a boundary
+   against the surface and no family needs a colour of its own for it. */
+.badge { box-shadow: 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent); }
+.badge.overdue { background: var(--danger-soft); color: var(--danger); }
+.badge.due_soon { background: var(--warn-soft); color: var(--warn); }
+.badge.ok { background: var(--ok-soft); color: var(--ok); }
 .badge.no_cadence { background: var(--bg); color: var(--muted); }
-.badge.private {
-  background: var(--private-soft); color: var(--private);
-  box-shadow: 0 0 0 1px var(--glow-private), 0 2px 10px -5px var(--glow-private);
-}
-.badge.shared {
-  background: var(--accent-soft); color: var(--accent);
-  box-shadow: 0 0 0 1px var(--glow-accent), 0 2px 10px -5px var(--glow-accent);
-}
-.badge.neutral { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+.badge.private { background: var(--private-soft); color: var(--private); }
+.badge.shared { background: var(--accent-soft); color: var(--accent); }
+.badge.neutral { background: var(--bg); color: var(--muted); }
 
 /* ---------- forms ---------- */
 label { display: block; font-weight: 600; font-size: var(--fs-md); margin-bottom: var(--s-1); }
@@ -407,7 +444,7 @@ textarea { min-height: 92px; resize: vertical; }
    one declaration, so it cannot drift into two different rings again.
    The offset earns its place. A primary button is filled with --accent as well, and
    without the 1px gap of page background the ring would disappear into it; on --surface
-   and --bg the accent carries 6.7:1 and 6.5:1.
+   and --bg the accent carries 5.9:1 and 5.7:1.
    The scale is the one indirection. `.scale-opt input` is visually hidden with opacity: 0,
    and an outline on a transparent element is transparent too, so there the ring is drawn
    on the visible span beside the input. Same declaration, not a second description.
@@ -417,8 +454,9 @@ textarea { min-height: 92px; resize: vertical; }
   outline: 2px solid var(--accent);
   outline-offset: 1px;
   /* The halo is decoration on top of the ring, never instead of it: the 2px outline is
-     what carries the contrast, and it is unchanged. */
-  box-shadow: 0 0 0 4px var(--glow-accent);
+     what carries the contrast. The halo is the accent at a quarter strength, mixed on the
+     spot so it follows the surface without a token of its own. */
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent);
 }
 /* The hidden input must not claim a ring nobody could see. */
 .scale-opt input:focus-visible { outline: none; }
@@ -441,23 +479,29 @@ input.invalid, select.invalid, textarea.invalid, .datepick.invalid .datepick-inp
 @media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
 
 button, .btn {
-  display: inline-block; padding: var(--s-3) 14px; font: inherit; font-weight: 600;
+  display: inline-block; padding: var(--s-3) 14px; font: inherit; font-weight: 600; letter-spacing: -.005em;
   border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface);
   color: var(--text); cursor: pointer; text-decoration: none;
-  transition: border-color .15s ease, box-shadow .15s ease, filter .15s ease;
+  transition: border-color .15s ease, background-color .15s ease;
 }
 button:hover, .btn:hover { border-color: var(--muted); }
-/* The one gradient the eye is meant to notice: the primary action runs from the accent
-   into its companion hue and sits on a halo of its own colour. --on-accent is unchanged
-   and clears 4.5:1 against both ends of the ramp on both surfaces, so the label is as
-   readable as it was on the flat fill. */
+/* A press moves the button one pixel: the state is already legible from the click, so
+   this is feedback, not decoration, and it needs no transition. */
+button:active, .btn:active { transform: translateY(1px); }
+/* The primary action is the gradient, lit: a highlight along its top edge and a shadow in
+   its own colour under it, so it is the one thing on the page that looks like it can be
+   pressed. --on-accent clears 4.5:1 against both ends of the ramp on both surfaces (see
+   the token comment). The hover lifts it a little further; the press puts it back down. */
 button.primary, .btn.primary {
   background: var(--grad-accent); border-color: transparent; color: var(--on-accent);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16), 0 6px 18px -10px var(--glow-accent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18),
+              0 8px 20px -10px color-mix(in srgb, var(--accent) 65%, transparent);
+  transition: box-shadow .15s ease, filter .15s ease, transform .1s ease;
 }
 button.primary:hover, .btn.primary:hover {
-  filter: brightness(1.06) saturate(1.04);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2), 0 10px 24px -10px var(--glow-accent);
+  filter: brightness(1.06) saturate(1.05);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22),
+              0 12px 28px -12px color-mix(in srgb, var(--accent) 75%, transparent);
 }
 button.danger { color: var(--danger); }
 button.link {
@@ -474,11 +518,12 @@ button.link {
   border: 1px solid var(--border); border-radius: var(--radius-sm);
   background: var(--surface); font-weight: 600; cursor: pointer;
 }
+.scale-opt:hover span { border-color: var(--accent); }
 .scale-opt input:checked + span {
   background: var(--grad-accent); border-color: transparent; color: var(--on-accent);
-  box-shadow: 0 4px 14px -8px var(--glow-accent);
+  box-shadow: 0 6px 16px -10px color-mix(in srgb, var(--accent) 70%, transparent);
 }
-.scale-opt span { transition: background .15s ease, box-shadow .15s ease; }
+.scale-opt span { transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease; }
 /* The focus ring for this control lives with the app-wide :focus-visible rule above. */
 .scale-ends {
   display: flex; justify-content: space-between; font-size: var(--fs-xs);
@@ -512,7 +557,8 @@ button.link {
 
 /* ---------- empty states ---------- */
 .empty {
-  border: 1px dashed var(--border); border-radius: var(--radius);
+  border: 1px dashed color-mix(in srgb, var(--accent) 28%, var(--border)); border-radius: var(--radius);
+  background: var(--grad-accent-soft);
   padding: 28px 20px; text-align: center; color: var(--muted);
 }
 
@@ -551,7 +597,7 @@ button.link {
 .rail a:hover { background: var(--bg); color: var(--text); }
 .rail a.current {
   background: var(--grad-accent-soft); color: var(--accent); font-weight: 600;
-  box-shadow: inset 0 0 0 1px var(--glow-accent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
 }
 .rail a .of { font-variant-numeric: tabular-nums; font-size: var(--fs-xs); flex: none; }
 .rail a.private-item { color: var(--private); }
@@ -567,8 +613,7 @@ button.link {
   overflow: hidden;
 }
 .progress .track i {
-  display: block; height: 100%; background: var(--grad-accent);
-  box-shadow: 0 0 10px var(--glow-accent);
+  display: block; height: 100%; background: var(--grad-accent); border-radius: 2px;
   transition: width .25s ease;
 }
 
@@ -578,17 +623,13 @@ button.link {
   position: sticky; bottom: 0; display: flex; align-items: center;
   gap: var(--s-4); flex-wrap: wrap;
   margin-top: var(--s-6); padding: var(--s-4) var(--s-5);
-  background: var(--surface); border: 1px solid var(--border);
+  /* Frosted like the header: it floats over the questions and shows them through itself,
+     and casts its shadow upward, onto what it covers. */
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
-  /* It floats over the questions, so it says so: a lifted shadow plus the accent hairline
-     the header wears, here along the top edge. */
-  box-shadow: 0 -6px 24px -18px var(--glow-accent), 0 10px 30px -22px var(--glow-accent);
-}
-/* position:sticky already makes the panel a containing block, so the hairline needs no
-   extra positioning rule of its own. */
-.commit-bar::before {
-  content: ""; position: absolute; left: 12px; right: 12px; top: -1px; height: 1px;
-  background: var(--grad-line); opacity: .8; pointer-events: none;
+  box-shadow: 0 -8px 24px -16px rgb(var(--shadow-rgb) / .3);
 }
 /* Same floor as .row, for the same reason: the progress recap used to be squeezed into a
    column one word wide next to the completion button. */
@@ -635,7 +676,7 @@ pre.md {
   display: flex; align-items: baseline; gap: var(--s-3);
   margin: 0 0 var(--s-3);
 }
-.group-head h3 { margin: 0; font-size: var(--fs-md); }
+.group-head h3 { margin: 0; font-size: var(--fs-base); }
 .group-head .count {
   font-size: var(--fs-xs); font-weight: 600; color: var(--muted);
   font-variant-numeric: tabular-nums;
@@ -643,13 +684,26 @@ pre.md {
 .group.attention .group-head h3 { color: var(--danger); }
 .group.soon .group-head h3 { color: var(--warn); }
 
-/* A one-line answer to "what do I do today", above the lists. */
+/* The answer to "what do I do today", above the lists: three figures the size of the page
+   title with their nouns under them. The numbers are the point of the dashboard, so they
+   are the largest thing on it after the title, and they are tabular so 4 and 14 take the
+   same column. The date sits in the subtitle under the title, where every other page
+   keeps its one line of context. */
 .headline {
-  display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-5);
-  align-items: baseline; margin: 0 0 var(--s-6);
-  font-size: var(--fs-md); color: var(--muted);
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--s-5) var(--s-6); margin: var(--s-5) 0 var(--s-7);
+  padding: var(--s-5) var(--s-6);
+  background: var(--grad-accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  border-radius: var(--radius);
+  font-size: var(--fs-sm); color: var(--muted);
 }
-.headline strong { color: var(--text); font-variant-numeric: tabular-nums; }
+.headline strong {
+  display: block; color: var(--text); font-size: var(--fs-2xl); font-weight: 700;
+  line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums;
+  margin-bottom: var(--s-1);
+}
+
 
 /* ---------- comparing people ---------- */
 .standing-value {
@@ -706,14 +760,14 @@ pre.md {
 
 .metric-tag {
   background: var(--grad-accent-soft); color: var(--accent);
-  box-shadow: 0 0 0 1px var(--glow-accent);
-  padding: 1px var(--s-2); border-radius: 4px; font-size: var(--fs-xs); font-weight: 600;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
+  padding: 1px var(--s-2); border-radius: var(--radius-sm); font-size: var(--fs-xs); font-weight: 600;
 }
 
 .preview-line { display: block; margin-top: var(--s-1); font-size: var(--fs-sm); color: var(--muted); }
 .chip {
   display: inline-block; background: var(--surface); border: 1px solid var(--border);
-  border-radius: 4px; padding: 1px var(--s-2); margin-right: var(--s-1); font-size: var(--fs-xs);
+  border-radius: var(--radius-sm); padding: 1px var(--s-2); margin-right: var(--s-1); font-size: var(--fs-xs);
 }
 
 .btn.small-btn { padding: 3px 9px; font-size: var(--fs-sm); }
@@ -739,8 +793,9 @@ label.inline input { width: auto; }
 .notice.error {
   background: var(--danger-soft); border-color: var(--danger-border); color: var(--danger);
 }
-.row.problem.error { border-left: 3px solid var(--danger); }
-.row.problem.warning { border-left: 3px solid var(--warn); }
+/* A row draws no border of its own any more, so the spine is an inset shadow. */
+.row.problem.error { box-shadow: inset 3px 0 0 var(--danger); }
+.row.problem.warning { box-shadow: inset 3px 0 0 var(--warn); }
 
 .empty.small { padding: 14px; font-size: var(--fs-sm); }
 
@@ -777,9 +832,7 @@ label.inline input { width: auto; }
 /* The call button: an outward action, so it reads differently from navigation. */
 .btn.join { white-space: nowrap; }
 .btn.join:not(.primary) { color: var(--accent); border-color: var(--accent-soft); }
-.btn.join:not(.primary):hover {
-  border-color: var(--accent); box-shadow: 0 0 0 3px var(--glow-accent);
-}
+.btn.join:not(.primary):hover { border-color: var(--accent); }
 
 /* ---------- grouped controls ----------
    A scale and an option set are groups of radios or checkboxes. A single <label for>
@@ -820,10 +873,10 @@ label.inline input { width: auto; }
   width: 320px; max-width: min(320px, calc(100vw - var(--s-6)));
   padding: var(--s-4);
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-  /* Lifted off the page, and lit by the accent rather than by a heavier grey: the panel
-     overlaps the form under it and must read as being in front of it. */
-  box-shadow: 0 0 0 1px var(--glow-accent), 0 18px 40px -20px var(--glow-accent),
-              0 12px 32px -20px rgba(0, 0, 0, .5);
+  /* Lifted off the page: the panel overlaps the form under it and must read as being in
+     front of it. Two shadows, a wide soft one and a tight one at the edge, both in the
+     surface's own shadow colour. */
+  box-shadow: 0 16px 40px -16px rgb(var(--shadow-rgb) / .35), 0 2px 8px -4px rgb(var(--shadow-rgb) / .2);
 }
 .datepick-head {
   display: flex; align-items: center; justify-content: space-between; gap: var(--s-3);
@@ -854,10 +907,13 @@ label.inline input { width: auto; }
 /* The days either side of the month stay in the grid — a calendar with holes in the first
    and last week is harder to read than one with two quiet weeks. */
 .datepick-day.other { color: var(--muted); opacity: .5; }
-.datepick-day.today { color: var(--accent); font-weight: 700; border-color: var(--glow-accent); }
+.datepick-day.today {
+  color: var(--accent); font-weight: 700;
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+}
 .datepick-day.chosen {
   background: var(--grad-accent); color: var(--on-accent); border-color: transparent;
-  box-shadow: 0 4px 14px -8px var(--glow-accent);
+  box-shadow: 0 6px 16px -10px color-mix(in srgb, var(--accent) 70%, transparent);
 }
 .datepick-foot {
   display: flex; justify-content: space-between; gap: var(--s-3);
