@@ -3,6 +3,8 @@ import { thm } from "../middleware/theme.ts";
 import { db } from "../db/index.ts";
 import { cadenceGroups } from "../db/queries/cadence.ts";
 import { openActions } from "../db/queries/actions.ts";
+import { upcomingBirthdays } from "../db/queries/people.ts";
+import { config } from "../config.ts";
 import { dashboardPage } from "../views/pages/dashboard.ts";
 import { loc } from "../middleware/locale.ts";
 import { user, OWNER_ID } from "../middleware/current-user.ts";
@@ -17,6 +19,7 @@ dashboardRoutes.get("/", (c) => {
       locale: loc(c), theme: thm(c),
       cadence: cadenceGroups(db(), t, OWNER_ID),
       actions: openActions(db(), t, null, OWNER_ID),
+      birthdays: upcomingBirthdays(db(), t, config.birthdayWindowDays, OWNER_ID),
       today: t,
     }),
   );

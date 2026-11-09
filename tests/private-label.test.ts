@@ -57,7 +57,7 @@ describe("the privacy label", () => {
 
     const page = personPage({
       locale: "en", theme: "auto", person: getPerson(db, personId, 1)!, cadence: null,
-      meetings: [], actions: [], metrics: [],
+      today: "2026-09-07", meetings: [], actions: [], metrics: [],
     });
 
     expect(page).toContain('class="private-head"');

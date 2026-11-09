@@ -429,6 +429,8 @@ a { color: var(--accent); }
 .badge.private { background: var(--private-soft); color: var(--private); }
 .badge.shared { background: var(--accent-soft); color: var(--accent); }
 .badge.neutral { background: var(--bg); color: var(--muted); }
+/* The birthday that is today: the one row on the page that asks for a message now. */
+.badge.birthday_today { background: var(--accent-soft); color: var(--accent); }
 
 /* ---------- forms ---------- */
 label { display: block; font-weight: 600; font-size: var(--fs-md); margin-bottom: var(--s-1); }
@@ -683,6 +685,7 @@ pre.md {
 }
 .group.attention .group-head h3 { color: var(--danger); }
 .group.soon .group-head h3 { color: var(--warn); }
+.group.birthdays .group-head h3 { color: var(--accent); }
 
 /* The answer to "what do I do today", above the lists: three figures the size of the page
    title with their nouns under them. The numbers are the point of the dashboard, so they

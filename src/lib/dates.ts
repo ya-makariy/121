@@ -95,3 +95,82 @@ export function formatDateInput(value: string | null | undefined): string {
   const [y, m, d] = value.split("-") as [string, string, string];
   return `${d}.${m}.${y}`;
 }
+
+/**
+ * A birthday: a day in the year, with the year itself optional.
+ *
+ * Not a date. A date names one day in history; a birthday recurs, and the year is a
+ * separate fact that a person may prefer to keep to themselves. So it is its own type,
+ * parsed by its own function, and stored in its own columns (migration 0006).
+ */
+export interface Birthday {
+  month: number;
+  day: number;
+  year: number | null;
+}
+
+// Day and month, then optionally a year, in the same order and with the same separators as
+// a typed date. The year-less ISO form (--MM-DD) is accepted for the same reason the
+// canonical date is: it is what a script or an old link would send.
+const TYPED_BIRTHDAY_RE = /^(\d{1,2})[.\/-](\d{1,2})(?:[.\/-](\d{4}))?$/;
+const ISO_BIRTHDAY_RE = /^(?:(\d{4})|-)-(\d{2})-(\d{2})$/;
+
+/**
+ * The HTML `pattern` for the birthday field: what parseBirthdayInput accepts, so the
+ * browser refuses the rest before the server does. Same `v`-flag escaping as the date one.
+ */
+export const BIRTHDAY_INPUT_PATTERN =
+  "\\s*(\\d{1,2}[.\\/\\-]\\d{1,2}([.\\/\\-]\\d{4})?|(\\d{4}|-)-\\d{2}-\\d{2})\\s*";
+
+/**
+ * "12.11", "12.11.1990", "1990-11-12" or "--11-12" -> {month, day, year}. null when it is
+ * not a birthday at all. A day that does not exist is refused, not rolled over; without a
+ * year the check is made in a leap year, so the 29th of February is a birthday one can
+ * have.
+ */
+export function parseBirthdayInput(value: string): Birthday | null {
+  const raw = value.trim();
+  if (raw === "") return null;
+
+  let day: number, month: number, year: number | null;
+  const typed = TYPED_BIRTHDAY_RE.exec(raw);
+  const iso = typed ? null : ISO_BIRTHDAY_RE.exec(raw);
+  if (typed) {
+    day = Number.parseInt(typed[1]!, 10);
+    month = Number.parseInt(typed[2]!, 10);
+    year = typed[3] === undefined ? null : Number.parseInt(typed[3], 10);
+  } else if (iso) {
+    year = iso[1] === undefined ? null : Number.parseInt(iso[1], 10);
+    month = Number.parseInt(iso[2]!, 10);
+    day = Number.parseInt(iso[3]!, 10);
+  } else {
+    return null;
+  }
+
+  // The same bounds as the CHECK constraints in migration 0006, so a value the parser
+  // accepts is a value the database accepts.
+  if (year !== null && (year < 1900 || year > 2100)) return null;
+  const probeYear = year ?? 2000;
+  const iso8601 = `${probeYear}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  if (!DATE_RE.test(iso8601) || !isRealDate(iso8601)) return null;
+  return { month, day, year };
+}
+
+/** The inverse of parseBirthdayInput, for filling the field: "12.11" or "12.11.1990". */
+export function formatBirthdayInput(b: Birthday | null | undefined): string {
+  if (!b) return "";
+  const dayMonth = `${String(b.day).padStart(2, "0")}.${String(b.month).padStart(2, "0")}`;
+  return b.year === null ? dayMonth : `${dayMonth}.${b.year}`;
+}
+
+/**
+ * The day the birthday falls on in a given year, as YYYY-MM-DD. The 29th of February
+ * lands on the 28th when the year has no 29th: the reminder is about the person, and a
+ * person born on the 29th does not skip a year.
+ */
+export function birthdayInYear(b: Birthday, year: number): string {
+  const yearStr = String(year).padStart(4, "0");
+  const candidate = `${yearStr}-${String(b.month).padStart(2, "0")}-${String(b.day).padStart(2, "0")}`;
+  if (isRealDate(candidate)) return candidate;
+  return `${yearStr}-02-28`;
+}

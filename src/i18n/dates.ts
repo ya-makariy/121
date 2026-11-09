@@ -28,6 +28,16 @@ export function formatDate(date: string, locale: Locale): string {
     .format(new Date(Date.UTC(y, m - 1, d, 12)));
 }
 
+/**
+ * A day in the year without its year: "12 ноября" / "12 November". For a birthday whose
+ * year was not given, and for the reminder, where the year is today's and goes unsaid.
+ */
+export function formatDayMonth(month: number, day: number, locale: Locale): string {
+  if (locale === "ru") return `${day} ${RU_MONTHS_GENITIVE[month - 1]}`;
+  return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", timeZone: "UTC" })
+    .format(new Date(Date.UTC(2000, month - 1, day, 12)));
+}
+
 /** "2026-05" -> "май 2026" / "May 2026". The comparison chart's x-axis is monthly. */
 export function formatMonth(period: string, locale: Locale): string {
   const m = /^(\d{4})-(\d{2})$/.exec(period);

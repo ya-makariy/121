@@ -63,6 +63,11 @@ export const en: Dict = {
     noOpenActions: "No open agreements.",
     emptyPeople: "Nobody here yet. Add your first person and you can run a 1:1.",
     startMeeting: "Run a 1:1",
+    birthdays: "Birthdays",
+    birthdayToday: "today!",
+    birthdayTomorrow: "tomorrow",
+    birthdayIn: "in {days} {unit}",
+    dayForms: ["day", "days"],
   },
 
   people: {
@@ -73,6 +78,10 @@ export const en: Dict = {
     defaultTemplate: "Default template",
     meetingUrl: "Meeting link",
     meetingUrlHint: "The recurring room for your 1:1s: Meet, Zoom, whatever you use. It shows up as a button on the dashboard and on the person's page.",
+    birthday: "Birthday",
+    birthdayHint: "DD.MM or DD.MM.YYYY; the year is optional. The dashboard reminds you a week ahead.",
+    birthdayFormat: "DD.MM.YYYY",
+    turns: "turns {age}",
     notes: "My notes on this person",
     notesHint: "Private. Never appears in a summary.",
     team: "Team",
@@ -334,6 +343,7 @@ export const en: Dict = {
     OPTION_LABEL_REQUIRED: "An option needs a label.",
 
     URL_INVALID: "The link \"{url}\" will not do: an http or https address is needed.",
+    BIRTHDAY_INVALID: "\"{value}\" does not look like a birthday: use DD.MM or DD.MM.YYYY.",
 
     METRIC_LABEL_REQUIRED: "A metric needs a label.",
     METRIC_NOT_FOUND: "Metric not found.",
@@ -384,6 +394,7 @@ export const en: Dict = {
     title: "121 — full export",
     warning: "Includes private notes. This is a backup, not a summary.",
     privateNotes: "Private notes",
+    birthday: "Birthday",
     privateAboutMeeting: "Private, about this meeting",
     agreements: "Agreements",
     noDate: "no date",

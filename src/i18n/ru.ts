@@ -67,6 +67,11 @@ export const ru = {
     noOpenActions: "Открытых договорённостей нет.",
     emptyPeople: "Пока никого нет. Добавьте первого человека — и можно проводить 1:1.",
     startMeeting: "Провести 1:1",
+    birthdays: "Дни рождения",
+    birthdayToday: "сегодня!",
+    birthdayTomorrow: "завтра",
+    birthdayIn: "через {days} {unit}",
+    dayForms: ["день", "дня", "дней"],
   },
 
   people: {
@@ -77,6 +82,10 @@ export const ru = {
     defaultTemplate: "Шаблон по умолчанию",
     meetingUrl: "Ссылка на встречу",
     meetingUrlHint: "Постоянная комната для ваших 1:1: Meet, Zoom, что угодно. Появится кнопкой на дашборде и в карточке.",
+    birthday: "День рождения",
+    birthdayHint: "ДД.ММ или ДД.ММ.ГГГГ — год по желанию. За неделю до даты появится напоминание на дашборде.",
+    birthdayFormat: "ДД.ММ.ГГГГ",
+    turns: "исполняется {age}",
     notes: "Мои заметки о человеке",
     notesHint: "Приватно. Не попадает в саммари никогда.",
     team: "Команда",
@@ -338,6 +347,7 @@ export const ru = {
     OPTION_LABEL_REQUIRED: "У варианта должна быть подпись.",
 
     URL_INVALID: "Ссылка «{url}» не подходит: нужен адрес http или https.",
+    BIRTHDAY_INVALID: "«{value}» не похоже на день рождения: нужно ДД.ММ или ДД.ММ.ГГГГ.",
 
     METRIC_LABEL_REQUIRED: "У метрики должна быть подпись.",
     METRIC_NOT_FOUND: "Метрика не найдена.",
@@ -388,6 +398,7 @@ export const ru = {
     title: "121 — полная выгрузка",
     warning: "Включает приватные заметки. Это бэкап, а не саммари.",
     privateNotes: "Приватные заметки",
+    birthday: "День рождения",
     privateAboutMeeting: "Приватно о встрече",
     agreements: "Договорённости",
     noDate: "без даты",

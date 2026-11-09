@@ -6,7 +6,8 @@ import type { Locale } from "../../db/types.ts";
 import type { CadenceOverview, PersonCadence } from "../../db/queries/cadence.ts";
 import type { CadenceStatus } from "../../domain/cadence.ts";
 import type { OpenActionRow } from "../../db/queries/actions.ts";
-import { formatDate } from "../../i18n/dates.ts";
+import type { UpcomingBirthday } from "../../db/queries/people.ts";
+import { formatDate, formatDayMonth } from "../../i18n/dates.ts";
 import { joinLink } from "../components/join-link.ts";
 
 /**
@@ -68,10 +69,62 @@ function personRow(
   `;
 }
 
+/**
+ * "today!", "tomorrow", "in 5 days · 14 November". The day itself is named from the third
+ * day on: "in 5 days" alone sends the reader to a calendar, and the reminder exists so they
+ * need not open one.
+ */
+function birthdayWhen(b: UpcomingBirthday, locale: Locale, t: ReturnType<typeof dict>): string {
+  if (b.daysUntil === 0) return t.dashboard.birthdayToday;
+  if (b.daysUntil === 1) return t.dashboard.birthdayTomorrow;
+  const [, month, day] = b.on.split("-").map((x) => Number.parseInt(x, 10)) as [number, number, number];
+  const when = format(t.dashboard.birthdayIn, {
+    days: b.daysUntil, unit: pluralForm(locale, b.daysUntil, t.dashboard.dayForms),
+  });
+  return `${when} · ${formatDayMonth(month, day, locale)}`;
+}
+
+/**
+ * The reminder block. Rendered only when someone's birthday is within the window: an empty
+ * "no birthdays" line every day would train the eye to skip the block on the day it matters.
+ */
+function birthdaysBlock(
+  birthdays: UpcomingBirthday[], locale: Locale, t: ReturnType<typeof dict>,
+): Raw | "" {
+  if (birthdays.length === 0) return "";
+  return html`
+    <div class="group birthdays">
+      <div class="group-head">
+        <h3><span aria-hidden="true">\u{1F382}</span> ${t.dashboard.birthdays}</h3>
+        <span class="count">${birthdays.length}</span>
+      </div>
+      <div class="rows">
+        ${birthdays.map(
+          (b) => html`
+            <div class="row">
+              <span class="${classes("badge", b.daysUntil === 0 ? "birthday_today" : "neutral")}">
+                ${birthdayWhen(b, locale, t)}
+              </span>
+              <span class="grow">
+                <a class="name" href="/people/${b.id}">${b.full_name}</a>
+                ${b.turning !== null
+                  ? html`<span class="small muted"> · ${format(t.people.turns, { age: b.turning })}</span>`
+                  : ""}
+              </span>
+            </div>
+          `,
+        )}
+      </div>
+    </div>
+  `;
+}
+
 export function dashboardPage(o: {
   locale: Locale; theme: Theme;
   cadence: CadenceOverview;
   actions: OpenActionRow[];
+  /** Whose birthday is within config.birthdayWindowDays, soonest first. */
+  birthdays: UpcomingBirthday[];
   /** Today in the owner's timezone, from domain/cadence.ts:todayInTz(). */
   today: string;
 }): string {
@@ -81,6 +134,8 @@ export function dashboardPage(o: {
   const body = html`
     <h1>${t.dashboard.title}</h1>
     <p class="sub">${format(t.dashboard.todayIs, { date: formatDate(o.today, o.locale) })}</p>
+
+    ${birthdaysBlock(o.birthdays, o.locale, t)}
 
     ${c.total === 0
       ? html`
