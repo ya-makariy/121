@@ -7,3 +7,4 @@ data/
 *.sqlite-shm
 design/out/
 .claude/worktrees/
+output/
